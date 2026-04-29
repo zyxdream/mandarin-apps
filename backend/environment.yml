@@ -1,0 +1,7 @@
+name: mandarin-apps
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.13
+prefix: /Users/yuxiao/anaconda3/envs/mandarin-apps

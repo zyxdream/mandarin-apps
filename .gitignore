@@ -1,0 +1,7 @@
+.DS_Store
+
+# Backend secrets / local runtime files
+backend/.env
+backend/__pycache__/
+backend/**/*.pyc
+

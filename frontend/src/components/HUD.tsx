@@ -1,0 +1,50 @@
+import type { Word } from '../types/word';
+
+interface HUDProps {
+  score: number;
+  combo: number;
+  timeRemaining: number;
+  collectedWords: Word[];
+}
+
+export function HUD({ score, combo, timeRemaining, collectedWords }: HUDProps) {
+  const isLowTime = timeRemaining <= 10;
+  const recentWords = collectedWords.slice(-5);
+
+  return (
+    <div className="hud">
+      <div className="hud-left">
+        <div className="hud-score">{score}</div>
+        <div className="hud-label">SCORE</div>
+      </div>
+
+      <div className="hud-center">
+        <div className="collected-bar">
+          <div className="collected-title">Collected Words</div>
+          <div className="collected-list">
+            {recentWords.length > 0 ? recentWords.map((word, index) => (
+              <div key={`${word.id}-${index}`} className="collected-banner">
+                <span>{word.pinyin}</span>
+                <strong>{word.hanzi}</strong>
+              </div>
+            )) : (
+              <div className="collected-empty">Whack moles to collect banners</div>
+            )}
+          </div>
+        </div>
+        <div className={`hud-timer ${isLowTime ? 'hud-timer--low' : ''}`}>
+          {timeRemaining}
+        </div>
+      </div>
+
+      <div className="hud-right">
+        {combo >= 2 && (
+          <div className="hud-combo">
+            <span className="hud-combo-count">x{combo}</span>
+            <span className="hud-combo-label">COMBO</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
