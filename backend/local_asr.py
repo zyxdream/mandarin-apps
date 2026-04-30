@@ -1,0 +1,111 @@
+import os
+import subprocess
+import tempfile
+import wave
+from pathlib import Path
+from threading import Lock
+
+import numpy as np
+
+
+class LocalAsrUnavailable(RuntimeError):
+    pass
+
+
+class SherpaOnnxAsr:
+    def __init__(self) -> None:
+        self._recognizer = None
+        self._lock = Lock()
+
+    @property
+    def model_dir(self) -> Path:
+        default_dir = Path(__file__).resolve().parent / "models" / "sherpa-onnx-paraformer-zh-small-2024-03-09"
+        return Path(os.getenv("SHERPA_ONNX_MODEL_DIR", str(default_dir))).expanduser()
+
+    def transcribe_webm(self, audio_bytes: bytes, filename: str = "speech.webm") -> str:
+        recognizer = self._get_recognizer()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            input_path = tmp_path / filename
+            wav_path = tmp_path / "speech.wav"
+            input_path.write_bytes(audio_bytes)
+            self._convert_to_wav(input_path, wav_path)
+            sample_rate, waveform = self._read_wav(wav_path)
+
+        stream = recognizer.create_stream()
+        stream.accept_waveform(sample_rate, waveform)
+        recognizer.decode_stream(stream)
+        return getattr(stream.result, "text", "") or ""
+
+    def _get_recognizer(self):
+        if self._recognizer is not None:
+            return self._recognizer
+
+        with self._lock:
+            if self._recognizer is not None:
+                return self._recognizer
+
+            try:
+                import sherpa_onnx  # type: ignore[import-not-found]
+            except Exception as exc:
+                raise LocalAsrUnavailable(
+                    "sherpa-onnx is not installed. Install it with `pip install sherpa-onnx`."
+                ) from exc
+
+            model_dir = self.model_dir
+            model_path = model_dir / "model.int8.onnx"
+            tokens_path = model_dir / "tokens.txt"
+            if not model_path.exists() or not tokens_path.exists():
+                raise LocalAsrUnavailable(
+                    "Sherpa ONNX model files are missing. Expected "
+                    f"{model_path} and {tokens_path}. Download "
+                    "sherpa-onnx-paraformer-zh-small-2024-03-09 into backend/models/."
+                )
+
+            self._recognizer = sherpa_onnx.OfflineRecognizer.from_paraformer(
+                paraformer=str(model_path),
+                tokens=str(tokens_path),
+                num_threads=int(os.getenv("SHERPA_ONNX_NUM_THREADS", "2")),
+                sample_rate=16000,
+                feature_dim=80,
+                decoding_method="greedy_search",
+                provider=os.getenv("SHERPA_ONNX_PROVIDER", "cpu"),
+            )
+            return self._recognizer
+
+    def _convert_to_wav(self, input_path: Path, wav_path: Path) -> None:
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-loglevel",
+                    "error",
+                    "-i",
+                    str(input_path),
+                    "-ac",
+                    "1",
+                    "-ar",
+                    "16000",
+                    str(wav_path),
+                ],
+                check=True,
+                capture_output=True,
+            )
+        except Exception as exc:
+            raise LocalAsrUnavailable("ffmpeg failed to convert uploaded audio to 16 kHz mono wav.") from exc
+
+    def _read_wav(self, wav_path: Path) -> tuple[int, np.ndarray]:
+        with wave.open(str(wav_path), "rb") as wav_file:
+            sample_rate = wav_file.getframerate()
+            sample_width = wav_file.getsampwidth()
+            frames = wav_file.readframes(wav_file.getnframes())
+
+        if sample_width != 2:
+            raise LocalAsrUnavailable(f"Expected 16-bit wav from ffmpeg, got sample width {sample_width}.")
+
+        waveform = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+        return sample_rate, waveform
+
+
+local_asr = SherpaOnnxAsr()

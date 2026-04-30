@@ -15,7 +15,7 @@ const TONE_COLORS: Record<Tone, number> = {
 
 const MOLE_WIDTH = 92;
 const MOLE_HEIGHT = 88;
-const HIT_IMPACT_FRAME = 20;
+const HIT_IMPACT_FRAME = 16;
 
 interface Particle {
   x: number; y: number;
@@ -40,10 +40,12 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
   const bannerRef = useRef<Graphics | null>(null);
   const hammerRef = useRef<Graphics | null>(null);
   const particleGfxRef = useRef<Graphics | null>(null);
+  const feedbackGfxRef = useRef<Graphics | null>(null);
   const hanziRef = useRef<Text | null>(null);
   const pinyinRef = useRef<Text | null>(null);
   const secondChanceLabelRef = useRef<Text | null>(null);
   const reactionRef = useRef<Text | null>(null);
+  const feedbackRef = useRef<Text | null>(null);
 
   const particlesRef = useRef<Particle[]>([]);
   const animStateRef = useRef<string>('hidden');
@@ -51,6 +53,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
   const swingRef = useRef(0);
   const impactSpawnedRef = useRef(false);
   const lastStrikeRef = useRef(0);
+  const lastWordIdRef = useRef<string | null>(null);
   const lastBoardSizeRef = useRef({ width: 0, height: 0 });
   const volumeRef = useRef(volume);
 
@@ -65,6 +68,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const mole = new Graphics();
     const hammer = new Graphics();
     const particleGfx = new Graphics();
+    const feedbackGfx = new Graphics();
 
     const hanzi = new Text({ text: '', style: new TextStyle({
       fontFamily: '"Noto Sans SC", "PingFang SC", sans-serif',
@@ -86,17 +90,25 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     })});
     const reaction = new Text({ text: '', style: new TextStyle({
       fontFamily: 'sans-serif',
-      fontSize: 22,
+      fontSize: 30,
       fill: 0xffffff,
       fontWeight: 'bold',
+    })});
+    const feedback = new Text({ text: '', style: new TextStyle({
+      fontFamily: 'sans-serif',
+      fontSize: 34,
+      fill: 0xffffff,
+      fontWeight: 'bold',
+      stroke: { color: 0x512500, width: 5 },
     })});
 
     hanzi.anchor.set(0.5);
     pinyin.anchor.set(0.5, 0.5);
     secondChanceLabel.anchor.set(0.5, 0.5);
     reaction.anchor.set(0.5);
+    feedback.anchor.set(0.5);
 
-    container.addChild(particleGfx, banner, mole, pinyin, hanzi, secondChanceLabel, reaction);
+    container.addChild(feedbackGfx, particleGfx, banner, mole, pinyin, hanzi, secondChanceLabel, reaction, feedback);
     container.visible = false;
     app.stage.addChild(board);
     app.stage.addChild(container);
@@ -108,10 +120,12 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     moleRef.current = mole;
     hammerRef.current = hammer;
     particleGfxRef.current = particleGfx;
+    feedbackGfxRef.current = feedbackGfx;
     hanziRef.current = hanzi;
     pinyinRef.current = pinyin;
     secondChanceLabelRef.current = secondChanceLabel;
     reactionRef.current = reaction;
+    feedbackRef.current = feedback;
 
     return () => {
       board.parent?.removeChild(board);
@@ -140,7 +154,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     container.rotation = 0;
     if (hammerRef.current) hammerRef.current.visible = true;
 
-    const { word, animState, isSecondChance, reaction, strikeId } = activeMole;
+    const { word, animState, isSecondChance, reaction } = activeMole;
     const color = TONE_COLORS[word.tone];
 
     drawBanner(bannerRef.current!, color);
@@ -157,22 +171,15 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     secondChanceLabelRef.current!.visible = isSecondChance;
     secondChanceLabelRef.current!.y = -166;
 
-    reactionRef.current!.text = reaction === 'angry' ? 'Hey!' : reaction === 'laugh' ? 'Haha!' : reaction === 'dizzy' ? 'BANG!' : '';
-    reactionRef.current!.visible = reaction !== 'idle';
+    reactionRef.current!.text = reaction === 'angry' ? 'Oops!' : reaction === 'laugh' ? 'Hehe!' : reaction === 'dizzy' ? 'BANG!' : '';
+    reactionRef.current!.visible = reaction !== 'idle' && animState !== 'escaping';
     reactionRef.current!.y = -34;
+    feedbackRef.current!.visible = false;
+    feedbackRef.current!.alpha = 1;
+    feedbackRef.current!.scale.set(1);
+    feedbackGfxRef.current!.clear();
 
-    animStateRef.current = animState;
-    animTickRef.current = 0;
-    impactSpawnedRef.current = false;
-
-    particlesRef.current = [];
-
-    if (strikeId !== lastStrikeRef.current) {
-      lastStrikeRef.current = strikeId;
-      swingRef.current = 1;
-    }
-
-  }, [activeMole?.animState, activeMole?.word?.id, activeMole?.isSecondChance, activeMole?.reaction, activeMole?.strikeId, activeMole, volume]);
+  }, [activeMole?.animState, activeMole?.word?.id, activeMole?.isSecondChance, activeMole?.reaction, activeMole, volume]);
 
   useTick(() => {
     const board = boardRef.current;
@@ -199,9 +206,34 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     container.y = mole.y;
     container.scale.set(mole.scale);
 
+    const wordId = mole.word.id;
+    if (wordId !== lastWordIdRef.current) {
+      lastWordIdRef.current = wordId;
+      animTickRef.current = 0;
+      impactSpawnedRef.current = false;
+      particlesRef.current = [];
+    }
+    if (mole.animState !== animStateRef.current) {
+      animStateRef.current = mole.animState;
+      animTickRef.current = 0;
+      impactSpawnedRef.current = false;
+      particlesRef.current = [];
+    }
+    if (mole.strikeId !== lastStrikeRef.current) {
+      lastStrikeRef.current = mole.strikeId;
+      swingRef.current = 1;
+    }
+
     animTickRef.current += 1;
     const t = animTickRef.current;
     const animState = animStateRef.current;
+    const hitImpactAge = animState === 'hit' ? t - HIT_IMPACT_FRAME : -1;
+    if (hitImpactAge >= 0 && hitImpactAge < 20) {
+      const shake = Math.max(0, 1 - hitImpactAge / 20) * 7;
+      app.stage.position.set(Math.sin(hitImpactAge * 1.7) * shake, Math.cos(hitImpactAge * 1.3) * shake);
+    } else {
+      app.stage.position.set(0, 0);
+    }
 
     const bob = Math.sin(t * 0.08) * 2;
     if (animState === 'emerging') {
@@ -212,19 +244,26 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
         container.scale.set(mole.scale * (1 + Math.sin(t * 0.3) * 0.04));
       }
     } else if (animState === 'retry') {
-      container.x = mole.x + Math.sin(t * 0.7) * 8;
+      const dodge = easeOutBack(Math.min(1, t / 22));
+      const duck = easeOutCubic(Math.min(1, t / 18));
+      container.x = mole.x + Math.sin(t * 0.62) * 10 + (mole.reaction === 'laugh' ? 18 : -18) * dodge;
+      container.y = mole.y + duck * 22 + Math.sin(t * 0.45) * 4;
+      container.scale.set(
+        mole.scale * (1 + Math.sin(t * 0.38) * 0.035),
+        mole.scale * (1 - duck * 0.14),
+      );
     } else if (animState === 'hit') {
       const impactAge = Math.max(0, t - HIT_IMPACT_FRAME);
-      const impactEase = easeOutBack(Math.min(1, impactAge / 16));
-      const shake = Math.sin(impactAge * 1.25) * Math.max(0, 7 - impactAge * 0.32);
-      const sink = Math.max(0, impactAge - 20) * 2.1;
+      const impactEase = easeOutBack(Math.min(1, impactAge / 20));
+      const shake = Math.sin(impactAge * 1.1) * Math.max(0, 9 - impactAge * 0.28);
+      const sink = Math.max(0, impactAge - 30) * 1.7;
       container.x = mole.x + shake;
       container.y = mole.y - Math.sin(impactEase * Math.PI) * 7 + sink;
       container.scale.set(
         mole.scale * (1 + Math.sin(impactEase * Math.PI) * 0.08),
         mole.scale * (1 - Math.sin(impactEase * Math.PI) * 0.08),
       );
-      container.alpha = impactAge < 28 ? 1 : Math.max(0, 1 - (impactAge - 28) / 34);
+      container.alpha = impactAge < 42 ? 1 : Math.max(0, 1 - (impactAge - 42) / 34);
     } else if (animState === 'escaping') {
       container.y = mole.y + Math.min(50, t * 3);
       container.alpha = Math.max(0, 1 - t / 34);
@@ -237,8 +276,9 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     if (swingRef.current > 0) {
       const swing = swingRef.current;
       const progress = 1 - swing;
-      const windupEnd = 0.28;
-      const impactEnd = 0.68;
+      const windupEnd = 0.34;
+      const impactEnd = 0.66;
+      const holdEnd = 0.78;
       if (progress < windupEnd) {
         const eased = easeOutCubic(progress / windupEnd);
         hammer.rotation = -0.35 - eased * 0.9;
@@ -249,13 +289,17 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
         hammer.rotation = -1.25 + eased * 1.95;
         hammer.x = mole.x + 156 - eased * 144;
         hammer.y = mole.y - 138 + eased * 74;
+      } else if (progress < holdEnd) {
+        hammer.rotation = 0.7;
+        hammer.x = mole.x + 12;
+        hammer.y = mole.y - 64;
       } else {
-        const eased = easeOutBack((progress - impactEnd) / (1 - impactEnd));
+        const eased = easeOutBack((progress - holdEnd) / (1 - holdEnd));
         hammer.rotation = 0.7 - eased * 1.0;
         hammer.x = mole.x + 12 + eased * 66;
         hammer.y = mole.y - 64 - eased * 46;
       }
-      swingRef.current = Math.max(0, swing - 0.032);
+      swingRef.current = Math.max(0, swing - 0.028);
     } else {
       hammer.rotation = -0.48 + Math.sin(t * 0.06) * 0.08 - voicePower * 0.18;
     }
@@ -263,20 +307,53 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     drawHammer(hammer, voicePower);
 
     const pg = particleGfxRef.current!;
+    const fg = feedbackGfxRef.current!;
+    const feedback = feedbackRef.current!;
     pg.clear();
+    fg.clear();
     if (animState === 'hit') {
       const impactAge = t - HIT_IMPACT_FRAME;
       if (impactAge >= 0 && !impactSpawnedRef.current) {
         impactSpawnedRef.current = true;
         particlesRef.current = createImpactParticles(mole.word.tone);
       }
-      const ringLife = impactAge >= 0 ? Math.max(0, 1 - impactAge / 20) : 0;
+      const ringLife = impactAge >= 0 ? Math.max(0, 1 - impactAge / 28) : 0;
       if (ringLife > 0) {
         pg.circle(0, -44, 30 + (1 - ringLife) * 76);
         pg.stroke({ color: 0xfff176, alpha: ringLife, width: 8 * ringLife });
         pg.circle(0, -44, 14 + (1 - ringLife) * 38);
         pg.stroke({ color: 0xffffff, alpha: ringLife * 0.9, width: 4 * ringLife });
       }
+      if (impactAge >= 0 && impactAge < 44) {
+        const burstScale = 0.9 + Math.sin(Math.min(1, impactAge / 10) * Math.PI) * 0.18;
+        const burstAlpha = impactAge < 28 ? 1 : Math.max(0, 1 - (impactAge - 28) / 16);
+        drawImpactBurst(fg, 2, -60, 122 * burstScale, burstAlpha);
+        feedback.visible = true;
+        feedback.text = 'BOOM!';
+        feedback.x = 2;
+        feedback.y = -62;
+        feedback.alpha = burstAlpha;
+        feedback.rotation = Math.sin(impactAge * 0.35) * 0.08;
+        feedback.scale.set(impactAge < 8 ? 1.4 + impactAge * 0.06 : 1.72);
+      } else {
+        feedback.visible = false;
+      }
+    } else if (animState === 'retry') {
+      const missLife = Math.max(0, 1 - Math.max(0, t - 10) / 34);
+      if (missLife > 0) {
+        drawMissBadge(fg, 0, -92, missLife);
+        feedback.visible = true;
+        feedback.text = 'OOPS!';
+        feedback.x = 0;
+        feedback.y = -94;
+        feedback.alpha = missLife;
+        feedback.rotation = Math.sin(t * 0.4) * 0.05;
+        feedback.scale.set(1.05 + Math.sin(Math.min(1, t / 12) * Math.PI) * 0.18);
+      } else {
+        feedback.visible = false;
+      }
+    } else {
+      feedback.visible = false;
     }
     const nextParticles: Particle[] = [];
     for (const p of particlesRef.current) {
@@ -300,12 +377,20 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       if (animState === 'hit') {
         const impactAge = t - HIT_IMPACT_FRAME;
         reaction.visible = true;
-        reaction.y = -92 - Math.min(20, Math.max(0, impactAge) * 1.1);
-        reaction.scale.set(impactAge < 0 ? 0.4 : Math.max(0.8, 1.85 - impactAge * 0.035));
-        reaction.alpha = impactAge < 0 ? 0 : Math.max(0, 1 - Math.max(0, impactAge - 18) / 18);
+        reaction.text = impactAge < 20 ? 'BANG!' : 'GOOD!';
+        reaction.y = -128 - Math.min(20, Math.max(0, impactAge) * 0.7);
+        reaction.scale.set(impactAge < 0 ? 0.4 : Math.max(1.1, 2.05 - impactAge * 0.018));
+        reaction.alpha = impactAge < 0 ? 0 : Math.max(0, 1 - Math.max(0, impactAge - 42) / 22);
       } else {
-        reaction.scale.set(1);
         reaction.alpha = 1;
+        if (animState === 'retry') {
+          reaction.visible = true;
+          reaction.y = -104 - Math.min(18, t * 0.8);
+          reaction.scale.set(Math.max(1.1, 2.0 - t * 0.025));
+          reaction.alpha = Math.max(0, 1 - Math.max(0, t - 22) / 16);
+        } else {
+          reaction.scale.set(1);
+        }
       }
     }
   });
@@ -330,6 +415,27 @@ function createImpactParticles(tone: Tone): Particle[] {
     });
   }
   return ps;
+}
+
+function drawImpactBurst(gfx: Graphics, x: number, y: number, radius: number, alpha: number) {
+  gfx.moveTo(x + radius, y);
+  for (let i = 1; i <= 24; i += 1) {
+    const angle = (i / 24) * Math.PI * 2;
+    const pointRadius = i % 2 === 0 ? radius : radius * 0.55;
+    gfx.lineTo(x + Math.cos(angle) * pointRadius, y + Math.sin(angle) * pointRadius);
+  }
+  gfx.closePath();
+  gfx.fill({ color: 0xffd447, alpha: alpha * 0.96 });
+  gfx.stroke({ color: 0x7a2500, alpha, width: 6 });
+
+  gfx.circle(x, y, radius * 0.46);
+  gfx.fill({ color: 0xffffff, alpha: alpha * 0.45 });
+}
+
+function drawMissBadge(gfx: Graphics, x: number, y: number, alpha: number) {
+  gfx.roundRect(x - 86, y - 24, 172, 48, 12);
+  gfx.fill({ color: 0x2f6bd9, alpha: alpha * 0.94 });
+  gfx.stroke({ color: 0xffffff, alpha, width: 5 });
 }
 
 function easeInCubic(value: number) {

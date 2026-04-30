@@ -2,6 +2,7 @@
 
 # Backend secrets / local runtime files
 backend/.env
+backend/models/
 backend/__pycache__/
 backend/**/*.pyc
 

@@ -9,6 +9,7 @@ interface LogicalSnapshot {
   score: number;
   combo: number;
   timeRemaining: number;
+  isEvaluating: boolean;
   animState: string | null;
   wordId: string | null;
   isSecondChance: boolean | null;
@@ -26,6 +27,7 @@ function extractLogical(state: GameState): LogicalSnapshot {
     score: state.score,
     combo: state.combo,
     timeRemaining: state.timeRemaining,
+    isEvaluating: state.isEvaluating,
     animState: state.activeMole?.animState ?? null,
     wordId: state.activeMole?.word?.id ?? null,
     isSecondChance: state.activeMole?.isSecondChance ?? null,
@@ -45,6 +47,7 @@ function logicalChanged(a: LogicalSnapshot | null, b: LogicalSnapshot): boolean 
     a.score !== b.score ||
     a.combo !== b.combo ||
     a.timeRemaining !== b.timeRemaining ||
+    a.isEvaluating !== b.isEvaluating ||
     a.animState !== b.animState ||
     a.wordId !== b.wordId ||
     a.isSecondChance !== b.isSecondChance ||

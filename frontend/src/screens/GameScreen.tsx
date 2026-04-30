@@ -3,7 +3,7 @@ import type { GameState } from '../types/game';
 import { useGameEngine } from '../hooks/useGameEngine';
 import { useGameAudio } from '../hooks/useGameAudio';
 import { useMicrophone } from '../hooks/useMicrophone';
-import { MoleCanvas } from '../components/BubbleCanvas';
+import { MoleCanvas } from '../components/MoleCanvas';
 import { HUD } from '../components/HUD';
 import { VoiceMeter } from '../components/MicButton';
 import { PronunciationHint } from '../components/PronunciationHint';
@@ -22,6 +22,7 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
   const lastVoiceAtRef = useRef(0);
   const speechStartedAtRef = useRef(0);
   const speechPeakVolumeRef = useRef(0);
+  const voiceCandidateStartedAtRef = useRef(0);
 
   useEffect(() => {
     if (micState !== 'listening' || startedRoundRef.current) return;
@@ -46,21 +47,28 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
     if (micState !== 'listening' || !gameState?.activeMole) return;
 
     const now = Date.now();
-    const speechStartThreshold = 0.04;
-    const speechEndThreshold = 0.02;
-    const speechEndSilenceMs = 200;
-    const strikeCooldownMs = 950;
-    const minSpeechDurationMs = 260;
-    const minSpeechPeakVolume = 0.045;
+    const speechStartThreshold = 0.12;
+    const speechEndThreshold = 0.045;
+    const speechStartHoldMs = 180;
+    const speechEndSilenceMs = 320;
+    const strikeCooldownMs = 1200;
+    const minSpeechDurationMs = 650;
+    const minSpeechPeakVolume = 0.16;
 
     if (isSpeakingRef.current) {
       speechPeakVolumeRef.current = Math.max(speechPeakVolumeRef.current, volume);
     }
 
     if (volume >= speechStartThreshold) {
+      if (!voiceCandidateStartedAtRef.current) {
+        voiceCandidateStartedAtRef.current = now;
+      }
+      if (!isSpeakingRef.current && now - voiceCandidateStartedAtRef.current < speechStartHoldMs) {
+        return;
+      }
       if (!isSpeakingRef.current) {
         console.log('[speech] start', { volume: Number(volume.toFixed(3)) });
-        speechStartedAtRef.current = now;
+        speechStartedAtRef.current = voiceCandidateStartedAtRef.current;
         speechPeakVolumeRef.current = volume;
       }
       isSpeakingRef.current = true;
@@ -68,6 +76,7 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
       return;
     }
 
+    voiceCandidateStartedAtRef.current = 0;
     if (!isSpeakingRef.current || volume > speechEndThreshold) return;
     if (now - lastVoiceAtRef.current < speechEndSilenceMs) return;
     if (now - lastStrikeRef.current < strikeCooldownMs) return;
@@ -87,7 +96,7 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
       return;
     }
 
-    const audio = captureRecentAudio();
+    const audio = captureRecentAudio({ sinceMs: speechStartedAtRef.current, preRollMs: 220 });
     if (!audio) return;
     const speechEndedAt = now;
     console.log('[speech] end, submitting audio', {

@@ -12,9 +12,11 @@ import type { EvalResult } from '../types/game';
  */
 export class HttpEvaluator implements PronunciationEvaluator {
   private readonly baseUrl: string;
+  private readonly evaluatePath: string;
 
   constructor(baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000') {
     this.baseUrl = baseUrl;
+    this.evaluatePath = import.meta.env.VITE_EVALUATE_PATH ?? '/evaluate/local';
   }
 
   async evaluate(audioBlob: Blob, word: Word): Promise<EvalResult> {
@@ -31,8 +33,9 @@ export class HttpEvaluator implements PronunciationEvaluator {
         word: word.hanzi,
         pinyinRaw: word.pinyinRaw,
         bytes: audioBlob.size,
+        path: this.evaluatePath,
       });
-      const res = await fetch(`${this.baseUrl}/evaluate`, { method: 'POST', body: form });
+      const res = await fetch(`${this.baseUrl}${this.evaluatePath}`, { method: 'POST', body: form });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as {
         success: boolean;
@@ -69,7 +72,7 @@ export class HttpEvaluator implements PronunciationEvaluator {
         elapsedMs: Math.round(performance.now() - requestStartedAt),
         error,
       });
-      return { success: false, confidence: 0, wordId: word.id };
+      return { success: false, confidence: 0, wordId: word.id, error: true };
     }
   }
 }

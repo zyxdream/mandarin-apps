@@ -18,9 +18,14 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const contextRef = useRef<AudioContext | null>(null);
   const musicTimerRef = useRef<number | null>(null);
   const musicStepRef = useRef(0);
+  const gameStateRef = useRef<GameState | null>(gameState);
   const lastStrikeIdRef = useRef(0);
   const lastAnimStateRef = useRef<string | null>(null);
   const wasEvaluatingRef = useRef(false);
+
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -30,6 +35,10 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
 
     if (musicTimerRef.current === null) {
       musicTimerRef.current = window.setInterval(() => {
+        const mole = gameStateRef.current?.activeMole;
+        if (mole && (mole.animState === 'active' || mole.animState === 'listening')) {
+          return;
+        }
         playMusicTick(context, musicStepRef.current);
         musicStepRef.current += 1;
       }, 340);
@@ -63,7 +72,11 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
       playHit(context);
     }
 
-    if (mole.animState === 'retry' && lastAnimStateRef.current !== 'retry') {
+    if (
+      mole.animState === 'retry' &&
+      lastAnimStateRef.current !== 'retry' &&
+      mole.reaction !== 'idle'
+    ) {
       playMiss(context);
     }
     lastAnimStateRef.current = mole.animState;
@@ -106,6 +119,30 @@ function playTone(
   oscillator.stop(now + duration + 0.02);
 }
 
+function playSweep(
+  context: AudioContext,
+  fromFrequency: number,
+  toFrequency: number,
+  startDelay: number,
+  duration: number,
+  volume: number,
+  type: OscillatorType = 'sine',
+) {
+  const now = context.currentTime + startDelay;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(fromFrequency, now);
+  oscillator.frequency.exponentialRampToValueAtTime(toFrequency, now + duration);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(volume, now + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start(now);
+  oscillator.stop(now + duration + 0.02);
+}
+
 function playNoise(context: AudioContext, duration: number, volume: number) {
   const buffer = context.createBuffer(1, context.sampleRate * duration, context.sampleRate);
   const data = buffer.getChannelData(0);
@@ -128,22 +165,28 @@ function playNoise(context: AudioContext, duration: number, volume: number) {
 function playMusicTick(context: AudioContext, step: number) {
   const note = MELODY[step % MELODY.length];
   const downbeat = step % 4 === 0;
-  playTone(context, NOTE_FREQ[note], 0, 0.11, downbeat ? 0.018 : 0.012, 'triangle');
+  playTone(context, NOTE_FREQ[note], 0, 0.12, downbeat ? 0.032 : 0.024, 'triangle');
 }
 
 function playChecking(context: AudioContext) {
-  playTone(context, 740, 0, 0.06, 0.025, 'sine');
-  playTone(context, 920, 0.065, 0.07, 0.02, 'sine');
+  playTone(context, 740, 0, 0.045, 0.016, 'sine');
+  playTone(context, 920, 0.06, 0.05, 0.014, 'sine');
 }
 
 function playHit(context: AudioContext) {
-  playNoise(context, 0.08, 0.08);
-  playTone(context, 160, 0, 0.1, 0.07, 'square');
-  playTone(context, 420, 0.03, 0.11, 0.05, 'triangle');
-  playTone(context, 720, 0.11, 0.12, 0.04, 'square');
+  playNoise(context, 0.16, 0.15);
+  playSweep(context, 180, 70, 0, 0.18, 0.13, 'square');
+  playTone(context, 520, 0.035, 0.12, 0.075, 'triangle');
+  playTone(context, 880, 0.13, 0.16, 0.07, 'square');
+  playTone(context, 1320, 0.24, 0.12, 0.045, 'triangle');
 }
 
 function playMiss(context: AudioContext) {
-  playTone(context, 360, 0, 0.09, 0.035, 'sawtooth');
-  playTone(context, 240, 0.08, 0.12, 0.028, 'sawtooth');
+  // Short airy slip — suggests something sliding off / dropping
+  playNoise(context, 0.04, 0.038);
+  // Main “fall”: smooth sine glide (failure / weight dropping)
+  playSweep(context, 380, 58, 0.02, 0.4, 0.095, 'sine');
+  // Landing thud + faint upper partial for a dull “wrong” knock
+  playTone(context, 58, 0.38, 0.22, 0.072, 'sine');
+  playTone(context, 92, 0.4, 0.14, 0.028, 'sine');
 }

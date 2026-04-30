@@ -506,6 +506,43 @@
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
+  border: none;
+  font: inherit;
+  text-align: left;
+}
+
+.result-missed-word--playable {
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.result-missed-word--playable:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.result-missed-word--playable:focus-visible {
+  outline: 2px solid #fff59d;
+  outline-offset: 2px;
+}
+
+.result-missed-word--playable:active {
+  transform: scale(0.98);
+}
+
+.result-missed-word--playing {
+  background: rgba(255, 241, 118, 0.2);
+  box-shadow: 0 0 0 1px rgba(255, 241, 118, 0.45);
+}
+
+.result-missed-word--error {
+  box-shadow: 0 0 0 1px rgba(229, 57, 53, 0.5);
+}
+
+.result-missed-audio-hint {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #ffcdd2;
+  margin-left: 0.15rem;
 }
 
 .result-missed-hanzi {

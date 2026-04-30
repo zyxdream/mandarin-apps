@@ -11,27 +11,24 @@ export type EngineEvent =
 
 type EngineListener = (event: EngineEvent) => void;
 
-const ROUND_SECONDS = 45;
-const SECOND_CHANCE_INTERVAL_MS = 4500;
-const CONSECUTIVE_MISS_THRESHOLD = 3;
-const SECOND_CHANCE_PROBABILITY = 0.40;
-const HIT_ANIM_MS = 620;
-const MISS_RETRY_MS = 760;
-const MOLE_VISIBLE_MS = 4300;
+const ROUND_SECONDS = 60;
+const HIT_ANIM_MS = 1180;
+const MISS_FEEDBACK_MS = 1080;
+const NEXT_MOLE_DELAY_MS = 450;
+const MOLE_VISIBLE_MS = 10000;
 const EMERGE_MS = 260;
-const SECOND_CHANCE_BONUS = 10;
-const MAX_SECOND_CHANCE_QUEUE = 3;
+const MIN_SECONDS_TO_SPAWN_MOLE = 7;
 
 export class GameEngine {
   private state: GameState;
   private wordQueue: Word[];
   private readonly listeners = new Set<EngineListener>();
   private countdownHandle: ReturnType<typeof setInterval> | null = null;
-  private secondChanceHandle: ReturnType<typeof setInterval> | null = null;
   private activeMoleTimeout: ReturnType<typeof setTimeout> | null = null;
   private readonly evaluator: PronunciationEvaluator;
   private canvas: BoardConfig;
   private evaluating = false;
+  private endAfterEvaluation = false;
   private lastSlotIndex: number | null = null;
   private strikeId = 0;
 
@@ -67,24 +64,22 @@ export class GameEngine {
   start(): void {
     if (this.countdownHandle) return;
     this.state = this.initialState();
-    this.spawnNextMole(false);
+    this.spawnNextMole();
 
     this.countdownHandle = setInterval(() => this.countdown(), 1000);
-    this.secondChanceHandle = setInterval(() => this.trySpawnSecondChance(), SECOND_CHANCE_INTERVAL_MS);
   }
 
   stop(): void {
     if (this.countdownHandle) clearInterval(this.countdownHandle);
-    if (this.secondChanceHandle) clearInterval(this.secondChanceHandle);
     if (this.activeMoleTimeout) clearTimeout(this.activeMoleTimeout);
     this.countdownHandle = null;
-    this.secondChanceHandle = null;
     this.activeMoleTimeout = null;
+    this.endAfterEvaluation = false;
   }
 
   async submitEvaluation(audioBlob: Blob): Promise<void> {
     if (!this.state.activeMole || this.evaluating) return;
-    if (this.state.activeMole.animState !== 'active' && this.state.activeMole.animState !== 'retry') return;
+    if (this.state.activeMole.animState !== 'active') return;
 
     const word = this.state.activeMole.word;
     this.evaluating = true;
@@ -107,50 +102,69 @@ export class GameEngine {
     try {
       result = await this.evaluator.evaluate(audioBlob, word);
     } catch {
-      result = { success: false, confidence: 0, wordId: word.id };
+      result = { success: false, confidence: 0, wordId: word.id, error: true };
     }
 
     this.evaluating = false;
-    this.setState({ isEvaluating: false });
     console.log('[latency] game evaluation result', {
       word: word.hanzi,
       success: result.success,
       confidence: result.confidence,
       elapsedMs: Math.round(performance.now() - evaluationStartedAt),
     });
+    if (this.endAfterEvaluation) {
+      this.handleFinalResult(result);
+      return;
+    }
+
     this.handleResult(result);
+  }
+
+  private buildEvalHint(result: EvalResult): GameState['lastHint'] {
+    if (!result.hintCode || !result.hintText) return null;
+    return {
+      code: result.hintCode,
+      text: result.hintText,
+      transcript: result.transcript,
+      confidence: result.confidence,
+    };
   }
 
   private handleResult(result: EvalResult): void {
     if (this.state.screen !== 'game') return;
-    this.setState({
-      lastHint: result.hintCode && result.hintText
-        ? {
-            code: result.hintCode,
-            text: result.hintText,
-            transcript: result.transcript,
-            confidence: result.confidence,
-          }
-        : null,
-    });
+    const lastHint = this.buildEvalHint(result);
+
+    if (result.error) {
+      if (!this.state.activeMole) return;
+      this.setState({
+        lastHint,
+        isEvaluating: false,
+        activeMole: { ...this.state.activeMole, animState: 'active', reaction: 'idle' },
+      });
+      this.armActiveMoleTimeout();
+      return;
+    }
+
     if (result.success) {
-      this.handleSuccess();
+      this.handleSuccess(lastHint);
     } else {
-      this.handleMiss();
+      this.handleMiss(lastHint);
     }
   }
 
-  private handleSuccess(): void {
+  private handleSuccess(lastHint: GameState['lastHint']): void {
     if (!this.state.activeMole) return;
     const word = this.state.activeMole.word;
     const newCombo = this.state.combo + 1;
-    const earned = scoreForResult(word, newCombo) + (this.state.activeMole.isSecondChance ? SECOND_CHANCE_BONUS : 0);
+    const earned = scoreForResult(word, newCombo);
     console.log('[latency] confirmed bonk triggered', {
       word: word.hanzi,
       strikeId: this.strikeId + 1,
     });
 
     this.setState({
+      lastHint,
+      isEvaluating: false,
       activeMole: { ...this.state.activeMole, animState: 'hit', reaction: 'dizzy', strikeId: ++this.strikeId },
       score: this.state.score + earned,
       combo: newCombo,
@@ -161,113 +175,84 @@ export class GameEngine {
     setTimeout(() => {
       if (this.state.screen !== 'game') return;
       this.setState({ activeMole: null });
-      this.spawnNextMole(false);
+      this.scheduleNextMole();
     }, HIT_ANIM_MS);
   }
 
-  private handleMiss(): void {
+  private handleMiss(lastHint: GameState['lastHint']): void {
     if (!this.state.activeMole) return;
     const word = this.state.activeMole.word;
-    const newSecondChanceQueue = this.enqueueSecondChance(word);
 
-    const newConsecutiveMissCount = this.state.consecutiveMissCount + 1;
     const reaction: MoleReaction = Math.random() > 0.5 ? 'angry' : 'laugh';
 
     this.setState({
+      lastHint,
+      isEvaluating: false,
       activeMole: { ...this.state.activeMole, animState: 'retry', reaction },
       combo: 0,
       wordsMissed: [...this.state.wordsMissed, word],
-      secondChanceQueue: newSecondChanceQueue,
-      consecutiveMissCount: newConsecutiveMissCount,
     });
 
     setTimeout(() => {
       if (!this.state.activeMole || this.state.activeMole.word.id !== word.id) return;
-      this.setState({
-        activeMole: { ...this.state.activeMole, animState: 'active', reaction: 'idle' },
-      });
-      this.armActiveMoleTimeout();
-    }, MISS_RETRY_MS);
-
-    if (newConsecutiveMissCount >= CONSECUTIVE_MISS_THRESHOLD) {
-      setTimeout(() => this.trySpawnSecondChance(), 500);
-    }
+      this.setState({ activeMole: null });
+      this.scheduleNextMole();
+    }, MISS_FEEDBACK_MS);
   }
 
   private handleAutoMiss(mole: MoleState): void {
     const word = mole.word;
-    const newSecondChanceQueue = this.enqueueSecondChance(word);
 
     this.setState({
-      activeMole: { ...mole, animState: 'escaping', reaction: 'laugh' },
+      activeMole: { ...mole, animState: 'escaping', reaction: 'idle' },
       combo: 0,
       wordsMissed: [...this.state.wordsMissed, word],
-      secondChanceQueue: newSecondChanceQueue,
-      consecutiveMissCount: this.state.consecutiveMissCount + 1,
     });
 
     setTimeout(() => {
       if (this.state.screen !== 'game') return;
       if (!this.state.activeMole || this.state.activeMole.word.id !== word.id) return;
       this.setState({ activeMole: null });
-      this.spawnNextMole(false);
+      this.scheduleNextMole();
     }, HIT_ANIM_MS);
   }
 
   private countdown(): void {
     const newTime = this.state.timeRemaining - 1;
     if (newTime <= 0) {
-      this.stop();
-      this.setState({ timeRemaining: 0, screen: 'result', activeMole: null });
-      this.emit({ type: 'gameOver', finalState: this.state });
+      this.setState({ timeRemaining: 0 });
+      this.finishRound();
       return;
     }
     this.setState({ timeRemaining: newTime });
   }
 
-  private trySpawnSecondChance(): void {
-    if (this.state.secondChanceQueue.length === 0) return;
-    if (this.state.activeMole !== null) return;
-
-    const queue = [...this.state.secondChanceQueue];
-    const word = queue.shift()!;
-    this.setState({
-      secondChanceQueue: queue,
-      consecutiveMissCount: 0,
-    });
-    this.spawnMole(word, true);
-  }
-
-  private spawnNextMole(isSecondChance: boolean): void {
+  private spawnNextMole(): void {
     if (this.state.screen !== 'game') return;
 
-    if (isSecondChance && this.state.secondChanceQueue.length > 0) {
-      const queue = [...this.state.secondChanceQueue];
-      const word = queue.shift()!;
-      this.setState({ secondChanceQueue: queue, consecutiveMissCount: 0 });
-      this.spawnMole(word, true);
-      return;
-    }
-
-    if (this.state.secondChanceQueue.length > 0 && Math.random() < 0.35) {
-      const queue = [...this.state.secondChanceQueue];
-      const word = queue.shift()!;
-      this.setState({ secondChanceQueue: queue, consecutiveMissCount: 0 });
-      this.spawnMole(word, true);
+    if (!this.hasEnoughTimeForNewMole()) {
+      this.finishRound();
       return;
     }
 
     if (this.wordQueue.length === 0) {
-      this.wordQueue = shuffleWords(
-        this.state.wordsHit.length > 0 || this.state.wordsMissed.length > 0
-          ? [...this.state.wordsHit, ...this.state.wordsMissed]
-          : [],
-      );
+      this.endGame();
+      return;
     }
 
-    if (this.wordQueue.length === 0) return;
     const word = this.wordQueue.shift()!;
     this.spawnMole(word, false);
+  }
+
+  private scheduleNextMole(): void {
+    setTimeout(() => {
+      if (this.state.screen !== 'game' || this.state.activeMole) return;
+      if (!this.hasEnoughTimeForNewMole()) {
+        this.finishRound();
+        return;
+      }
+      this.spawnNextMole();
+    }, NEXT_MOLE_DELAY_MS);
   }
 
   private spawnMole(word: Word, isSecondChance: boolean): void {
@@ -319,24 +304,79 @@ export class GameEngine {
     };
   }
 
-  private enqueueSecondChance(word: Word): Word[] {
-    const queue = [...this.state.secondChanceQueue];
-    if (Math.random() < SECOND_CHANCE_PROBABILITY && !queue.some(item => item.id === word.id)) {
-      queue.push(word);
-    }
-    return queue.slice(-MAX_SECOND_CHANCE_QUEUE);
-  }
-
   private armActiveMoleTimeout(): void {
     this.clearActiveMoleTimeout();
+    const timeoutMs = Math.min(MOLE_VISIBLE_MS, Math.max(1200, this.state.timeRemaining * 1000));
     this.activeMoleTimeout = setTimeout(() => {
       if (!this.state.activeMole || this.evaluating) return;
       this.handleAutoMiss(this.state.activeMole);
-    }, MOLE_VISIBLE_MS);
+    }, timeoutMs);
   }
 
   private clearActiveMoleTimeout(): void {
     if (this.activeMoleTimeout) clearTimeout(this.activeMoleTimeout);
     this.activeMoleTimeout = null;
+  }
+
+  private hasEnoughTimeForNewMole(): boolean {
+    return this.state.timeRemaining >= MIN_SECONDS_TO_SPAWN_MOLE;
+  }
+
+  private finishRound(): void {
+    if (this.evaluating) {
+      this.endAfterEvaluation = true;
+      if (this.countdownHandle) clearInterval(this.countdownHandle);
+      this.countdownHandle = null;
+      this.clearActiveMoleTimeout();
+      return;
+    }
+
+    const activeMole = this.state.activeMole;
+    if (
+      activeMole &&
+      activeMole.animState !== 'hit' &&
+      activeMole.animState !== 'retry' &&
+      activeMole.animState !== 'escaping'
+    ) {
+      this.setState({
+        combo: 0,
+        wordsMissed: [...this.state.wordsMissed, activeMole.word],
+      });
+    }
+    this.endGame();
+  }
+
+  private handleFinalResult(result: EvalResult): void {
+    this.endAfterEvaluation = false;
+    if (this.state.screen !== 'game') return;
+
+    const activeMole = this.state.activeMole;
+    const word = activeMole?.word;
+    const nextState: Partial<GameState> = {
+      lastHint: this.buildEvalHint(result),
+      isEvaluating: false,
+    };
+
+    if (word && !result.error) {
+      if (result.success) {
+        const newCombo = this.state.combo + 1;
+        nextState.score = this.state.score + scoreForResult(word, newCombo);
+        nextState.combo = newCombo;
+        nextState.wordsHit = [...this.state.wordsHit, word];
+      } else {
+        nextState.combo = 0;
+        nextState.wordsMissed = [...this.state.wordsMissed, word];
+      }
+    }
+
+    this.setState(nextState);
+    this.endGame();
+  }
+
+  private endGame(): void {
+    if (this.state.screen !== 'game') return;
+    this.stop();
+    this.setState({ screen: 'result', activeMole: null, isEvaluating: false, timeRemaining: 0 });
+    this.emit({ type: 'gameOver', finalState: this.state });
   }
 }

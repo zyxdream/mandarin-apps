@@ -7,7 +7,7 @@ export interface UseMicrophoneReturn {
   volume: number;
   startListening: () => Promise<void>;
   stopListening: () => void;
-  captureRecentAudio: () => Blob | null;
+  captureRecentAudio: (options?: { sinceMs?: number; preRollMs?: number }) => Blob | null;
 }
 
 interface AudioChunk {
@@ -145,14 +145,17 @@ export function useMicrophone(): UseMicrophoneReturn {
 
   useEffect(() => stopListening, [stopListening]);
 
-  const captureRecentAudio = useCallback((): Blob | null => {
+  const captureRecentAudio = useCallback((options?: { sinceMs?: number; preRollMs?: number }): Blob | null => {
     const recorder = recorderRef.current;
     if (recorder?.state === 'recording') {
       recorder.requestData();
     }
 
     const now = Date.now();
-    const recentChunks = chunksRef.current.filter(chunk => chunk.isHeader || now - chunk.createdAt <= RECENT_AUDIO_WINDOW_MS);
+    const fromMs = options?.sinceMs
+      ? Math.max(0, options.sinceMs - (options.preRollMs ?? 180))
+      : now - RECENT_AUDIO_WINDOW_MS;
+    const recentChunks = chunksRef.current.filter(chunk => chunk.isHeader || chunk.createdAt >= fromMs);
     if (recentChunks.length === 0) {
       console.warn('[mic] no recent audio chunks to submit');
       return null;
@@ -165,6 +168,7 @@ export function useMicrophone(): UseMicrophoneReturn {
       chunks: recentChunks.length,
       bytes: blob.size,
       type: blob.type,
+      bounded: Boolean(options?.sinceMs),
     });
     return blob;
   }, []);

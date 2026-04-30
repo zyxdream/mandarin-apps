@@ -1,5 +1,6 @@
 import type { Word } from '../types/word';
 
+/** When adding a word, also add it to `backend/word_catalog.py` and run `backend/scripts/generate_reference_audio.py`. */
 export const WORDS: Word[] = [
   // Easy — everyday nouns
   { id: 'ping2guo3', hanzi: '苹果', pinyin: 'píng guǒ', pinyinRaw: 'ping2 guo3', tone: 2, difficulty: 'easy', creatureName: 'Apple Mole', scoreValue: 10 },

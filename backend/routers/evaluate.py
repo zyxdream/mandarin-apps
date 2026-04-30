@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 import subprocess
@@ -12,6 +13,8 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from pypinyin import Style, lazy_pinyin
+
+from local_asr import LocalAsrUnavailable, local_asr
 
 try:
     from opencc import OpenCC  # type: ignore[import-not-found]
@@ -68,6 +71,14 @@ class EvaluateResponse(BaseModel):
     diagnostics: list[dict[str, str | int | bool]] = []
     hint_code: str | None = None
     hint_text: str | None = None
+
+
+class LocalAsrStatusResponse(BaseModel):
+    available: bool
+    model_dir: str
+    model_exists: bool
+    tokens_exists: bool
+    error: str | None = None
 
 
 class PinyinSyllable(BaseModel):
@@ -155,6 +166,28 @@ def get_thresholds(eval_mode: str) -> dict[str, float]:
     if eval_mode == "practice":
         return PRACTICE_THRESHOLDS
     return REALTIME_THRESHOLDS
+
+
+@router.get("/local/status", response_model=LocalAsrStatusResponse)
+async def local_asr_status() -> LocalAsrStatusResponse:
+    model_dir = local_asr.model_dir
+    model_path = model_dir / "model.int8.onnx"
+    tokens_path = model_dir / "tokens.txt"
+    model_exists = model_path.exists()
+    tokens_exists = tokens_path.exists()
+    error = None
+    try:
+        import sherpa_onnx  # type: ignore[import-not-found]  # noqa: F401
+    except Exception:
+        error = "sherpa-onnx is not installed"
+
+    return LocalAsrStatusResponse(
+        available=error is None and model_exists and tokens_exists,
+        model_dir=str(model_dir),
+        model_exists=model_exists,
+        tokens_exists=tokens_exists,
+        error=error,
+    )
 
 
 def normalize_hanzi(text: str) -> str:
@@ -543,6 +576,141 @@ def score_transcript(
     return success, round(confidence, 3), transcript_pinyin, scores, diagnostics, hint_code, hint_text
 
 
+@router.post("/local", response_model=EvaluateResponse)
+async def evaluate_pronunciation_local(
+    audio: UploadFile = File(..., description="webm/opus audio recording"),
+    word_id: str = Form(...),
+    pinyin_raw: str = Form(...),
+    hanzi: str = Form(""),
+    eval_mode: str = Form("realtime"),
+) -> EvaluateResponse:
+    """
+    Prototype local evaluator:
+    1. Convert uploaded browser audio to 16 kHz mono wav.
+    2. Transcribe with local sherpa-onnx Paraformer.
+    3. Reuse the same deterministic Hanzi/Pinyin scoring as the OpenAI route.
+    """
+    started_at = time.perf_counter()
+    request_id = uuid.uuid4().hex[:8]
+    timings: dict[str, float] = {"request_start": started_at}
+    eval_mode = eval_mode.lower().strip()
+    if eval_mode not in {"realtime", "practice"}:
+        eval_mode = "realtime"
+
+    audio_bytes = await audio.read()
+    debug_log(
+        request_id,
+        "local_request_received",
+        {
+            "word_id": word_id,
+            "hanzi": hanzi,
+            "pinyin_raw": pinyin_raw,
+            "eval_mode": eval_mode,
+            "filename": audio.filename,
+            "content_type": audio.content_type,
+            "bytes": len(audio_bytes),
+            "model_dir": str(local_asr.model_dir),
+        },
+        started_at,
+    )
+
+    if not audio_bytes:
+        return EvaluateResponse(success=False, confidence=0.0, word_id=word_id)
+
+    if eval_mode == "realtime" and len(audio_bytes) < MIN_REALTIME_AUDIO_BYTES:
+        return EvaluateResponse(
+            success=False,
+            confidence=0.0,
+            word_id=word_id,
+            hint_code="too_quiet",
+            hint_text=HINTS["too_quiet"],
+        )
+
+    try:
+        timings["asr_start"] = time.perf_counter()
+        transcript = await asyncio.to_thread(
+            local_asr.transcribe_webm,
+            audio_bytes,
+            audio.filename or "speech.webm",
+        )
+        timings["asr_end"] = time.perf_counter()
+    except LocalAsrUnavailable as exc:
+        debug_log(request_id, "local_asr_unavailable", {"error": str(exc)}, started_at)
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        debug_log(request_id, "local_asr_failed", {"error": str(exc)}, started_at)
+        raise HTTPException(status_code=502, detail="Local sherpa-onnx transcription failed") from exc
+
+    debug_log(request_id, "local_asr_transcript", {"transcript": transcript}, started_at)
+    if not is_transcript_usable(transcript, pinyin_raw):
+        timings["response_end"] = time.perf_counter()
+        debug_log(
+            request_id,
+            "local_asr_rejected_unusable_transcript",
+            {
+                "transcript": transcript,
+                "expected_pinyin_raw": pinyin_raw,
+                "has_hanzi": has_hanzi(transcript),
+                "pinyin_like": looks_like_pinyin_text(transcript, len(split_numbered_pinyin(pinyin_raw))),
+            },
+            started_at,
+        )
+        debug_log(
+            request_id,
+            "local_latency_summary",
+            {
+                "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
+                "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
+                "scoring_ms": 0,
+            },
+            started_at,
+        )
+        return EvaluateResponse(
+            success=False,
+            confidence=0.0,
+            word_id=word_id,
+            transcript=transcript,
+            hint_code="try_again_clearer",
+            hint_text=HINTS["try_again_clearer"],
+        )
+
+    timings["scoring_start"] = time.perf_counter()
+    success, confidence, transcript_pinyin, scores, diagnostics, hint_code, hint_text = score_transcript(
+        transcript,
+        hanzi,
+        pinyin_raw,
+        {"tone_contour": None},
+        None,
+        eval_mode=eval_mode,
+        request_id=request_id,
+        started_at=started_at,
+    )
+    timings["scoring_end"] = time.perf_counter()
+    timings["response_end"] = time.perf_counter()
+    debug_log(
+        request_id,
+        "local_latency_summary",
+        {
+            "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
+            "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
+            "scoring_ms": int((timings["scoring_end"] - timings["scoring_start"]) * 1000),
+        },
+        started_at,
+    )
+
+    return EvaluateResponse(
+        success=success,
+        confidence=confidence,
+        word_id=word_id,
+        transcript=transcript,
+        transcript_pinyin=transcript_pinyin,
+        scores=scores,
+        diagnostics=diagnostics,
+        hint_code=hint_code,
+        hint_text=hint_text,
+    )
+
+
 @router.post("", response_model=EvaluateResponse)
 async def evaluate_pronunciation(
     audio: UploadFile = File(..., description="webm/opus audio recording"),
@@ -672,6 +840,11 @@ async def evaluate_pronunciation(
             model=model,
             file=(audio.filename or "speech.webm", audio_bytes, "audio/webm"),
             language="zh",
+            prompt=(
+                "Transcribe only the spoken Mandarin target word in Simplified Chinese. "
+                f"The expected word is {hanzi}; expected pinyin is {pinyin_raw}. "
+                "Return only the Chinese word if it was spoken."
+            ),
         )
         timings["asr_end"] = time.perf_counter()
         debug_log(request_id, "asr_complete", {}, started_at)

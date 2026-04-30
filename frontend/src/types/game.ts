@@ -44,6 +44,7 @@ export interface EvalResult {
   success: boolean;
   confidence: number;
   wordId: string;
+  error?: boolean;
   transcript?: string;
   transcriptPinyin?: string;
   scores?: Record<string, number | null>;
