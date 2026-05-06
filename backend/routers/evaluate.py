@@ -9,6 +9,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from statistics import mean
 
+import numpy as np
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from openai import AsyncOpenAI
 from pydantic import BaseModel
@@ -129,6 +130,10 @@ HINTS: dict[str, str] = {
 }
 
 MIN_REALTIME_AUDIO_BYTES = 12_000
+MIN_REALTIME_AUDIO_RMS = float(os.getenv("MIN_REALTIME_AUDIO_RMS", "0.006"))
+MIN_REALTIME_AUDIO_PEAK = float(os.getenv("MIN_REALTIME_AUDIO_PEAK", "0.045"))
+MIN_REALTIME_ACTIVE_RATIO = float(os.getenv("MIN_REALTIME_ACTIVE_RATIO", "0.025"))
+MIN_REALTIME_ACTIVE_MS = int(os.getenv("MIN_REALTIME_ACTIVE_MS", "120"))
 
 REALTIME_THRESHOLDS = {
     "lexical_exact": 0.98,
@@ -147,6 +152,48 @@ PRACTICE_THRESHOLDS = {
 }
 
 LOCAL_ASR_DENOISE_RETRY_ENABLED = os.getenv("LOCAL_ASR_DENOISE_RETRY", "true").lower() == "true"
+
+
+def analyze_audio_activity(waveform: np.ndarray, sample_rate: int) -> dict[str, float | int]:
+    if waveform.size == 0 or sample_rate <= 0:
+        return {
+            "duration_ms": 0,
+            "rms": 0.0,
+            "peak": 0.0,
+            "active_ratio": 0.0,
+            "active_ms": 0,
+        }
+
+    absolute = np.abs(waveform)
+    rms = float(np.sqrt(np.mean(np.square(waveform))))
+    peak = float(np.max(absolute))
+    frame_size = max(1, int(sample_rate * 0.02))
+    frame_count = max(1, waveform.size // frame_size)
+    trimmed = waveform[:frame_count * frame_size]
+    frames = trimmed.reshape(frame_count, frame_size)
+    frame_rms = np.sqrt(np.mean(np.square(frames), axis=1))
+    active_threshold = max(MIN_REALTIME_AUDIO_RMS * 1.2, rms * 1.35)
+    active_frames = int(np.sum(frame_rms >= active_threshold))
+    active_ratio = active_frames / frame_count
+    duration_ms = int((waveform.size / sample_rate) * 1000)
+    active_ms = int(active_frames * 20)
+
+    return {
+        "duration_ms": duration_ms,
+        "rms": round(rms, 5),
+        "peak": round(peak, 5),
+        "active_ratio": round(active_ratio, 4),
+        "active_ms": active_ms,
+    }
+
+
+def is_realtime_audio_too_weak(activity: dict[str, float | int]) -> bool:
+    return (
+        float(activity["rms"]) < MIN_REALTIME_AUDIO_RMS or
+        float(activity["peak"]) < MIN_REALTIME_AUDIO_PEAK or
+        float(activity["active_ratio"]) < MIN_REALTIME_ACTIVE_RATIO or
+        int(activity["active_ms"]) < MIN_REALTIME_ACTIVE_MS
+    )
 
 
 def debug_log(request_id: str, stage: str, payload: dict, started_at: float | None = None) -> None:
@@ -629,12 +676,59 @@ async def evaluate_pronunciation_local(
         )
 
     try:
-        timings["asr_start"] = time.perf_counter()
-        transcript = await asyncio.to_thread(
-            local_asr.transcribe_webm,
+        timings["audio_decode_start"] = time.perf_counter()
+        sample_rate, waveform = await asyncio.to_thread(
+            local_asr.load_webm_waveform,
             audio_bytes,
             audio.filename or "speech.webm",
         )
+        timings["audio_decode_end"] = time.perf_counter()
+    except LocalAsrUnavailable as exc:
+        debug_log(request_id, "local_asr_unavailable", {"error": str(exc)}, started_at)
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        debug_log(request_id, "local_audio_decode_failed", {"error": str(exc)}, started_at)
+        raise HTTPException(status_code=502, detail="Local audio conversion failed") from exc
+
+    activity = analyze_audio_activity(waveform, sample_rate)
+    debug_log(request_id, "local_audio_activity", activity, started_at)
+    if eval_mode == "realtime" and is_realtime_audio_too_weak(activity):
+        timings["response_end"] = time.perf_counter()
+        debug_log(
+            request_id,
+            "local_audio_rejected_no_speech",
+            {
+                **activity,
+                "min_rms": MIN_REALTIME_AUDIO_RMS,
+                "min_peak": MIN_REALTIME_AUDIO_PEAK,
+                "min_active_ratio": MIN_REALTIME_ACTIVE_RATIO,
+                "min_active_ms": MIN_REALTIME_ACTIVE_MS,
+            },
+            started_at,
+        )
+        debug_log(
+            request_id,
+            "local_latency_summary",
+            {
+                "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
+                "audio_decode_ms": int((timings["audio_decode_end"] - timings["audio_decode_start"]) * 1000),
+                "asr_ms": 0,
+                "asr_denoise_ms": 0,
+                "scoring_ms": 0,
+            },
+            started_at,
+        )
+        return EvaluateResponse(
+            success=False,
+            confidence=0.0,
+            word_id=word_id,
+            hint_code="too_quiet",
+            hint_text=HINTS["too_quiet"],
+        )
+
+    try:
+        timings["asr_start"] = time.perf_counter()
+        transcript = await asyncio.to_thread(local_asr.transcribe_waveform, sample_rate, waveform)
         timings["asr_end"] = time.perf_counter()
     except LocalAsrUnavailable as exc:
         debug_log(request_id, "local_asr_unavailable", {"error": str(exc)}, started_at)

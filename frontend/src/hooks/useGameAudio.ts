@@ -128,6 +128,12 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     if (animState === 'listening' && lastAnimStateRef.current !== 'listening') {
       playSfx('whack');
     }
+    if (
+      (animState === 'retry' || animState === 'escaping') &&
+      lastAnimStateRef.current !== animState
+    ) {
+      playSfx('failure');
+    }
     lastAnimStateRef.current = animState;
 
     const hitCount = gameState.wordsHit.length;

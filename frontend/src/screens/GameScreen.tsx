@@ -32,9 +32,6 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
   const speechStartedAtRef = useRef(0);
   const speechPeakVolumeRef = useRef(0);
   const voiceCandidateStartedAtRef = useRef(0);
-  const fallbackVoiceStartedAtRef = useRef(0);
-  const fallbackVoiceLastAtRef = useRef(0);
-  const fallbackVoicePeakRef = useRef(0);
   const noiseFloorRef = useRef(0.018);
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
   const [resizeTarget, setResizeTarget] = useState<HTMLDivElement | null>(null);
@@ -104,9 +101,6 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
     if (!activeWordId) return;
     isSpeakingRef.current = false;
     voiceCandidateStartedAtRef.current = 0;
-    fallbackVoiceStartedAtRef.current = 0;
-    fallbackVoiceLastAtRef.current = 0;
-    fallbackVoicePeakRef.current = 0;
     speechPeakVolumeRef.current = 0;
     resetCaptureBuffer();
   }, [activeWordId, resetCaptureBuffer]);
@@ -128,34 +122,23 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
 
     const now = Date.now();
     const activeMole = gameState.activeMole;
-    const speechStartThreshold = Math.max(0.07, noiseFloorRef.current * 2.4);
-    const speechEndThreshold = Math.max(0.032, noiseFloorRef.current * 1.45);
-    const fallbackSpeechThreshold = Math.max(0.038, noiseFloorRef.current * 1.65);
-    const speechStartHoldMs = 120;
-    const speechEndSilenceMs = 360;
-    const fallbackEndSilenceMs = 420;
+    const speechStartThreshold = Math.max(0.09, noiseFloorRef.current * 3.1);
+    const speechEndThreshold = Math.max(0.04, noiseFloorRef.current * 1.45);
+    const speechStartHoldMs = 160;
+    const speechEndSilenceMs = 400;
     const strikeCooldownMs = 1200;
-    const minSpeechDurationMs = 380;
-    const minSpeechPeakVolume = Math.max(0.085, speechStartThreshold + 0.015);
-    const minFallbackDurationMs = 240;
-    const minFallbackPeakVolume = Math.max(0.052, fallbackSpeechThreshold + 0.01);
+    const minSpeechDurationMs = 440;
+    const minSpeechPeakVolume = Math.max(0.115, speechStartThreshold + 0.025);
+    const minSpeechAverageVolume = Math.max(0.058, noiseFloorRef.current + 0.018);
+    const minSpeechRiseOverNoise = Math.max(0.05, noiseFloorRef.current * 1.35);
 
     if (!isSpeakingRef.current) {
-      const blended = noiseFloorRef.current * 0.965 + volume * 0.035;
+      const blended = noiseFloorRef.current * 0.975 + volume * 0.025;
       noiseFloorRef.current = Math.max(0.008, Math.min(0.14, blended));
     }
 
     if (isSpeakingRef.current) {
       speechPeakVolumeRef.current = Math.max(speechPeakVolumeRef.current, volume);
-    }
-
-    if (!isSpeakingRef.current && volume >= fallbackSpeechThreshold) {
-      if (!fallbackVoiceStartedAtRef.current) {
-        fallbackVoiceStartedAtRef.current = now;
-        fallbackVoicePeakRef.current = volume;
-      }
-      fallbackVoiceLastAtRef.current = now;
-      fallbackVoicePeakRef.current = Math.max(fallbackVoicePeakRef.current, volume);
     }
 
     if (volume >= speechStartThreshold) {
@@ -180,51 +163,6 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
       return;
     }
 
-    if (
-      !isSpeakingRef.current &&
-      fallbackVoiceStartedAtRef.current &&
-      volume <= speechEndThreshold &&
-      now - fallbackVoiceLastAtRef.current >= fallbackEndSilenceMs &&
-      now - lastStrikeRef.current >= strikeCooldownMs
-    ) {
-      const fallbackDurationMs = fallbackVoiceLastAtRef.current - fallbackVoiceStartedAtRef.current;
-      const fallbackPeakVolume = fallbackVoicePeakRef.current;
-      const fallbackStartedAt = fallbackVoiceStartedAtRef.current;
-      fallbackVoiceStartedAtRef.current = 0;
-      fallbackVoiceLastAtRef.current = 0;
-      fallbackVoicePeakRef.current = 0;
-
-      if (fallbackDurationMs >= minFallbackDurationMs && fallbackPeakVolume >= minFallbackPeakVolume) {
-        const audio = captureRecentAudio({ sinceMs: fallbackStartedAt, preRollMs: 260 });
-        if (audio) {
-          lastStrikeRef.current = now;
-          console.log('[speech] fallback submitting audio', {
-            word: activeMole.word.hanzi,
-            pinyinRaw: activeMole.word.pinyinRaw,
-            durationMs: fallbackDurationMs,
-            peakVolume: Number(fallbackPeakVolume.toFixed(3)),
-            fallbackSpeechThreshold: Number(fallbackSpeechThreshold.toFixed(3)),
-            bytes: audio.size,
-          });
-          submitEvaluation(audio);
-          return;
-        }
-        console.warn('[speech] fallback skipped: no captured audio', {
-          word: activeMole.word.hanzi,
-          pinyinRaw: activeMole.word.pinyinRaw,
-        });
-      } else {
-        console.log('[speech] fallback skipped weak burst', {
-          word: activeMole.word.hanzi,
-          pinyinRaw: activeMole.word.pinyinRaw,
-          durationMs: fallbackDurationMs,
-          peakVolume: Number(fallbackPeakVolume.toFixed(3)),
-          minFallbackDurationMs,
-          minFallbackPeakVolume: Number(minFallbackPeakVolume.toFixed(3)),
-        });
-      }
-    }
-
     voiceCandidateStartedAtRef.current = 0;
     if (!isSpeakingRef.current || volume > speechEndThreshold) return;
     if (now - lastVoiceAtRef.current < speechEndSilenceMs) return;
@@ -246,16 +184,42 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
         speechEndThreshold: Number(speechEndThreshold.toFixed(3)),
         minSpeechDurationMs,
         minSpeechPeakVolume: Number(minSpeechPeakVolume.toFixed(3)),
+        minSpeechRiseOverNoise: Number(minSpeechRiseOverNoise.toFixed(3)),
       });
+      resetCaptureBuffer();
       return;
     }
 
-    const audio = captureRecentAudio({ sinceMs: speechStartedAtRef.current, preRollMs: 220 });
-    if (!audio) {
+    const capture = captureRecentAudio({ sinceMs: speechStartedAtRef.current, preRollMs: 220 });
+    if (!capture) {
       console.warn('[speech] skipped: no captured audio', {
         word: activeMole.word.hanzi,
         pinyinRaw: activeMole.word.pinyinRaw,
       });
+      return;
+    }
+    const { blob: audio, stats } = capture;
+    const peakRiseOverNoise = stats.peakVolume - noiseFloorRef.current;
+    if (
+      stats.durationMs < minSpeechDurationMs ||
+      stats.peakVolume < minSpeechPeakVolume ||
+      stats.averageVolume < minSpeechAverageVolume ||
+      peakRiseOverNoise < minSpeechRiseOverNoise
+    ) {
+      console.log('[speech] skipped capture quality gate', {
+        word: activeMole.word.hanzi,
+        pinyinRaw: activeMole.word.pinyinRaw,
+        durationMs: stats.durationMs,
+        peakVolume: Number(stats.peakVolume.toFixed(3)),
+        averageVolume: Number(stats.averageVolume.toFixed(3)),
+        noiseFloor: Number(noiseFloorRef.current.toFixed(3)),
+        peakRiseOverNoise: Number(peakRiseOverNoise.toFixed(3)),
+        minSpeechDurationMs,
+        minSpeechPeakVolume: Number(minSpeechPeakVolume.toFixed(3)),
+        minSpeechAverageVolume: Number(minSpeechAverageVolume.toFixed(3)),
+        minSpeechRiseOverNoise: Number(minSpeechRiseOverNoise.toFixed(3)),
+      });
+      resetCaptureBuffer();
       return;
     }
     const speechEndedAt = now;
@@ -264,16 +228,20 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
       type: audio.type,
       word: activeMole.word.hanzi,
       pinyinRaw: activeMole.word.pinyinRaw,
+      captureDurationMs: stats.durationMs,
+      capturePeakVolume: Number(stats.peakVolume.toFixed(3)),
+      captureAverageVolume: Number(stats.averageVolume.toFixed(3)),
     });
     console.log('[latency] utterance submit', {
       word: activeMole.word.hanzi,
       speechDurationMs,
       silenceWaitMs: speechEndedAt - lastVoiceAtRef.current,
       peakVolume: Number(speechPeakVolume.toFixed(3)),
+      averageVolume: Number(stats.averageVolume.toFixed(3)),
       bytes: audio.size,
     });
     submitEvaluation(audio);
-  }, [captureRecentAudio, gameState?.activeMole, micState, submitEvaluation, volume]);
+  }, [captureRecentAudio, gameState?.activeMole, micState, resetCaptureBuffer, submitEvaluation, volume]);
 
   return (
     <div

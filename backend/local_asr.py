@@ -23,15 +23,20 @@ class SherpaOnnxAsr:
         return Path(os.getenv("SHERPA_ONNX_MODEL_DIR", str(default_dir))).expanduser()
 
     def transcribe_webm(self, audio_bytes: bytes, filename: str = "speech.webm", denoise: bool = False) -> str:
-        recognizer = self._get_recognizer()
+        sample_rate, waveform = self.load_webm_waveform(audio_bytes, filename, denoise=denoise)
+        return self.transcribe_waveform(sample_rate, waveform)
+
+    def load_webm_waveform(self, audio_bytes: bytes, filename: str = "speech.webm", denoise: bool = False) -> tuple[int, np.ndarray]:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
             input_path = tmp_path / filename
             wav_path = tmp_path / "speech.wav"
             input_path.write_bytes(audio_bytes)
             self._convert_to_wav(input_path, wav_path, denoise=denoise)
-            sample_rate, waveform = self._read_wav(wav_path)
+            return self._read_wav(wav_path)
 
+    def transcribe_waveform(self, sample_rate: int, waveform: np.ndarray) -> str:
+        recognizer = self._get_recognizer()
         stream = recognizer.create_stream()
         stream.accept_waveform(sample_rate, waveform)
         recognizer.decode_stream(stream)

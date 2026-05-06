@@ -25,13 +25,21 @@ const BOARD_TEXT_FILL = 0xfff2c4;
 const BOARD_TEXT_STROKE = 0x4a2c16;
 const BOARD_TEXT_LINE_SPACING = 84;
 const HAMMER_BOARD_CLEARANCE_RATIO = 0.46;
-const HAMMER_HEAD_CLEARANCE_RATIO = 0.36;
-const HAMMER_HEAD_OFFSET_X_RATIO = 0.1;
-const HAMMER_HEAD_OFFSET_Y_RATIO = 0.18;
+const HAMMER_HEAD_CLEARANCE_RATIO = 0.08;
 const HAMMER_ANGLE_JITTER = 0.12;
 const HAMMER_EDGE_INSET_RATIO = 0.48;
 const HAMMER_IDLE_MIN_Y_RATIO = 1.18;
 const HAMMER_SIDE_JITTER_RATIO = 0.16;
+const HAMMER_ANCHOR_X = 0.45;
+const HAMMER_ANCHOR_Y = 0.22;
+const HAMMER_TEXTURE_FALLBACK_SIZE = 1254;
+const HAMMER_HEAD_SAFETY_POINTS = [
+  { x: 0.29, y: 0.36 },
+  { x: 0.34, y: 0.49 },
+  { x: 0.45, y: 0.56 },
+  { x: 0.58, y: 0.55 },
+  { x: 0.71, y: 0.47 },
+];
 
 const BACKGROUND_TEXTURE = '/assets/backgrounds/grass_world_with_holes_expand.png';
 const HAMMER_TEXTURE = '/assets/objects/hammer_right_transparent.png';
@@ -115,6 +123,11 @@ interface HammerPlacementState {
   angleBias: number;
 }
 
+interface HammerSafetyPoint {
+  x: number;
+  y: number;
+}
+
 function hashWord(value: string): number {
   let hash = 2166136261;
   for (let i = 0; i < value.length; i += 1) {
@@ -143,25 +156,64 @@ function getHammerRotation(baseRotation: number, side: -1 | 1, angleBias: number
   return side * naturalRotation;
 }
 
-function getHammerHeadBottomY(anchorY: number, scale: number, rotation: number, openingWidth: number) {
-  const headOffsetX = openingWidth * HAMMER_HEAD_OFFSET_X_RATIO;
-  const headOffsetY = openingWidth * HAMMER_HEAD_OFFSET_Y_RATIO;
+function getHammerSafetyPointWorld(
+  anchorX: number,
+  anchorY: number,
+  scaleX: number,
+  scaleY: number,
+  rotation: number,
+  textureWidth: number,
+  textureHeight: number,
+  point: HammerSafetyPoint,
+) {
+  const localX = (point.x - HAMMER_ANCHOR_X) * textureWidth * scaleX;
+  const localY = (point.y - HAMMER_ANCHOR_Y) * textureHeight * scaleY;
   const sin = Math.sin(rotation);
   const cos = Math.cos(rotation);
-  const rotatedHeadY = headOffsetX * sin + headOffsetY * cos;
-  return anchorY + rotatedHeadY + openingWidth * HAMMER_HEAD_CLEARANCE_RATIO * scale;
+
+  return {
+    x: anchorX + localX * cos - localY * sin,
+    y: anchorY + localX * sin + localY * cos,
+  };
+}
+
+function getHammerLowestHeadPoint(
+  anchorX: number,
+  anchorY: number,
+  scaleX: number,
+  scaleY: number,
+  rotation: number,
+  textureWidth: number,
+  textureHeight: number,
+) {
+  return HAMMER_HEAD_SAFETY_POINTS
+    .map(point => getHammerSafetyPointWorld(anchorX, anchorY, scaleX, scaleY, rotation, textureWidth, textureHeight, point))
+    .reduce((lowest, point) => (point.y > lowest.y ? point : lowest));
 }
 
 function getHammerSafeLift(
+  anchorX: number,
   anchorY: number,
-  scale: number,
+  scaleX: number,
+  scaleY: number,
   rotation: number,
+  textureWidth: number,
+  textureHeight: number,
   openingWidth: number,
   keepoutTop: number,
   clearance: number,
 ) {
-  const headBottomY = getHammerHeadBottomY(anchorY, scale, rotation, openingWidth);
-  return Math.max(0, headBottomY - (keepoutTop - clearance));
+  const lowestHeadPoint = getHammerLowestHeadPoint(
+    anchorX,
+    anchorY,
+    scaleX,
+    scaleY,
+    rotation,
+    textureWidth,
+    textureHeight,
+  );
+  const cornerClearance = Math.max(openingWidth * HAMMER_HEAD_CLEARANCE_RATIO, clearance * 0.18);
+  return Math.max(0, lowestHeadPoint.y - (keepoutTop - cornerClearance));
 }
 
 function textureForState(animState: MoleAnimState, style: MoleCharacterAttachmentStyle): string {
@@ -423,7 +475,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       reaction.anchor.set(0.5);
       collectWord.anchor.set(0.5);
       moleSprite.anchor.set(0.5, 1);
-      hammer.anchor.set(0.45, 0.22);
+      hammer.anchor.set(HAMMER_ANCHOR_X, HAMMER_ANCHOR_Y);
       hitEffect.anchor.set(0.5);
       missEffect.anchor.set(0.14, 0.5);
       collectGlow.anchor.set(0.5);
@@ -1001,6 +1053,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const boardTextCenterY = moleContainer.y + textCenterY * renderScaleY;
     const boardKeepoutHeight = BOARD_TEXT_LINE_SPACING * renderScaleY * 1.8;
     const boardKeepoutTop = boardTextCenterY - boardKeepoutHeight / 2;
+    const boardKeepoutWidth = Math.max(placement.openingWidth * 1.78, renderedBody.bodyWidth * 1.18);
     const hammerPlacement = hammerPlacementRef.current;
     const hammerSide = hammerPlacement.side;
     const hammerClearance = placement.openingWidth * HAMMER_BOARD_CLEARANCE_RATIO;
@@ -1116,6 +1169,10 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const hammerScale = 0.21 + voicePower * 0.13 + stateImpactBoost;
     const hammerVisualScale = Math.max(hammerScale, 0.27 + voicePower * 0.1);
     const hammerScaleX = hammerVisualScale * hammerSide;
+    const hammerSafetyScale = hammerVisualScale + 0.08;
+    const hammerSafetyScaleX = hammerSafetyScale * hammerSide;
+    const hammerTextureWidth = hammer.texture.width || HAMMER_TEXTURE_FALLBACK_SIZE;
+    const hammerTextureHeight = hammer.texture.height || HAMMER_TEXTURE_FALLBACK_SIZE;
     const idleBaseRotation = -0.52 + Math.sin(t * 0.06) * 0.05 - voicePower * 0.07;
     const windupBaseRotation = -1.33;
     const impactBaseRotation = 0.42;
@@ -1130,10 +1187,54 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     let recoveryY = impactPointY - placement.openingWidth * 0.34;
     const keepoutLimitY = boardKeepoutTop - placement.openingWidth * HAMMER_HEAD_CLEARANCE_RATIO;
     const hammerSafetyLift = Math.max(
-      getHammerSafeLift(hammerIdleY, hammerVisualScale, idleRotation, placement.openingWidth, boardKeepoutTop, hammerClearance),
-      getHammerSafeLift(windupY, hammerVisualScale, windupRotation, placement.openingWidth, boardKeepoutTop, hammerClearance),
-      getHammerSafeLift(impactPointY, hammerVisualScale, impactRotation, placement.openingWidth, boardKeepoutTop, hammerClearance),
-      getHammerSafeLift(recoveryY, hammerVisualScale, recoveryRotation, placement.openingWidth, boardKeepoutTop, hammerClearance),
+      getHammerSafeLift(
+        hammerIdleX,
+        hammerIdleY,
+        hammerSafetyScaleX,
+        hammerSafetyScale,
+        idleRotation,
+        hammerTextureWidth,
+        hammerTextureHeight,
+        placement.openingWidth,
+        boardKeepoutTop,
+        hammerClearance,
+      ),
+      getHammerSafeLift(
+        windupX,
+        windupY,
+        hammerSafetyScaleX,
+        hammerSafetyScale,
+        windupRotation,
+        hammerTextureWidth,
+        hammerTextureHeight,
+        placement.openingWidth,
+        boardKeepoutTop,
+        hammerClearance,
+      ),
+      getHammerSafeLift(
+        impactPointX,
+        impactPointY,
+        hammerSafetyScaleX,
+        hammerSafetyScale,
+        impactRotation,
+        hammerTextureWidth,
+        hammerTextureHeight,
+        placement.openingWidth,
+        boardKeepoutTop,
+        hammerClearance,
+      ),
+      getHammerSafeLift(
+        recoveryX,
+        recoveryY,
+        hammerSafetyScaleX,
+        hammerSafetyScale,
+        recoveryRotation,
+        hammerTextureWidth,
+        hammerTextureHeight,
+        placement.openingWidth,
+        boardKeepoutTop,
+        hammerClearance,
+      ),
     );
     hammerIdleY = Math.min(hammerIdleY - hammerSafetyLift, keepoutLimitY);
     windupY = Math.min(windupY - hammerSafetyLift, keepoutLimitY);
@@ -1206,19 +1307,28 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       debugGraphics.rect(shadowBounds.left, shadowBounds.top, shadowBounds.width, shadowBounds.height);
       debugGraphics.stroke({ color: DEBUG_COLORS.hammerSafe, pixelLine: true, width: 2 });
       debugGraphics.rect(
-        boardCenterX - placement.openingWidth * 0.64,
+        boardCenterX - boardKeepoutWidth / 2,
         boardKeepoutTop,
-        placement.openingWidth * 1.28,
+        boardKeepoutWidth,
         boardKeepoutHeight,
       );
 
       drawDebugCross(debugGraphics, bodyLeftX, renderedBodyBottomY, DEBUG_COLORS.bodyContact, 10, 2);
       drawDebugDiamond(debugGraphics, boardCenterX, boardCenterY, DEBUG_COLORS.boardCenter, 9);
       drawDebugCross(debugGraphics, impactPointX, impactPointY, DEBUG_COLORS.impactPoint, 9, 2);
+      const debugLowestHeadPoint = getHammerLowestHeadPoint(
+        impactPointX,
+        impactPointY,
+        hammerSafetyScaleX,
+        hammerSafetyScale,
+        impactRotation,
+        hammerTextureWidth,
+        hammerTextureHeight,
+      );
       drawDebugDiamond(
         debugGraphics,
-        impactPointX,
-        getHammerHeadBottomY(impactPointY, hammerVisualScale, impactRotation, placement.openingWidth),
+        debugLowestHeadPoint.x,
+        debugLowestHeadPoint.y,
         DEBUG_COLORS.hammerSafe,
         8,
       );

@@ -2,12 +2,26 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 export type MicState = 'idle' | 'requesting' | 'listening' | 'denied';
 
+export interface AudioCaptureStats {
+  durationMs: number;
+  peakVolume: number;
+  averageVolume: number;
+  peakRms: number;
+  averageRms: number;
+  chunks: number;
+}
+
+export interface CapturedAudio {
+  blob: Blob;
+  stats: AudioCaptureStats;
+}
+
 export interface UseMicrophoneReturn {
   micState: MicState;
   volume: number;
   startListening: () => Promise<void>;
   stopListening: () => void;
-  captureRecentAudio: (options?: { sinceMs?: number; preRollMs?: number }) => Blob | null;
+  captureRecentAudio: (options?: { sinceMs?: number; preRollMs?: number }) => CapturedAudio | null;
   resetCaptureBuffer: () => void;
 }
 
@@ -15,6 +29,12 @@ interface AudioChunk {
   blob: Blob;
   createdAt: number;
   isHeader: boolean;
+}
+
+interface VolumeSample {
+  createdAt: number;
+  rms: number;
+  volume: number;
 }
 
 const RECENT_AUDIO_WINDOW_MS = 1800;
@@ -52,6 +72,7 @@ export function useMicrophone(): UseMicrophoneReturn {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<AudioChunk[]>([]);
+  const volumeSamplesRef = useRef<VolumeSample[]>([]);
   const animationRef = useRef<number | null>(null);
   const volumeRef = useRef(0);
   const lastVolumeLogRef = useRef(0);
@@ -83,6 +104,7 @@ export function useMicrophone(): UseMicrophoneReturn {
     }
     recorderRef.current = null;
     chunksRef.current = [];
+    volumeSamplesRef.current = [];
     void audioContextRef.current?.close();
     audioContextRef.current = null;
     analyserRef.current = null;
@@ -111,6 +133,10 @@ export function useMicrophone(): UseMicrophoneReturn {
       setVolume(volumeRef.current);
 
       const now = Date.now();
+      volumeSamplesRef.current = [
+        ...volumeSamplesRef.current.filter(sample => now - sample.createdAt <= MAX_AUDIO_BUFFER_MS),
+        { createdAt: now, rms, volume: volumeRef.current },
+      ];
       if (now - lastVolumeLogRef.current > 600) {
         lastVolumeLogRef.current = now;
         console.log('[mic] volume', {
@@ -137,6 +163,7 @@ export function useMicrophone(): UseMicrophoneReturn {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: requestedAudio });
       streamRef.current = stream;
       chunksRef.current = [];
+      volumeSamplesRef.current = [];
       console.log('[mic] stream ready', {
         tracks: stream.getAudioTracks().map(track => ({
           label: track.label,
@@ -191,7 +218,7 @@ export function useMicrophone(): UseMicrophoneReturn {
 
   useEffect(() => stopListening, [stopListening]);
 
-  const captureRecentAudio = useCallback((options?: { sinceMs?: number; preRollMs?: number }): Blob | null => {
+  const captureRecentAudio = useCallback((options?: { sinceMs?: number; preRollMs?: number }): CapturedAudio | null => {
     const recorder = recorderRef.current;
     if (recorder?.state === 'recording') {
       recorder.requestData();
@@ -210,13 +237,39 @@ export function useMicrophone(): UseMicrophoneReturn {
     const blob = new Blob(recentChunks.map(chunk => chunk.blob), {
       type: 'audio/webm',
     });
+    const recentSamples = volumeSamplesRef.current.filter(sample => sample.createdAt >= fromMs);
+    const peakVolume = recentSamples.reduce((peak, sample) => Math.max(peak, sample.volume), 0);
+    const peakRms = recentSamples.reduce((peak, sample) => Math.max(peak, sample.rms), 0);
+    const averageVolume = recentSamples.length
+      ? recentSamples.reduce((total, sample) => total + sample.volume, 0) / recentSamples.length
+      : 0;
+    const averageRms = recentSamples.length
+      ? recentSamples.reduce((total, sample) => total + sample.rms, 0) / recentSamples.length
+      : 0;
+    const nonHeaderChunks = recentChunks.filter(chunk => !chunk.isHeader);
+    const firstChunkAt = nonHeaderChunks[0]?.createdAt ?? fromMs;
+    const lastChunkAt = nonHeaderChunks[nonHeaderChunks.length - 1]?.createdAt ?? now;
+    const durationMs = Math.max(0, lastChunkAt - firstChunkAt + 100);
+    const stats: AudioCaptureStats = {
+      durationMs,
+      peakVolume,
+      averageVolume,
+      peakRms,
+      averageRms,
+      chunks: recentChunks.length,
+    };
     console.log('[mic] captured recent audio', {
       chunks: recentChunks.length,
       bytes: blob.size,
       type: blob.type,
       bounded: Boolean(options?.sinceMs),
+      durationMs: stats.durationMs,
+      peakVolume: Number(stats.peakVolume.toFixed(3)),
+      averageVolume: Number(stats.averageVolume.toFixed(3)),
+      peakRms: Number(stats.peakRms.toFixed(4)),
+      averageRms: Number(stats.averageRms.toFixed(4)),
     });
-    return blob;
+    return { blob, stats };
   }, []);
 
   const resetCaptureBuffer = useCallback(() => {
@@ -234,6 +287,7 @@ export function useMicrophone(): UseMicrophoneReturn {
     }
 
     chunksRef.current = [];
+    volumeSamplesRef.current = [];
     const nextRecorder = createRecorder(stream, mimeTypeRef.current);
     nextRecorder.start(100);
     recorderRef.current = nextRecorder;
