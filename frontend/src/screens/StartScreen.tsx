@@ -5,11 +5,21 @@ interface StartScreenProps {
 export function StartScreen({ onStart }: StartScreenProps) {
   return (
     <div className="start-screen">
+      <div className="start-cover-panels" aria-hidden="true">
+        <img
+          className="start-cover-panel start-cover-panel--top"
+          src="/assets/objects/cover_word_banner_top.png"
+          alt=""
+        />
+        <img
+          className="start-cover-panel start-cover-panel--lower"
+          src="/assets/objects/cover_word_banner_lower.png"
+          alt=""
+        />
+      </div>
+
       <div className="start-content">
-        <div className="start-title">
-          <span className="start-hanzi">打地鼠拼音</span>
-          <span className="start-subtitle">Whack-a-Mole Mandarin</span>
-        </div>
+        <span className="start-subtitle">Whack-a-Mole Mandarin</span>
 
         <div className="start-instructions">
           <p>Enter the game, then enable mic.</p>

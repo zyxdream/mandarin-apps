@@ -15,8 +15,12 @@ export function PronunciationHint({ hint }: PronunciationHintProps) {
       aria-live="polite"
     >
       <span className="pronunciation-hint-text">{hint.text}</span>
-      {hint.transcript && (
-        <span className="pronunciation-hint-ghost">heard: {hint.transcript}</span>
+      {(hint.transcript || hint.transcriptPinyin) && (
+        <span className="pronunciation-hint-ghost">
+          heard: {hint.transcript ?? 'audio'}
+          {hint.transcriptPinyin ? ` / ${hint.transcriptPinyin}` : ''}
+          {Number.isFinite(hint.confidence) ? ` (${Math.round(hint.confidence * 100)}%)` : ''}
+        </span>
       )}
     </div>
   );

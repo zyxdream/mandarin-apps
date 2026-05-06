@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:layout": "tsc -p tsconfig.tests.json && node --test .tmp-tests/tests/**/*.test.js"
   },
   "dependencies": {
     "@pixi/react": "^8.0.5",

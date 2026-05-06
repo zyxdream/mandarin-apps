@@ -8,6 +8,7 @@ export interface UseMicrophoneReturn {
   startListening: () => Promise<void>;
   stopListening: () => void;
   captureRecentAudio: (options?: { sinceMs?: number; preRollMs?: number }) => Blob | null;
+  resetCaptureBuffer: () => void;
 }
 
 interface AudioChunk {
@@ -18,6 +19,30 @@ interface AudioChunk {
 
 const RECENT_AUDIO_WINDOW_MS = 1800;
 const MAX_AUDIO_BUFFER_MS = 3200;
+const TARGET_SAMPLE_RATE = 16000;
+
+function buildPreferredAudioConstraints(): MediaTrackConstraints {
+  const supported = navigator.mediaDevices.getSupportedConstraints();
+  const constraints: MediaTrackConstraints = {};
+
+  if (supported.channelCount) {
+    constraints.channelCount = { ideal: 1 };
+  }
+  if (supported.sampleRate) {
+    constraints.sampleRate = { ideal: TARGET_SAMPLE_RATE };
+  }
+  if (supported.echoCancellation) {
+    constraints.echoCancellation = { ideal: true };
+  }
+  if (supported.noiseSuppression) {
+    constraints.noiseSuppression = { ideal: true };
+  }
+  if (supported.autoGainControl) {
+    constraints.autoGainControl = { ideal: true };
+  }
+
+  return constraints;
+}
 
 export function useMicrophone(): UseMicrophoneReturn {
   const [micState, setMicState] = useState<MicState>('idle');
@@ -30,6 +55,21 @@ export function useMicrophone(): UseMicrophoneReturn {
   const animationRef = useRef<number | null>(null);
   const volumeRef = useRef(0);
   const lastVolumeLogRef = useRef(0);
+  const mimeTypeRef = useRef('audio/webm');
+
+  const createRecorder = useCallback((stream: MediaStream, mimeType: string) => {
+    const recorder = new MediaRecorder(stream, { mimeType });
+    recorder.ondataavailable = event => {
+      if (event.data.size === 0) return;
+      const now = Date.now();
+      const isHeader = chunksRef.current.length === 0;
+      chunksRef.current = [
+        ...chunksRef.current.filter(chunk => chunk.isHeader || now - chunk.createdAt <= MAX_AUDIO_BUFFER_MS),
+        { blob: event.data, createdAt: now, isHeader },
+      ];
+    };
+    return recorder;
+  }, []);
 
   const stopListening = useCallback(() => {
     if (animationRef.current !== null) {
@@ -90,7 +130,11 @@ export function useMicrophone(): UseMicrophoneReturn {
     console.log('[mic] requesting permission');
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const preferredAudioConstraints = buildPreferredAudioConstraints();
+      const requestedAudio = Object.keys(preferredAudioConstraints).length
+        ? preferredAudioConstraints
+        : true;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: requestedAudio });
       streamRef.current = stream;
       chunksRef.current = [];
       console.log('[mic] stream ready', {
@@ -100,7 +144,17 @@ export function useMicrophone(): UseMicrophoneReturn {
           muted: track.muted,
           readyState: track.readyState,
         })),
+        requestedAudio,
       });
+      const firstTrack = stream.getAudioTracks()[0];
+      if (firstTrack && requestedAudio !== true) {
+        try {
+          await firstTrack.applyConstraints(preferredAudioConstraints);
+        } catch (constraintError) {
+          console.warn('[mic] applyConstraints failed; continuing with browser defaults', constraintError);
+        }
+        console.log('[mic] active track settings', firstTrack.getSettings());
+      }
 
       const audioContext = new AudioContext();
       console.log('[mic] audio context created', { state: audioContext.state });
@@ -121,16 +175,8 @@ export function useMicrophone(): UseMicrophoneReturn {
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : 'audio/webm';
-      const recorder = new MediaRecorder(stream, { mimeType });
-      recorder.ondataavailable = event => {
-        if (event.data.size === 0) return;
-        const now = Date.now();
-        const isHeader = chunksRef.current.length === 0;
-        chunksRef.current = [
-          ...chunksRef.current.filter(chunk => chunk.isHeader || now - chunk.createdAt <= MAX_AUDIO_BUFFER_MS),
-          { blob: event.data, createdAt: now, isHeader },
-        ];
-      };
+      mimeTypeRef.current = mimeType;
+      const recorder = createRecorder(stream, mimeType);
       recorder.start(100);
       recorderRef.current = recorder;
       console.log('[mic] recorder started', { mimeType });
@@ -141,7 +187,7 @@ export function useMicrophone(): UseMicrophoneReturn {
       console.error('[mic] failed to start', error);
       setMicState('denied');
     }
-  }, [micState, sampleVolume]);
+  }, [createRecorder, micState, sampleVolume]);
 
   useEffect(() => stopListening, [stopListening]);
 
@@ -173,5 +219,26 @@ export function useMicrophone(): UseMicrophoneReturn {
     return blob;
   }, []);
 
-  return { micState, volume, startListening, stopListening, captureRecentAudio };
+  const resetCaptureBuffer = useCallback(() => {
+    const stream = streamRef.current;
+    const currentRecorder = recorderRef.current;
+    if (!stream || !currentRecorder || micState !== 'listening') return;
+
+    try {
+      if (currentRecorder.state !== 'inactive') {
+        currentRecorder.ondataavailable = null;
+        currentRecorder.stop();
+      }
+    } catch (error) {
+      console.warn('[mic] recorder stop during reset failed', error);
+    }
+
+    chunksRef.current = [];
+    const nextRecorder = createRecorder(stream, mimeTypeRef.current);
+    nextRecorder.start(100);
+    recorderRef.current = nextRecorder;
+    console.log('[mic] capture buffer reset for new word');
+  }, [createRecorder, micState]);
+
+  return { micState, volume, startListening, stopListening, captureRecentAudio, resetCaptureBuffer };
 }

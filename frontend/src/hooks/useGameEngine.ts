@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import type { GameState, MoleState } from '../types/game';
 import { GameEngine } from '../engine/gameEngine';
 import { HttpEvaluator } from '../evaluator/httpEvaluator';
 import { WORDS } from '../data/words';
+import { buildSessionPracticeUnits, buildSessionWords } from '../data/session';
 
 interface LogicalSnapshot {
   screen: string;
@@ -65,14 +66,14 @@ export function useGameEngine() {
   const activeMoleRef = useRef<MoleState | null>(null);
   const prevLogicalRef = useRef<LogicalSnapshot | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const sessionWords = useMemo(() => buildSessionWords(WORDS), []);
+  const sessionPracticeUnits = useMemo(() => buildSessionPracticeUnits(sessionWords), [sessionWords]);
 
   useEffect(() => {
     const evaluator = new HttpEvaluator();
-    const engine = new GameEngine(WORDS, evaluator);
+    const engine = new GameEngine(sessionWords, evaluator);
     engineRef.current = engine;
-    const syncCanvasSize = () => {
-      engine.setCanvasSize({ canvasWidth: window.innerWidth, canvasHeight: window.innerHeight });
-    };
+    engine.setCanvasSize({ canvasWidth: window.innerWidth, canvasHeight: window.innerHeight });
 
     const unsub = engine.subscribe(event => {
       const state = event.type === 'stateChanged' ? event.state : event.finalState;
@@ -84,24 +85,41 @@ export function useGameEngine() {
       const isGameOver = event.type === 'gameOver';
       if (isGameOver || logicalChanged(prevLogicalRef.current, snap)) {
         prevLogicalRef.current = snap;
+        if (snap.animState === 'hit' || state.wordsHit.length > 0) {
+          console.log('[game-state] collected update', {
+            animState: snap.animState,
+            hitCount: state.wordsHit.length,
+            lastHit: state.wordsHit.at(-1)?.hanzi ?? null,
+            score: state.score,
+          });
+        }
         setGameState({ ...state });
       }
     });
 
-    window.addEventListener('resize', syncCanvasSize);
-    syncCanvasSize();
-
     return () => {
-      window.removeEventListener('resize', syncCanvasSize);
       unsub();
       engine.stop();
     };
-  }, []);
+  }, [sessionWords]);
 
   const startGame = useCallback(() => engineRef.current?.start(), []);
+  const setCanvasSize = useCallback((canvasWidth: number, canvasHeight: number) => {
+    const safeWidth = Math.max(1, Math.round(canvasWidth));
+    const safeHeight = Math.max(1, Math.round(canvasHeight));
+    engineRef.current?.setCanvasSize({ canvasWidth: safeWidth, canvasHeight: safeHeight });
+  }, []);
   const submitEvaluation = useCallback((blob: Blob) => {
     engineRef.current?.submitEvaluation(blob);
   }, []);
 
-  return { gameState, activeMoleRef, startGame, submitEvaluation };
+  return {
+    gameState,
+    activeMoleRef,
+    sessionWords,
+    sessionPracticeUnits,
+    startGame,
+    setCanvasSize,
+    submitEvaluation,
+  };
 }

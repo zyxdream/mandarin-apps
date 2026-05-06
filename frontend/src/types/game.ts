@@ -57,5 +57,6 @@ export interface PronunciationHint {
   code: string;
   text: string;
   transcript?: string;
+  transcriptPinyin?: string;
   confidence: number;
 }

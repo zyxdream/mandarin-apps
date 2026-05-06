@@ -146,6 +146,8 @@ PRACTICE_THRESHOLDS = {
     "confidence_floor": 0.72,
 }
 
+LOCAL_ASR_DENOISE_RETRY_ENABLED = os.getenv("LOCAL_ASR_DENOISE_RETRY", "true").lower() == "true"
+
 
 def debug_log(request_id: str, stage: str, payload: dict, started_at: float | None = None) -> None:
     event: dict[str, object] = {"request_id": request_id, "stage": stage, **payload}
@@ -642,7 +644,47 @@ async def evaluate_pronunciation_local(
         raise HTTPException(status_code=502, detail="Local sherpa-onnx transcription failed") from exc
 
     debug_log(request_id, "local_asr_transcript", {"transcript": transcript}, started_at)
-    if not is_transcript_usable(transcript, pinyin_raw):
+    transcript_usable = is_transcript_usable(transcript, pinyin_raw)
+    if not transcript_usable and LOCAL_ASR_DENOISE_RETRY_ENABLED:
+        debug_log(
+            request_id,
+            "local_asr_denoise_retry_start",
+            {"transcript": transcript},
+            started_at,
+        )
+        try:
+            timings["asr_denoise_start"] = time.perf_counter()
+            retry_transcript = await asyncio.to_thread(
+                local_asr.transcribe_webm,
+                audio_bytes,
+                audio.filename or "speech.webm",
+                True,
+            )
+            timings["asr_denoise_end"] = time.perf_counter()
+            debug_log(
+                request_id,
+                "local_asr_denoise_retry_transcript",
+                {"retry_transcript": retry_transcript},
+                started_at,
+            )
+            if retry_transcript and is_transcript_usable(retry_transcript, pinyin_raw):
+                transcript = retry_transcript
+                transcript_usable = True
+                debug_log(
+                    request_id,
+                    "local_asr_denoise_retry_accepted",
+                    {"retry_transcript": retry_transcript},
+                    started_at,
+                )
+        except Exception as retry_exc:
+            debug_log(
+                request_id,
+                "local_asr_denoise_retry_failed",
+                {"error": str(retry_exc)},
+                started_at,
+            )
+
+    if not transcript_usable:
         timings["response_end"] = time.perf_counter()
         debug_log(
             request_id,
@@ -661,6 +703,7 @@ async def evaluate_pronunciation_local(
             {
                 "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
                 "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
+                "asr_denoise_ms": int((timings.get("asr_denoise_end", timings.get("asr_denoise_start", timings["response_end"])) - timings.get("asr_denoise_start", timings["response_end"])) * 1000),
                 "scoring_ms": 0,
             },
             started_at,
@@ -693,6 +736,7 @@ async def evaluate_pronunciation_local(
         {
             "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
             "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
+            "asr_denoise_ms": int((timings.get("asr_denoise_end", timings.get("asr_denoise_start", timings["response_end"])) - timings.get("asr_denoise_start", timings["response_end"])) * 1000),
             "scoring_ms": int((timings["scoring_end"] - timings["scoring_start"]) * 1000),
         },
         started_at,

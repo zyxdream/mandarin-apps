@@ -22,14 +22,14 @@ class SherpaOnnxAsr:
         default_dir = Path(__file__).resolve().parent / "models" / "sherpa-onnx-paraformer-zh-small-2024-03-09"
         return Path(os.getenv("SHERPA_ONNX_MODEL_DIR", str(default_dir))).expanduser()
 
-    def transcribe_webm(self, audio_bytes: bytes, filename: str = "speech.webm") -> str:
+    def transcribe_webm(self, audio_bytes: bytes, filename: str = "speech.webm", denoise: bool = False) -> str:
         recognizer = self._get_recognizer()
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
             input_path = tmp_path / filename
             wav_path = tmp_path / "speech.wav"
             input_path.write_bytes(audio_bytes)
-            self._convert_to_wav(input_path, wav_path)
+            self._convert_to_wav(input_path, wav_path, denoise=denoise)
             sample_rate, waveform = self._read_wav(wav_path)
 
         stream = recognizer.create_stream()
@@ -73,25 +73,40 @@ class SherpaOnnxAsr:
             )
             return self._recognizer
 
-    def _convert_to_wav(self, input_path: Path, wav_path: Path) -> None:
+    def _convert_to_wav(self, input_path: Path, wav_path: Path, denoise: bool = False) -> None:
+        filters = ["highpass=f=80", "lowpass=f=7800"]
+        if denoise:
+            # Lightweight denoise fallback for noisy environments.
+            filters.append("afftdn=nf=-25")
+
+        command = [
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            "-i",
+            str(input_path),
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-af",
+            ",".join(filters),
+            str(wav_path),
+        ]
         try:
             subprocess.run(
-                [
-                    "ffmpeg",
-                    "-y",
-                    "-loglevel",
-                    "error",
-                    "-i",
-                    str(input_path),
-                    "-ac",
-                    "1",
-                    "-ar",
-                    "16000",
-                    str(wav_path),
-                ],
+                command,
                 check=True,
                 capture_output=True,
+                text=True,
             )
+        except subprocess.CalledProcessError as exc:
+            details = (exc.stderr or exc.stdout or "").strip()
+            message = "ffmpeg failed to convert uploaded audio to 16 kHz mono wav."
+            if details:
+                message = f"{message} ffmpeg: {details[-500:]}"
+            raise LocalAsrUnavailable(message) from exc
         except Exception as exc:
             raise LocalAsrUnavailable("ffmpeg failed to convert uploaded audio to 16 kHz mono wav.") from exc
 
