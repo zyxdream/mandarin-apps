@@ -4,6 +4,7 @@ import { GameEngine } from '../engine/gameEngine';
 import { HttpEvaluator } from '../evaluator/httpEvaluator';
 import { WORDS } from '../data/words';
 import { buildSessionPracticeUnits, buildSessionWords } from '../data/session';
+import type { ScriptSession } from '../data/scriptSessions';
 
 interface LogicalSnapshot {
   screen: string;
@@ -61,17 +62,20 @@ function logicalChanged(a: LogicalSnapshot | null, b: LogicalSnapshot): boolean 
   );
 }
 
-export function useGameEngine() {
+export function useGameEngine(scriptSession?: ScriptSession) {
   const engineRef = useRef<GameEngine | null>(null);
   const activeMoleRef = useRef<MoleState | null>(null);
   const prevLogicalRef = useRef<LogicalSnapshot | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
-  const sessionWords = useMemo(() => buildSessionWords(WORDS), []);
+  const sessionWords = useMemo(
+    () => scriptSession?.words.length ? scriptSession.words : buildSessionWords(WORDS),
+    [scriptSession],
+  );
   const sessionPracticeUnits = useMemo(() => buildSessionPracticeUnits(sessionWords), [sessionWords]);
 
   useEffect(() => {
     const evaluator = new HttpEvaluator();
-    const engine = new GameEngine(sessionWords, evaluator);
+    const engine = new GameEngine(sessionWords, evaluator, undefined, { preserveWordOrder: Boolean(scriptSession?.words.length) });
     engineRef.current = engine;
     engine.setCanvasSize({ canvasWidth: window.innerWidth, canvasHeight: window.innerHeight });
 
@@ -101,7 +105,7 @@ export function useGameEngine() {
       unsub();
       engine.stop();
     };
-  }, [sessionWords]);
+  }, [scriptSession?.words.length, sessionWords]);
 
   const startGame = useCallback(() => engineRef.current?.start(), []);
   const setCanvasSize = useCallback((canvasWidth: number, canvasHeight: number) => {
@@ -116,6 +120,7 @@ export function useGameEngine() {
   return {
     gameState,
     activeMoleRef,
+    scriptSession,
     sessionWords,
     sessionPracticeUnits,
     startGame,

@@ -117,17 +117,71 @@ INITIALS = (
 )
 
 HINTS: dict[str, str] = {
-    "rise_more": "↗️ Rise more",
-    "drop_faster": "↘️ Drop faster",
-    "open_wider": "😮 Open wider",
-    "round_lips": "👄 Round lips",
-    "curl_tongue": "👅 Curl tongue",
-    "more_air": "🌬️ More air",
-    "end_nasal": "🐽 End nasal",
-    "hold_steady": "🎵 Hold steady",
+    "tone_flat": "Laser flat",
+    "tone_rise": "Rocket up",
+    "tone_dip": "Trampoline dip",
+    "tone_drop": "Knife drop",
+    "tone_light": "Light and quick",
+    "initial_curl": "Curl tongue",
+    "initial_forward": "Tongue forward",
+    "initial_smile": "Smile sound",
+    "initial_air": "More air pop",
+    "initial_lip": "Lip sound",
+    "final_nose_ng": "Nose ending",
+    "final_n": "Soft N end",
+    "final_round_lips": "Round lips",
+    "final_open": "Open mouth",
+    "final_round_mouth": "Round mouth",
+    "missing_beat": "Say every beat",
+    "extra_beat": "Keep it short",
+    "nice_try_again": "Nice try — again!",
     "too_quiet": "🔊 Speak a little louder",
     "try_again_clearer": "🎤 Try again clearer",
 }
+
+
+_HINT_PREFIX: dict[str, str] = {
+    "tone_flat": "Tone 1: ",
+    "tone_rise": "Tone 2: ",
+    "tone_dip": "Tone 3: ",
+    "tone_drop": "Tone 4: ",
+    "tone_light": "Tone 5: ",
+    "initial_curl": "zh/ch/sh/r: ",
+    "initial_forward": "z/c/s: ",
+    "initial_smile": "j/q/x: ",
+    "initial_air": "p/t/k: ",
+    "initial_lip": "b/m/f: ",
+    "final_nose_ng": "Ending: ",
+    "final_n": "Ending: ",
+    "final_round_lips": "Ending: ",
+    "final_open": "Ending: ",
+    "final_round_mouth": "Ending: ",
+    "missing_beat": "Beats: ",
+    "extra_beat": "Beats: ",
+    "nice_try_again": "Tip: ",
+    "too_quiet": "Tip: ",
+    "try_again_clearer": "Mic: ",
+}
+
+
+def hint_display_text(code: str, body: str) -> str:
+    """Player-facing line: where the mistake is + existing punchy body from HINTS."""
+    prefix = _HINT_PREFIX.get(code, "Tip: ")
+    return f"{prefix}{body}"
+
+
+def hint_text_for_code(code: str) -> str:
+    return hint_display_text(code, HINTS[code])
+
+ISSUE_SEVERITY = {
+    "tone_mismatch": 1,
+    "final_mismatch": 2,
+    "initial_mismatch": 3,
+    "extra_syllable": 4,
+    "missing_syllable": 4,
+}
+
+GENERIC_HINT_CODE = "nice_try_again"
 
 MIN_REALTIME_AUDIO_BYTES = 12_000
 MIN_REALTIME_AUDIO_RMS = float(os.getenv("MIN_REALTIME_AUDIO_RMS", "0.006"))
@@ -351,53 +405,154 @@ def syllable_similarity(expected: PinyinSyllable, actual: PinyinSyllable | None)
     }
 
 
+def tone_hint_code(tone: int) -> str:
+    return {
+        1: "tone_flat",
+        2: "tone_rise",
+        3: "tone_dip",
+        4: "tone_drop",
+        5: "tone_light",
+    }.get(tone, GENERIC_HINT_CODE)
+
+
+def initial_hint_code(initial: str) -> str | None:
+    if initial in {"zh", "ch", "sh", "r"}:
+        return "initial_curl"
+    if initial in {"z", "c", "s"}:
+        return "initial_forward"
+    if initial in {"j", "q", "x"}:
+        return "initial_smile"
+    if initial in {"p", "t", "k"}:
+        return "initial_air"
+    if initial in {"b", "m", "f"}:
+        return "initial_lip"
+    return None
+
+
+def final_hint_code(final: str) -> str | None:
+    family = final_family(final)
+    if family == "ng":
+        return "final_nose_ng"
+    if family == "n":
+        return "final_n"
+    if final in {"v", "ve", "ue"}:
+        return "final_round_lips"
+    if family == "open":
+        return "final_open"
+    if family == "rounded":
+        return "final_round_mouth"
+    return None
+
+
+def is_detailed_hint_clear(
+    issue: str,
+    diagnostic: dict[str, str | int | bool],
+    *,
+    confidence: float,
+    lexical_score: float,
+    syllable_score: float,
+    tone_score: float,
+) -> bool:
+    actual = str(diagnostic.get("actual", ""))
+    if issue in {"missing_syllable", "extra_syllable"}:
+        return True
+    if not actual:
+        return False
+
+    initial_match = bool(diagnostic.get("initial_match", False))
+    final_match = bool(diagnostic.get("final_match", False))
+    tone_match = bool(diagnostic.get("tone_match", False))
+
+    if issue == "tone_mismatch":
+        return initial_match and final_match and tone_score <= 0.75
+    if issue == "final_mismatch":
+        return initial_match and syllable_score <= 0.82
+    if issue == "initial_mismatch":
+        return (
+            confidence >= 0.18 or
+            lexical_score >= 0.35 or
+            final_match or
+            tone_match
+        )
+    return False
+
+
+def hint_for_issue(issue: str, expected: PinyinSyllable | None) -> str | None:
+    if issue == "missing_syllable":
+        return "missing_beat"
+    if issue == "extra_syllable":
+        return "extra_beat"
+    if expected is None:
+        return None
+    if issue == "tone_mismatch":
+        return tone_hint_code(expected.tone)
+    if issue == "final_mismatch":
+        return final_hint_code(expected.final)
+    if issue == "initial_mismatch":
+        return initial_hint_code(expected.initial)
+    return None
+
+
 def choose_hint(
     expected_syllables: list[PinyinSyllable],
     diagnostics: list[dict[str, str | int | bool]],
     acoustic_hint: str | None,
+    *,
+    success: bool,
+    confidence: float,
+    lexical_score: float,
+    syllable_score: float,
+    tone_score: float,
+    transcript_syllable_count: int,
 ) -> tuple[str | None, str | None]:
-    if acoustic_hint:
-        return acoustic_hint, HINTS[acoustic_hint]
+    if success:
+        return None, None
 
-    issue_counts: dict[str, int] = {}
-    for diagnostic in diagnostics:
+    if acoustic_hint and acoustic_hint in HINTS and tone_score <= 0.75:
+        return acoustic_hint, hint_text_for_code(acoustic_hint)
+
+    candidates: list[tuple[int, int, str, PinyinSyllable | None, dict[str, str | int | bool]]] = []
+    for index, (expected, diagnostic) in enumerate(zip(expected_syllables, diagnostics)):
         issue = str(diagnostic.get("issue", ""))
-        if issue:
-            issue_counts[issue] = issue_counts.get(issue, 0) + 1
-    if not issue_counts:
-        return None, None
-
-    dominant_issue, dominant_count = max(issue_counts.items(), key=lambda kv: kv[1])
-    if dominant_count < 1:
-        return None, None
-
-    for expected, diagnostic in zip(expected_syllables, diagnostics):
-        if diagnostic["issue"] != dominant_issue:
+        if not issue:
             continue
-        if diagnostic["issue"] == "tone_mismatch":
-            if expected.tone == 1:
-                return "hold_steady", HINTS["hold_steady"]
-            if expected.tone == 2:
-                return "rise_more", HINTS["rise_more"]
-            if expected.tone == 4:
-                return "drop_faster", HINTS["drop_faster"]
+        candidates.append((ISSUE_SEVERITY.get(issue, 0), index, issue, expected, diagnostic))
 
-        if diagnostic["issue"] == "final_mismatch":
-            family = final_family(expected.final)
-            if family == "rounded":
-                return "round_lips", HINTS["round_lips"]
-            if family == "open":
-                return "open_wider", HINTS["open_wider"]
-            if family in {"n", "ng"}:
-                return "end_nasal", HINTS["end_nasal"]
+    if transcript_syllable_count > len(expected_syllables):
+        candidates.append((
+            ISSUE_SEVERITY["extra_syllable"],
+            len(expected_syllables),
+            "extra_syllable",
+            None,
+            {
+                "expected": "",
+                "actual": "extra",
+                "initial_match": False,
+                "final_match": False,
+                "tone_match": False,
+                "issue": "extra_syllable",
+            },
+        ))
 
-        if diagnostic["issue"] == "initial_mismatch":
-            if expected.initial in {"zh", "ch", "sh", "r"}:
-                return "curl_tongue", HINTS["curl_tongue"]
-            if expected.initial in {"p", "t", "k", "q", "ch", "c"}:
-                return "more_air", HINTS["more_air"]
+    if not candidates:
+        return None, None
 
-    return None, None
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    for _, _, issue, expected, diagnostic in candidates:
+        if not is_detailed_hint_clear(
+            issue,
+            diagnostic,
+            confidence=confidence,
+            lexical_score=lexical_score,
+            syllable_score=syllable_score,
+            tone_score=tone_score,
+        ):
+            continue
+        hint_code = hint_for_issue(issue, expected)
+        if hint_code and hint_code in HINTS:
+            return hint_code, hint_text_for_code(hint_code)
+
+    return GENERIC_HINT_CODE, hint_text_for_code(GENERIC_HINT_CODE)
 
 
 def expected_tone_shape(tone: int) -> str:
@@ -447,11 +602,15 @@ def acoustic_hint_for_tone(expected_tone: int, actual_shape: str) -> str | None:
     if actual_shape == "unknown":
         return None
     if expected_tone == 1 and actual_shape != "steady":
-        return "hold_steady"
+        return "tone_flat"
     if expected_tone == 2 and actual_shape != "rising":
-        return "rise_more"
+        return "tone_rise"
+    if expected_tone == 3 and actual_shape != "dipping":
+        return "tone_dip"
     if expected_tone == 4 and actual_shape != "falling":
-        return "drop_faster"
+        return "tone_drop"
+    if expected_tone == 5 and actual_shape != "neutral":
+        return "tone_light"
     return None
 
 
@@ -577,10 +736,6 @@ def score_transcript(
         tone_score >= thresholds["tone_floor"] and
         confidence >= thresholds["confidence_floor"]
     )
-    hint_code, hint_text = choose_hint(expected_syllables, diagnostics, acoustic_hint)
-    if success and confidence >= 0.88:
-        hint_code = None
-        hint_text = None
     scores: dict[str, float | None] = {
         "lexical": round(lexical_score, 3),
         "syllable": round(syllable_score, 3),
@@ -588,6 +743,17 @@ def score_transcript(
         "tone_contour": round(acoustic_tone_score, 3) if acoustic_tone_score is not None else None,
         "tone": round(tone_score, 3),
     }
+    hint_code, hint_text = choose_hint(
+        expected_syllables,
+        diagnostics,
+        acoustic_hint,
+        success=success,
+        confidence=confidence,
+        lexical_score=lexical_score,
+        syllable_score=syllable_score,
+        tone_score=tone_score,
+        transcript_syllable_count=len(transcript_syllables),
+    )
     if request_id:
         debug_log(
             request_id,
@@ -672,7 +838,7 @@ async def evaluate_pronunciation_local(
             confidence=0.0,
             word_id=word_id,
             hint_code="too_quiet",
-            hint_text=HINTS["too_quiet"],
+            hint_text=hint_text_for_code("too_quiet"),
         )
 
     try:
@@ -723,7 +889,7 @@ async def evaluate_pronunciation_local(
             confidence=0.0,
             word_id=word_id,
             hint_code="too_quiet",
-            hint_text=HINTS["too_quiet"],
+            hint_text=hint_text_for_code("too_quiet"),
         )
 
     try:
@@ -808,7 +974,7 @@ async def evaluate_pronunciation_local(
             word_id=word_id,
             transcript=transcript,
             hint_code="try_again_clearer",
-            hint_text=HINTS["try_again_clearer"],
+            hint_text=hint_text_for_code("try_again_clearer"),
         )
 
     timings["scoring_start"] = time.perf_counter()
@@ -926,7 +1092,7 @@ async def evaluate_pronunciation(
             confidence=0.0,
             word_id=word_id,
             hint_code="too_quiet",
-            hint_text=HINTS["too_quiet"],
+            hint_text=hint_text_for_code("too_quiet"),
         )
 
     if dev_fake:
@@ -1024,7 +1190,7 @@ async def evaluate_pronunciation(
             word_id=word_id,
             transcript=transcript,
             hint_code="try_again_clearer",
-            hint_text=HINTS["try_again_clearer"],
+            hint_text=hint_text_for_code("try_again_clearer"),
         )
 
     run_acoustic = should_run_acoustic(eval_mode, request_id)

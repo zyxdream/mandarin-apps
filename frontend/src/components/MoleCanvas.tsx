@@ -23,7 +23,9 @@ import {
 
 const BOARD_TEXT_FILL = 0xfff2c4;
 const BOARD_TEXT_STROKE = 0x4a2c16;
-const BOARD_TEXT_LINE_SPACING = 84;
+const BOARD_TEXT_LINE_SPACING = 110;
+const BOARD_PINYIN_MAX_WIDTH = 640;
+const BOARD_HANZI_MAX_WIDTH = 580;
 const HAMMER_BOARD_CLEARANCE_RATIO = 0.46;
 const HAMMER_HEAD_CLEARANCE_RATIO = 0.08;
 const HAMMER_ANGLE_JITTER = 0.12;
@@ -52,6 +54,10 @@ const COLLECT_TARGET_Y = 84;
 const HAMMER_SWING_DECAY = 0.024;
 const HIT_EFFECT_FRAMES = 88;
 const MISS_EFFECT_FRAMES = 76;
+const HIT_SPARKLE_SIDE_OFFSET_RATIO = 0.16;
+const HIT_SPARKLE_UP_OFFSET_RATIO = 0.1;
+const HIT_SPARKLE_FACE_CLEAR_RATIO = 0.12;
+const HIT_SPARKLE_BOARD_CLEAR_RATIO = 0.08;
 const CONTACT_SHADOW_ALPHA = 0.18;
 const MOLE_BACK_SHADOW_ALPHA = 0.22;
 const MOLE_DEPTH_SHADE_ALPHA = 0.04;
@@ -72,6 +78,7 @@ const DEBUG_COLORS = {
   shadowBBox: 0xb58cff,
   boardCenter: 0x35f3ff,
   impactPoint: 0xffd447,
+  sparkleAnchor: 0xff7ae7,
   hammerSafe: 0xff6ad5,
   slotAnchor: 0xfff4a3,
 };
@@ -261,6 +268,13 @@ function motionValue(value: number | undefined, fallback: number): number {
   return Number.isFinite(value) ? Number(value) : fallback;
 }
 
+function fittedTextScale(text: Text, baseScale: number, maxWidth: number): number {
+  const currentScale = text.scale.x || 1;
+  const unscaledWidth = text.width / currentScale;
+  if (unscaledWidth <= 0) return baseScale;
+  return baseScale * Math.min(1, maxWidth / unscaledWidth);
+}
+
 function drawDebugCross(
   graphics: Graphics,
   x: number,
@@ -425,11 +439,11 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
         text: '',
         style: new TextStyle({
           fontFamily: '"Noto Sans SC", "PingFang SC", sans-serif',
-          fontSize: 80,
+          fontSize: 118,
           fill: BOARD_TEXT_FILL,
           fontWeight: '900',
-          stroke: { color: BOARD_TEXT_STROKE, width: 8 },
-          letterSpacing: 2,
+          stroke: { color: BOARD_TEXT_STROKE, width: 11 },
+          letterSpacing: 4,
           align: 'center',
         }),
       });
@@ -438,10 +452,10 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
         text: '',
         style: new TextStyle({
           fontFamily: '"Noto Sans SC", "PingFang SC", sans-serif',
-          fontSize: 102,
+          fontSize: 112,
           fill: BOARD_TEXT_FILL,
           fontWeight: '900',
-          stroke: { color: BOARD_TEXT_STROKE, width: 9 },
+          stroke: { color: BOARD_TEXT_STROKE, width: 10 },
           align: 'center',
         }),
       });
@@ -1080,6 +1094,12 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       hammerIdleX += hammerSide * placement.openingWidth * HAMMER_EDGE_INSET_RATIO;
       hammerIdleY -= placement.openingWidth * 0.2;
     }
+    const sparkleAnchorX = impactPointX + hammerSide * placement.openingWidth * HIT_SPARKLE_SIDE_OFFSET_RATIO;
+    const sparkleAnchorY = Math.min(
+      impactPointY - placement.openingWidth * HIT_SPARKLE_UP_OFFSET_RATIO,
+      bodyTopY + renderedBody.bodyHeight * HIT_SPARKLE_FACE_CLEAR_RATIO,
+      boardKeepoutTop - placement.openingWidth * HIT_SPARKLE_BOARD_CLEAR_RATIO,
+    );
 
     if (shouldLaunchCollect) {
       const holdBase = computeBodyAnchoredMoleTransform(darkOpening, style.hold.meta, style.scaleBias ?? 1);
@@ -1102,13 +1122,23 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
         style.textAnchorX + Math.sin(t * 0.08) * 1.2 + boardParallax,
         pinyinBoardY + textDrift - boardParallax * 0.2,
       );
-      pinyinRef.current.scale.set((style.textScale ?? 1) * textScaleBoost);
+      const pinyinScale = fittedTextScale(
+        pinyinRef.current,
+        (style.textScale ?? 1) * textScaleBoost,
+        BOARD_PINYIN_MAX_WIDTH,
+      );
+      pinyinRef.current.scale.set(pinyinScale);
       (pinyinRef.current.style as TextStyle).fill = BOARD_TEXT_FILL;
     }
     if (hanziRef.current) {
       hanziRef.current.visible = showSign;
       hanziRef.current.position.set(style.textAnchorX + boardParallax * 0.6, hanziBoardY + textDrift * 0.7);
-      hanziRef.current.scale.set((style.textScale ?? 1) * textScaleBoost);
+      const hanziScale = fittedTextScale(
+        hanziRef.current,
+        (style.textScale ?? 1) * textScaleBoost,
+        BOARD_HANZI_MAX_WIDTH,
+      );
+      hanziRef.current.scale.set(hanziScale);
     }
 
     if (reactionRef.current) {
@@ -1134,9 +1164,9 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       const bloom = Math.sin(progress * Math.PI);
       const spinProgress = Math.max(0, (progress - 0.62) / 0.38);
       hitEffect.visible = true;
-      hitEffect.position.set(impactPointX, impactPointY);
-      hitEffect.scale.set(base.scale * (1.58 + bloom * 1.0 + progress * 0.22));
-      hitEffect.alpha = Math.min(0.96, 0.72 + life * 0.3);
+      hitEffect.position.set(sparkleAnchorX, sparkleAnchorY);
+      hitEffect.scale.set(base.scale * (0.82 + bloom * 0.38 + progress * 0.08));
+      hitEffect.alpha = Math.min(0.82, 0.56 + life * 0.26);
       hitEffect.rotation += 0.004 + easeOutCubic(spinProgress) * 0.09;
     } else {
       hitEffect.visible = false;
@@ -1316,6 +1346,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       drawDebugCross(debugGraphics, bodyLeftX, renderedBodyBottomY, DEBUG_COLORS.bodyContact, 10, 2);
       drawDebugDiamond(debugGraphics, boardCenterX, boardCenterY, DEBUG_COLORS.boardCenter, 9);
       drawDebugCross(debugGraphics, impactPointX, impactPointY, DEBUG_COLORS.impactPoint, 9, 2);
+      drawDebugDiamond(debugGraphics, sparkleAnchorX, sparkleAnchorY, DEBUG_COLORS.sparkleAnchor, 8);
       const debugLowestHeadPoint = getHammerLowestHeadPoint(
         impactPointX,
         impactPointY,

@@ -1,21 +1,27 @@
 import type { Word } from '../types/word';
+import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
 
 interface HUDProps {
-  score: number;
   combo: number;
   timeRemaining: number;
   collectedWords: Word[];
+  selectedFood: RewardFood;
 }
 
-export function HUD({ score, combo, timeRemaining, collectedWords }: HUDProps) {
+export function HUD({ combo, timeRemaining, collectedWords, selectedFood }: HUDProps) {
   const isLowTime = timeRemaining <= 10;
   const recentWords = collectedWords.slice(-5);
+  const food = getRewardFoodOption(selectedFood);
+  const foodUnits = foodUnitsForCorrectWords(collectedWords.length);
 
   return (
     <div className="hud">
       <div className="hud-left">
-        <div className="hud-score">{score}</div>
-        <div className="hud-label">SCORE</div>
+        <div className="hud-food">
+          <img className="hud-food-icon" src={food.image} alt="" />
+          <span className="hud-food-count">{foodUnits}</span>
+        </div>
+        <div className="hud-label">{food.shortLabel}</div>
       </div>
 
       <div className="hud-center">

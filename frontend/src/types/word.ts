@@ -1,4 +1,4 @@
-export type Tone = 1 | 2 | 3 | 4;
+export type Tone = 1 | 2 | 3 | 4 | 5;
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -11,4 +11,5 @@ export interface Word {
   difficulty: Difficulty;
   creatureName: string;
   scoreValue: number;
+  audioUrl?: string;
 }

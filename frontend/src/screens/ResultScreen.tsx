@@ -2,16 +2,35 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GameState } from '../types/game';
 import type { Word } from '../types/word';
 import { referenceAudioUrl } from '../audio/referenceAudio';
+import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
+import type { ScriptSession } from '../data/scriptSessions';
 
 interface ResultScreenProps {
   finalState: GameState;
-  onPlayAgain: () => void;
+  selectedFood: RewardFood;
+  previousScriptSession: ScriptSession;
+  scriptSession: ScriptSession;
+  nextScriptSession: ScriptSession;
+  onPreviousGame: () => void;
+  onReplay: () => void;
+  onNextGame: () => void;
 }
 
-export function ResultScreen({ finalState, onPlayAgain }: ResultScreenProps) {
-  const { score, wordsHit, wordsMissed, combo } = finalState;
+export function ResultScreen({
+  finalState,
+  selectedFood,
+  previousScriptSession,
+  scriptSession,
+  nextScriptSession,
+  onPreviousGame,
+  onReplay,
+  onNextGame,
+}: ResultScreenProps) {
+  const { wordsHit, wordsMissed, combo } = finalState;
   const total = wordsHit.length + wordsMissed.length;
   const accuracy = total > 0 ? Math.round((wordsHit.length / total) * 100) : 0;
+  const food = getRewardFoodOption(selectedFood);
+  const foodUnits = foodUnitsForCorrectWords(wordsHit.length);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playingWordId, setPlayingWordId] = useState<string | null>(null);
@@ -33,7 +52,7 @@ export function ResultScreen({ finalState, onPlayAgain }: ResultScreenProps) {
     (word: Word) => {
       stopReferenceAudio();
       setAudioErrorWordId(null);
-      const url = referenceAudioUrl(word.id);
+      const url = word.audioUrl || referenceAudioUrl(word.id);
       const a = new Audio(url);
       audioRef.current = a;
       setPlayingWordId(word.id);
@@ -44,7 +63,7 @@ export function ResultScreen({ finalState, onPlayAgain }: ResultScreenProps) {
         }
       });
       a.addEventListener('error', () => {
-        console.warn('[reference-audio] failed to load', word.id, url);
+        console.warn('[word-audio] failed to load', word.id, url);
         setAudioErrorWordId(word.id);
         if (audioRef.current === a) {
           setPlayingWordId(null);
@@ -60,13 +79,25 @@ export function ResultScreen({ finalState, onPlayAgain }: ResultScreenProps) {
     [stopReferenceAudio],
   );
 
+  const handleNavigate = useCallback(
+    (navigate: () => void) => {
+      stopReferenceAudio();
+      navigate();
+    },
+    [stopReferenceAudio],
+  );
+
   return (
     <div className="result-screen">
       <div className="result-content">
         <h1 className="result-title">Round Over!</h1>
+        <div className="result-round-label">Finished: {scriptSession.title}</div>
 
-        <div className="result-score">{score}</div>
-        <div className="result-score-label">FINAL SCORE</div>
+        <div className="result-food-score">
+          <img src={food.image} alt="" />
+          <span>{foodUnits}</span>
+        </div>
+        <div className="result-score-label">{food.shortLabel} earned</div>
 
         <div className="result-stats">
           <div className="result-stat">
@@ -112,9 +143,20 @@ export function ResultScreen({ finalState, onPlayAgain }: ResultScreenProps) {
           </div>
         )}
 
-        <button className="start-button" onClick={onPlayAgain}>
-          Whack Again
-        </button>
+        <div className="result-navigation">
+          <button className="result-nav-button" onClick={() => handleNavigate(onPreviousGame)}>
+            <span>Previous Game</span>
+            <small>Previous: {previousScriptSession.title}</small>
+          </button>
+          <button className="result-nav-button result-nav-button--primary" onClick={() => handleNavigate(onReplay)}>
+            <span>Replay</span>
+            <small>Replay: {scriptSession.title}</small>
+          </button>
+          <button className="result-nav-button" onClick={() => handleNavigate(onNextGame)}>
+            <span>Next Game</span>
+            <small>Next: {nextScriptSession.title}</small>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,13 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+@keyframes hint-pop {
+  0%   { transform: scale(0.68) translateY(6px); opacity: 0; }
+  55%  { transform: scale(1.14); }
+  78%  { transform: scale(0.98); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 @keyframes mic-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
   50%       { box-shadow: 0 0 0 14px rgba(255, 68, 68, 0); }

@@ -11,6 +11,10 @@ export type EngineEvent =
 
 type EngineListener = (event: EngineEvent) => void;
 
+interface GameEngineOptions {
+  preserveWordOrder?: boolean;
+}
+
 const ROUND_SECONDS = 60;
 const HIT_ANIM_MS = 1180;
 const MISS_FEEDBACK_MS = 1080;
@@ -36,9 +40,9 @@ export class GameEngine {
   private strikeId = 0;
   private wordLifeCounter = 0;
 
-  constructor(words: Word[], evaluator: PronunciationEvaluator, canvas?: BoardConfig) {
+  constructor(words: Word[], evaluator: PronunciationEvaluator, canvas?: BoardConfig, options?: GameEngineOptions) {
     this.evaluator = evaluator;
-    this.wordQueue = shuffleWords(words);
+    this.wordQueue = options?.preserveWordOrder ? [...words] : shuffleWords(words);
     this.canvas = canvas ?? { canvasWidth: window.innerWidth, canvasHeight: window.innerHeight };
     this.state = this.initialState();
   }

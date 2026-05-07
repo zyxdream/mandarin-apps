@@ -5,6 +5,11 @@ import { GAME_AUDIO } from '../audio/gameAudioCatalog';
 type SfxKey = keyof typeof GAME_AUDIO.sfx;
 
 const BGM_FADE_MS = 120;
+const COLLECT_SFX_DELAY_MS = 220;
+
+function clampVolume(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
 
 function getTargetBgmVolume(state: GameState | null): number {
   if (!state) return GAME_AUDIO.volume.bgmBase;
@@ -23,10 +28,10 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const bgmRef = useRef<HTMLAudioElement | null>(null);
   const bgmFadeRafRef = useRef<number | null>(null);
   const sfxTemplatesRef = useRef<Record<string, HTMLAudioElement>>({});
+  const collectDelayRef = useRef<number | null>(null);
 
   const lastAnimStateRef = useRef<string | null>(null);
   const lastHitCountRef = useRef(0);
-  const unlockPlayedRef = useRef(false);
   const targetBgmVolume = getTargetBgmVolume(gameState);
 
   const cancelBgmFade = useCallback(() => {
@@ -51,8 +56,8 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     const bgm = bgmRef.current;
     if (!bgm) return;
 
-    const to = Math.max(0, Math.min(1, targetVolume));
-    const from = Math.max(0, Math.min(1, bgm.volume));
+    const to = clampVolume(targetVolume);
+    const from = clampVolume(bgm.volume);
     if (Math.abs(from - to) < 0.001) {
       bgm.volume = to;
       return;
@@ -62,8 +67,8 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
 
     const startedAt = performance.now();
     const tick = (now: number) => {
-      const progress = Math.min(1, (now - startedAt) / BGM_FADE_MS);
-      bgm.volume = from + (to - from) * progress;
+      const progress = Math.max(0, Math.min(1, (now - startedAt) / BGM_FADE_MS));
+      bgm.volume = clampVolume(from + (to - from) * progress);
       if (progress < 1) {
         bgmFadeRafRef.current = requestAnimationFrame(tick);
       } else {
@@ -138,18 +143,24 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
 
     const hitCount = gameState.wordsHit.length;
     if (hitCount > lastHitCountRef.current) {
-      playSfx('collect');
+      playSfx('success');
+      if (collectDelayRef.current !== null) {
+        window.clearTimeout(collectDelayRef.current);
+      }
+      collectDelayRef.current = window.setTimeout(() => {
+        collectDelayRef.current = null;
+        playSfx('collect');
+      }, COLLECT_SFX_DELAY_MS);
     }
     lastHitCountRef.current = hitCount;
-
-    if (!unlockPlayedRef.current && gameState.combo >= 3) {
-      unlockPlayedRef.current = true;
-      playSfx('unlock');
-    }
   }, [enabled, gameState?.activeMole?.animState, gameState?.wordsHit.length, gameState?.combo, gameState, playSfx]);
 
   useEffect(() => () => {
     cancelBgmFade();
+    if (collectDelayRef.current !== null) {
+      window.clearTimeout(collectDelayRef.current);
+      collectDelayRef.current = null;
+    }
 
     const bgm = bgmRef.current;
     if (bgm) {

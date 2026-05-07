@@ -7,14 +7,19 @@ import { useMicrophone } from '../hooks/useMicrophone';
 import { MoleCanvas } from '../components/MoleCanvas';
 import { HUD } from '../components/HUD';
 import { VoiceMeter } from '../components/MicButton';
-import { PronunciationHint } from '../components/PronunciationHint';
+import { DevEvalCenterPanel, EvaluatingStatus, PedagogyHint } from '../components/PronunciationHint';
 import type { UiDockLayout } from '../engine/uiDockLayout';
+import type { RewardFood } from '../data/rewards';
+import type { ScriptSession } from '../data/scriptSessions';
 
 interface GameScreenProps {
+  selectedFood: RewardFood;
+  onSelectFood: (food: RewardFood) => void;
+  scriptSession: ScriptSession;
   onGameOver: (finalState: GameState) => void;
 }
 
-export function GameScreen({ onGameOver }: GameScreenProps) {
+export function GameScreen({ selectedFood, onSelectFood, scriptSession, onGameOver }: GameScreenProps) {
   const {
     gameState,
     activeMoleRef,
@@ -22,7 +27,7 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
     startGame,
     setCanvasSize,
     submitEvaluation,
-  } = useGameEngine();
+  } = useGameEngine(scriptSession);
   const { micState, volume, startListening, captureRecentAudio, resetCaptureBuffer } = useMicrophone();
   const calledGameOverRef = useRef(false);
   const startedRoundRef = useRef(false);
@@ -105,7 +110,6 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
     resetCaptureBuffer();
   }, [activeWordId, resetCaptureBuffer]);
 
-  const score = gameState?.score ?? 0;
   const combo = gameState?.combo ?? 0;
   const timeRemaining = gameState?.timeRemaining ?? 45;
   const collectedWords = gameState?.wordsHit ?? [];
@@ -262,16 +266,34 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
         </div>
 
         <div className="hud-overlay">
-          <HUD score={score} combo={combo} timeRemaining={timeRemaining} collectedWords={collectedWords} />
-        </div>
-
-        <div className="hint-overlay">
-          <PronunciationHint
-            hint={gameState?.isEvaluating
-              ? { code: 'checking', text: '...Checking pronunciation', confidence: 0 }
-              : (gameState?.lastHint ?? null)}
+          <HUD
+            combo={combo}
+            timeRemaining={timeRemaining}
+            collectedWords={collectedWords}
+            selectedFood={selectedFood}
           />
         </div>
+
+        <div className="hint-overlay hint-overlay--pedagogy">
+          {!gameState?.isEvaluating && gameState?.lastHint ? (
+            <PedagogyHint
+              key={`${gameState.lastHint.code}-${gameState.lastHint.text}`}
+              hint={gameState.lastHint}
+            />
+          ) : null}
+        </div>
+
+        {gameState?.isEvaluating && !import.meta.env.DEV ? (
+          <div className="hint-overlay hint-overlay--evaluating">
+            <EvaluatingStatus />
+          </div>
+        ) : null}
+
+        {import.meta.env.DEV && gameState && (gameState.isEvaluating || gameState.lastHint) ? (
+          <div className="hint-overlay hint-overlay--dev-center">
+            <DevEvalCenterPanel isEvaluating={gameState.isEvaluating} hint={gameState.lastHint} />
+          </div>
+        ) : null}
       </div>
 
       <div className="game-controls-dock" ref={dockRef}>
@@ -280,6 +302,9 @@ export function GameScreen({ onGameOver }: GameScreenProps) {
             micState={micState}
             volume={volume}
             sessionPracticeUnits={sessionPracticeUnits}
+            scriptSession={scriptSession}
+            selectedFood={selectedFood}
+            onSelectFood={onSelectFood}
             onEnableMic={startListening}
           />
         </div>
