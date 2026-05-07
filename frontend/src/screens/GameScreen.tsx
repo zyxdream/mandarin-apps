@@ -117,6 +117,10 @@ export function GameScreen({ selectedFood, onSelectFood, scriptSession, onGameOv
     '--ui-dock-height': `${dockLayout.dockHeightPx}px`,
     '--ui-dock-safe-bottom': `${dockLayout.safeBottomPx}px`,
   } as CSSProperties;
+  const pedagogyHintStyle = gameState?.activeMole ? {
+    '--hint-anchor-x': `${Math.round(gameState.activeMole.x)}px`,
+    '--hint-anchor-y': `${Math.round(gameState.activeMole.y)}px`,
+  } as CSSProperties : undefined;
   const isMicStartScreen = !hasRoundStarted && micState !== 'listening';
 
   useGameAudio(gameState, micState === 'listening' && gameState?.screen === 'game');
@@ -274,10 +278,10 @@ export function GameScreen({ selectedFood, onSelectFood, scriptSession, onGameOv
           />
         </div>
 
-        <div className="hint-overlay hint-overlay--pedagogy">
-          {!gameState?.isEvaluating && gameState?.lastHint ? (
+        <div className="hint-overlay hint-overlay--pedagogy" style={pedagogyHintStyle}>
+          {!gameState?.isEvaluating && gameState?.activeMole && gameState?.lastHint ? (
             <PedagogyHint
-              key={`${gameState.lastHint.code}-${gameState.lastHint.text}`}
+              key={`${gameState.lastHint.code}-${gameState.lastHint.text}-${gameState.lastHint.transcriptPinyin ?? ''}-${Math.round(gameState.lastHint.confidence * 100)}`}
               hint={gameState.lastHint}
             />
           ) : null}

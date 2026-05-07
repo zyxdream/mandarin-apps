@@ -52,6 +52,8 @@ const MOLE_EMERGE_LIFT = 132;
 const MOLE_EMERGE_FRAMES = 30;
 const COLLECT_TARGET_Y = 84;
 const HAMMER_SWING_DECAY = 0.024;
+const HAMMER_HIT_FADE_START_FRAME = 34;
+const HAMMER_HIT_HIDE_FRAME = 46;
 const HIT_EFFECT_FRAMES = 88;
 const MISS_EFFECT_FRAMES = 76;
 const HIT_SPARKLE_SIDE_OFFSET_RATIO = 0.16;
@@ -1274,6 +1276,8 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     hammer.texture = Texture.from(HAMMER_TEXTURE);
     hammer.position.set(hammerIdleX, hammerIdleY - voicePower * 18);
     hammer.scale.set(hammerScaleX, hammerVisualScale);
+    hammer.alpha = 1;
+    hammer.visible = true;
 
     if (swingRef.current > 0) {
       const swing = swingRef.current;
@@ -1311,6 +1315,15 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       hammer.scale.set(swingScale * hammerSide, swingScale);
     } else {
       hammer.rotation = idleRotation;
+    }
+
+    if (mole.animState === 'hit') {
+      const fadeProgress = Math.max(
+        0,
+        Math.min(1, (t - HAMMER_HIT_FADE_START_FRAME) / (HAMMER_HIT_HIDE_FRAME - HAMMER_HIT_FADE_START_FRAME)),
+      );
+      hammer.alpha = 1 - easeOutCubic(fadeProgress);
+      hammer.visible = t < HAMMER_HIT_HIDE_FRAME;
     }
 
     if (debugGraphics && LAYOUT_DEBUG) {

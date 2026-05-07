@@ -53,11 +53,11 @@
 }
 
 .hint-overlay--pedagogy {
-  left: 50%;
-  bottom: calc(var(--ui-dock-height) + clamp(7.5rem, 26dvh, 14rem) + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  left: clamp(1rem, var(--hint-anchor-x, 50vw), calc(100vw - 1rem));
+  top: max(5.5rem, calc(var(--hint-anchor-y, 56vh) - clamp(9rem, 20dvh, 13rem)));
+  transform: translate(-50%, -100%);
   z-index: 30;
-  width: min(560px, calc(100vw - 1.5rem));
+  width: min(520px, calc(100vw - 1.5rem));
   display: flex;
   justify-content: center;
 }
@@ -153,7 +153,7 @@
 
 .hud {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.25rem;
@@ -162,6 +162,12 @@
 .hud-left,
 .hud-right {
   min-width: 90px;
+  flex: 1 1 0;
+}
+
+.hud-right {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .hud-score {
@@ -173,39 +179,112 @@
   text-shadow: 3px 3px 0 rgba(70, 38, 18, 0.45);
 }
 
+.hud-reward-cluster {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.55rem, 1.4vw, 0.9rem);
+  max-width: calc(100vw - 14rem);
+}
+
+.hud-food-panel,
+.collected-bar {
+  position: relative;
+  border: 3px solid rgba(93, 54, 22, 0.96);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 221, 139, 0.22), transparent 22%),
+    linear-gradient(180deg, #a9682c 0%, #784116 48%, #4a260d 100%);
+  box-shadow:
+    0 6px 0 rgba(54, 31, 14, 0.5),
+    0 12px 18px rgba(33, 18, 8, 0.22),
+    inset 0 2px 0 rgba(255, 238, 181, 0.24),
+    inset 0 -5px 12px rgba(40, 18, 5, 0.25);
+}
+
+.hud-food-panel::before,
+.hud-food-panel::after,
+.collected-bar::before,
+.collected-bar::after {
+  position: absolute;
+  z-index: 2;
+  width: 18px;
+  height: 30px;
+  border-radius: 100% 0 100% 0;
+  background:
+    linear-gradient(135deg, rgba(222, 255, 110, 0.95), rgba(61, 138, 25, 0.95) 58%, rgba(26, 91, 17, 0.98));
+  box-shadow: inset 2px 2px 3px rgba(255, 255, 190, 0.34), 0 2px 2px rgba(25, 54, 10, 0.25);
+  content: "";
+  pointer-events: none;
+}
+
+.collected-bar::before {
+  left: -12px;
+  top: 12px;
+  transform: rotate(-52deg);
+}
+
+.collected-bar::after {
+  right: -12px;
+  top: 12px;
+  transform: rotate(142deg);
+}
+
+.hud-food-panel::before {
+  left: -10px;
+  bottom: 8px;
+  transform: rotate(-72deg) scale(0.78);
+}
+
+.hud-food-panel::after {
+  right: -10px;
+  top: 8px;
+  transform: rotate(125deg) scale(0.72);
+}
+
+.hud-food-panel {
+  display: flex;
+  min-width: 104px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.7rem 0.35rem;
+  border-radius: 18px;
+}
+
 .hud-food {
+  position: relative;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.55rem 0.25rem 0.35rem;
-  border: 3px solid rgba(106, 67, 32, 0.78);
-  border-radius: 999px;
-  background: rgba(255, 240, 196, 0.88);
-  box-shadow: 0 4px 0 rgba(54, 31, 14, 0.42);
 }
 
 .hud-food-icon {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   object-fit: contain;
-  filter: drop-shadow(0 3px 1px rgba(54, 31, 14, 0.28));
+  filter: drop-shadow(0 4px 2px rgba(30, 15, 5, 0.34));
 }
 
 .hud-food-count {
-  color: #442511;
-  font-size: 1.9rem;
+  color: #ffe066;
+  font-size: 2rem;
   font-weight: 900;
   line-height: 1;
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+  text-shadow: 2px 2px 0 rgba(70, 38, 18, 0.6), 0 0 12px rgba(255, 224, 102, 0.22);
 }
 
 .hud-label {
+  position: relative;
+  z-index: 3;
   font-size: 0.65rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 800;
+  color: rgba(255, 246, 218, 0.9);
   letter-spacing: 2px;
   margin-top: 2px;
-  text-shadow: 2px 2px 0 rgba(70, 38, 18, 0.35);
+  text-shadow: 2px 2px 0 rgba(70, 38, 18, 0.5);
+  text-transform: uppercase;
 }
 
 .hud-center {
@@ -220,13 +299,12 @@
 .collected-bar {
   min-width: min(560px, 58vw);
   padding: 0.55rem 0.8rem 0.7rem;
-  border: 3px solid #6a4320;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #7b4b25 0%, #4d2c16 100%);
-  box-shadow: 0 5px 0 rgba(54, 31, 14, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
 }
 
 .collected-title {
+  position: relative;
+  z-index: 3;
   margin-bottom: 0.35rem;
   color: #ffe89a;
   font-size: 0.72rem;
@@ -237,6 +315,8 @@
 }
 
 .collected-list {
+  position: relative;
+  z-index: 3;
   display: flex;
   min-height: 38px;
   align-items: center;
@@ -250,11 +330,11 @@
   flex-direction: column;
   align-items: center;
   padding: 0.28rem 0.45rem 0.35rem;
-  border: 2px solid #8c6239;
+  border: 2px solid rgba(96, 54, 21, 0.74);
   border-radius: 8px 8px 12px 12px;
-  background: #fff0c4;
+  background: linear-gradient(180deg, #fff6cf 0%, #f0c879 100%);
   color: #2b1a12;
-  box-shadow: 0 3px 0 rgba(42, 25, 11, 0.28);
+  box-shadow: 0 3px 0 rgba(42, 25, 11, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.55);
   animation: combo-pop 0.25s ease-out;
 }
 
@@ -318,22 +398,28 @@
    ========================================================= */
 
 .pronunciation-hint {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.8rem;
-  max-width: min(520px, calc(100vw - 2rem));
-  padding: 0.7rem 1rem;
-  border: 3px solid #6a4320;
+  max-width: min(500px, calc(100vw - 2rem));
+  padding: 0.68rem 1.05rem;
+  border: 3px solid rgba(94, 53, 20, 0.92);
   border-radius: 999px;
-  background: #fff0c4;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 220, 0.9), rgba(255, 240, 196, 0.92) 42%, rgba(239, 190, 108, 0.94) 100%);
   color: #2b1a12;
-  box-shadow: 0 5px 0 rgba(54, 31, 14, 0.4);
+  box-shadow:
+    0 6px 0 rgba(54, 31, 14, 0.42),
+    0 13px 18px rgba(33, 18, 8, 0.22),
+    inset 0 2px 0 rgba(255, 255, 255, 0.68);
 }
 
 .pronunciation-hint--pedagogy {
-  animation: hint-pop 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: 50% 100%;
+  animation: hint-juicy-pop 0.48s cubic-bezier(0.2, 1.24, 0.34, 1);
 }
 
 .pronunciation-hint--dev-center-panel:not(.pronunciation-hint--checking) {
@@ -344,20 +430,31 @@
   flex-direction: column;
   gap: 0.45rem;
   align-items: center;
+  max-width: min(500px, calc(100vw - 1.5rem));
+  padding: 0.46rem 0.8rem;
+  border: 1px solid rgba(255, 240, 196, 0.24);
+  background: rgba(26, 17, 10, 0.58);
+  color: rgba(255, 246, 218, 0.88);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(2px);
 }
 
 .pronunciation-hint--checking {
   background: #fff6da;
   border-color: #94622f;
+  color: #2b1a12;
   animation: pronunciation-hint-checking-pulse 0.75s ease-in-out infinite;
 }
 
 .pronunciation-hint-text {
-  font-size: clamp(0.82rem, 2.8vw, 1rem);
+  position: relative;
+  z-index: 2;
+  font-size: clamp(0.92rem, 2.8vw, 1.12rem);
   font-weight: 900;
   text-align: center;
   white-space: normal;
   line-height: 1.25;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .pronunciation-hint-text--dev-panel {
@@ -370,10 +467,28 @@
 }
 
 .pronunciation-hint-ghost {
-  color: rgba(43, 26, 18, 0.65);
+  color: rgba(255, 246, 218, 0.74);
   font-size: 0.78rem;
   font-weight: 700;
   white-space: normal;
+}
+
+@keyframes hint-juicy-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.62);
+  }
+  46% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.18);
+  }
+  70% {
+    transform: translateY(1px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes pronunciation-hint-checking-pulse {
@@ -1465,6 +1580,52 @@
 }
 
 @media (max-width: 720px) {
+  .hud {
+    gap: 0.45rem;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .hud-left,
+  .hud-right {
+    min-width: 0;
+    flex: 0 1 58px;
+  }
+
+  .hud-reward-cluster {
+    max-width: calc(100vw - 1.4rem);
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .collected-bar {
+    min-width: min(520px, calc(100vw - 1.4rem));
+    padding-inline: 0.65rem;
+    order: 2;
+  }
+
+  .hud-food-panel {
+    min-width: 96px;
+    padding: 0.32rem 0.6rem;
+    order: 1;
+  }
+
+  .hud-food-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .hud-food-count {
+    font-size: 1.65rem;
+  }
+
+  .hud-timer {
+    font-size: 2.1rem;
+  }
+
+  .hint-overlay--pedagogy {
+    top: max(5.25rem, calc(var(--hint-anchor-y, 56vh) - clamp(7.5rem, 18dvh, 10rem)));
+  }
+
   .food-picker-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

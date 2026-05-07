@@ -19,10 +19,15 @@ const ROUND_SECONDS = 60;
 const HIT_ANIM_MS = 1180;
 const MISS_FEEDBACK_MS = 1080;
 const NEXT_MOLE_DELAY_MS = 450;
+const SUCCESS_NEXT_MOLE_DELAY_MS = 120;
+const SUCCESS_NEXT_MOLE_LEAD_MS = 320;
+const TIMEOUT_NEXT_MOLE_DELAY_MS = 120;
 const MOLE_VISIBLE_MS = 10000;
 const WORD_HARD_TIMEOUT_MS = 15000;
+const SUCCESS_HINT_MS = 850;
 const EMERGE_MS = 260;
 const MIN_SECONDS_TO_SPAWN_MOLE = 7;
+const SUCCESS_HINTS = ['Great', 'Amazing', 'Fantastic'] as const;
 
 export class GameEngine {
   private state: GameState;
@@ -32,6 +37,7 @@ export class GameEngine {
   private activeMoleTimeout: ReturnType<typeof setTimeout> | null = null;
   private retryHandle: ReturnType<typeof setTimeout> | null = null;
   private hardWordTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  private hintClearHandle: ReturnType<typeof setTimeout> | null = null;
   private readonly evaluator: PronunciationEvaluator;
   private canvas: BoardConfig;
   private evaluating = false;
@@ -82,6 +88,7 @@ export class GameEngine {
     if (this.activeMoleTimeout) clearTimeout(this.activeMoleTimeout);
     if (this.retryHandle) clearTimeout(this.retryHandle);
     if (this.hardWordTimeoutHandle) clearTimeout(this.hardWordTimeoutHandle);
+    this.clearHintClearTimeout();
     this.countdownHandle = null;
     this.activeMoleTimeout = null;
     this.retryHandle = null;
@@ -138,7 +145,7 @@ export class GameEngine {
       if (!result.transcript && !result.transcriptPinyin) return null;
       return {
         code: result.success ? 'heard_correct' : 'heard_retry',
-        text: result.success ? 'Correct pronunciation' : 'Try that sound again',
+        text: result.success ? this.randomSuccessHint() : 'Try that sound again',
         transcript: result.transcript,
         transcriptPinyin: result.transcriptPinyin,
         confidence: result.confidence,
@@ -196,12 +203,13 @@ export class GameEngine {
       wordsHit: [...this.state.wordsHit, word],
       consecutiveMissCount: 0,
     });
+    this.armSuccessHintClear(lastHint);
 
     setTimeout(() => {
       if (this.state.screen !== 'game') return;
-      this.setState({ activeMole: null });
-      this.scheduleNextMole();
-    }, HIT_ANIM_MS);
+      this.setState({ activeMole: null, lastHint: this.isSuccessHint(this.state.lastHint) ? null : this.state.lastHint });
+      this.scheduleNextMole(SUCCESS_NEXT_MOLE_DELAY_MS);
+    }, Math.max(0, HIT_ANIM_MS - SUCCESS_NEXT_MOLE_LEAD_MS));
   }
 
   private handleMiss(lastHint: GameState['lastHint']): void {
@@ -244,7 +252,7 @@ export class GameEngine {
       if (this.state.screen !== 'game') return;
       if (!this.state.activeMole || this.state.activeMole.word.id !== word.id) return;
       this.setState({ activeMole: null });
-      this.scheduleNextMole();
+      this.scheduleNextMole(TIMEOUT_NEXT_MOLE_DELAY_MS);
     }, HIT_ANIM_MS);
   }
 
@@ -275,7 +283,7 @@ export class GameEngine {
     this.spawnMole(word, false);
   }
 
-  private scheduleNextMole(): void {
+  private scheduleNextMole(delayMs = NEXT_MOLE_DELAY_MS): void {
     setTimeout(() => {
       if (this.state.screen !== 'game' || this.state.activeMole) return;
       if (!this.hasEnoughTimeForNewMole()) {
@@ -283,7 +291,7 @@ export class GameEngine {
         return;
       }
       this.spawnNextMole();
-    }, NEXT_MOLE_DELAY_MS);
+    }, delayMs);
   }
 
   private spawnMole(word: Word, isSecondChance: boolean): void {
@@ -303,7 +311,8 @@ export class GameEngine {
       isSecondChance,
       strikeId: this.strikeId,
     };
-    this.setState({ activeMole: mole });
+    this.clearHintClearTimeout();
+    this.setState({ activeMole: mole, lastHint: null });
 
     setTimeout(() => {
       if (wordLife !== this.wordLifeCounter) return;
@@ -360,6 +369,30 @@ export class GameEngine {
   private clearHardWordTimeout(): void {
     if (this.hardWordTimeoutHandle) clearTimeout(this.hardWordTimeoutHandle);
     this.hardWordTimeoutHandle = null;
+  }
+
+  private clearHintClearTimeout(): void {
+    if (this.hintClearHandle) clearTimeout(this.hintClearHandle);
+    this.hintClearHandle = null;
+  }
+
+  private randomSuccessHint(): string {
+    return SUCCESS_HINTS[Math.floor(Math.random() * SUCCESS_HINTS.length)];
+  }
+
+  private isSuccessHint(hint: GameState['lastHint']): boolean {
+    return hint?.code === 'heard_correct';
+  }
+
+  private armSuccessHintClear(hint: GameState['lastHint']): void {
+    this.clearHintClearTimeout();
+    if (!this.isSuccessHint(hint)) return;
+    this.hintClearHandle = setTimeout(() => {
+      this.hintClearHandle = null;
+      if (this.state.screen !== 'game') return;
+      if (this.state.lastHint !== hint) return;
+      this.setState({ lastHint: null });
+    }, SUCCESS_HINT_MS);
   }
 
   private armHardWordTimeout(word: Word, wordLife: number): void {

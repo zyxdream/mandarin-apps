@@ -16,28 +16,33 @@ export function HUD({ combo, timeRemaining, collectedWords, selectedFood }: HUDP
 
   return (
     <div className="hud">
-      <div className="hud-left">
-        <div className="hud-food">
-          <img className="hud-food-icon" src={food.image} alt="" />
-          <span className="hud-food-count">{foodUnits}</span>
-        </div>
-        <div className="hud-label">{food.shortLabel}</div>
-      </div>
+      <div className="hud-left" aria-hidden="true" />
 
       <div className="hud-center">
-        <div className="collected-bar">
-          <div className="collected-title">Collected Words</div>
-          <div className="collected-list">
-            {recentWords.length > 0 ? recentWords.map((word, index) => (
-              <div key={`${word.id}-${index}`} className="collected-banner">
-                <span>{word.pinyin}</span>
-                <strong>{word.hanzi}</strong>
-              </div>
-            )) : (
-              <div className="collected-empty">Whack moles to collect banners</div>
-            )}
+        <div className="hud-reward-cluster">
+          <div className="collected-bar">
+            <div className="collected-title">Collected Words</div>
+            <div className="collected-list">
+              {recentWords.length > 0 ? recentWords.map((word, index) => (
+                <div key={`${word.id}-${index}`} className="collected-banner">
+                  <span>{word.pinyin}</span>
+                  <strong>{word.hanzi}</strong>
+                </div>
+              )) : (
+                <div className="collected-empty">Whack moles to collect banners</div>
+              )}
+            </div>
+          </div>
+
+          <div className="hud-food-panel">
+            <div className="hud-food">
+              <img className="hud-food-icon" src={food.image} alt="" />
+              <span className="hud-food-count">{foodUnits}</span>
+            </div>
+            <div className="hud-label">{food.shortLabel}</div>
           </div>
         </div>
+
         <div className={`hud-timer ${isLowTime ? 'hud-timer--low' : ''}`}>
           {timeRemaining}
         </div>

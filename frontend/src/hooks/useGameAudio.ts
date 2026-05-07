@@ -130,14 +130,14 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     if (!enabled || !gameState) return;
 
     const animState = gameState.activeMole?.animState ?? null;
-    if (animState === 'listening' && lastAnimStateRef.current !== 'listening') {
+    if (animState === 'hit' && lastAnimStateRef.current !== 'hit') {
       playSfx('whack');
     }
     if (
       (animState === 'retry' || animState === 'escaping') &&
       lastAnimStateRef.current !== animState
     ) {
-      playSfx('failure');
+      playSfx('miss');
     }
     lastAnimStateRef.current = animState;
 
