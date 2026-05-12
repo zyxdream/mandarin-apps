@@ -8,12 +8,12 @@ export function StartScreen({ onStart }: StartScreenProps) {
       <div className="start-cover-panels" aria-hidden="true">
         <img
           className="start-cover-panel start-cover-panel--top"
-          src="/assets/objects/cover_word_banner_top.png"
+          src="/assets/objects/cover_word_banner_top.v2.webp"
           alt=""
         />
         <img
           className="start-cover-panel start-cover-panel--lower"
-          src="/assets/objects/cover_word_banner_lower.png"
+          src="/assets/objects/cover_word_banner_lower.v2.webp"
           alt=""
         />
       </div>

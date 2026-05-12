@@ -94,11 +94,11 @@ export const MOLE_CHARACTER_STYLES: MoleCharacterAttachmentStyle[] = [
   {
     id: 'angry',
     hold: {
-      texture: '/assets/characters/moles/angry_mole_holding.png',
+      texture: '/assets/characters/moles/angry_mole_holding.v2.webp',
       meta: attachment(bbox(172, 113, 1071, 992), 624, 944, 730, 470, BODY_ANCHORS.angryHold),
     },
     miss: {
-      texture: '/assets/characters/moles/angry_mole_after_hit.png',
+      texture: '/assets/characters/moles/angry_mole_after_hit.v2.webp',
       meta: attachment(bbox(100, 78, 1158, 1105), 628, 944, 860, 520, BODY_ANCHORS.angryMiss),
     },
     textAnchorX: 4,
@@ -114,11 +114,11 @@ export const MOLE_CHARACTER_STYLES: MoleCharacterAttachmentStyle[] = [
   {
     id: 'cool',
     hold: {
-      texture: '/assets/characters/moles/cool_mole_holding.png',
+      texture: '/assets/characters/moles/cool_mole_holding.v2.webp',
       meta: attachment(bbox(162, 150, 1168, 1024), 443, 944, 520, 430, BODY_ANCHORS.coolHold),
     },
     miss: {
-      texture: '/assets/characters/moles/cool_mole_after_hit.png',
+      texture: '/assets/characters/moles/cool_mole_after_hit.v2.webp',
       meta: attachment(bbox(123, 138, 1179, 1055), 436, 944, 700, 500, BODY_ANCHORS.coolMiss),
     },
     textAnchorX: 256,
@@ -135,11 +135,11 @@ export const MOLE_CHARACTER_STYLES: MoleCharacterAttachmentStyle[] = [
   {
     id: 'dizzy',
     hold: {
-      texture: '/assets/characters/moles/dizzy_mole_holding.png',
+      texture: '/assets/characters/moles/dizzy_mole_holding.v2.webp',
       meta: attachment(bbox(156, 206, 1167, 962), 662, 944, 560, 450, BODY_ANCHORS.dizzyHold),
     },
     miss: {
-      texture: '/assets/characters/moles/dizzy_mole_after_hit.png',
+      texture: '/assets/characters/moles/dizzy_mole_after_hit.v2.webp',
       meta: attachment(bbox(144, 149, 1196, 994), 667, 944, 760, 520, BODY_ANCHORS.dizzyMiss),
     },
     textAnchorX: 214,
@@ -155,11 +155,11 @@ export const MOLE_CHARACTER_STYLES: MoleCharacterAttachmentStyle[] = [
   {
     id: 'eyebrow',
     hold: {
-      texture: '/assets/characters/moles/grey_eyebrow_mole_holding.png',
+      texture: '/assets/characters/moles/grey_eyebrow_mole_holding.v2.webp',
       meta: attachment(bbox(153, 98, 1228, 1222), 510, 944, 730, 470, BODY_ANCHORS.eyebrowHold),
     },
     miss: {
-      texture: '/assets/characters/moles/gray_eyebrow_mole_on_hit.png',
+      texture: '/assets/characters/moles/gray_eyebrow_mole_on_hit.v2.webp',
       meta: attachment(bbox(174, 63, 1205, 1111), 511, 944, 700, 500, BODY_ANCHORS.eyebrowMiss),
     },
     textAnchorX: 262,
@@ -176,11 +176,11 @@ export const MOLE_CHARACTER_STYLES: MoleCharacterAttachmentStyle[] = [
   {
     id: 'hat',
     hold: {
-      texture: '/assets/characters/moles/hat_mole_holding.png',
+      texture: '/assets/characters/moles/hat_mole_holding.v2.webp',
       meta: attachment(bbox(78, 180, 1161, 1024), 634, 944, 680, 470, BODY_ANCHORS.hatHold),
     },
     miss: {
-      texture: '/assets/characters/moles/hat_mole_after_hit.png',
+      texture: '/assets/characters/moles/hat_mole_after_hit.v2.webp',
       meta: attachment(bbox(74, 183, 1164, 1027), 616, 944, 740, 520, BODY_ANCHORS.hatMiss),
     },
     textAnchorX: 248,
@@ -195,5 +195,5 @@ export const MOLE_CHARACTER_STYLES: MoleCharacterAttachmentStyle[] = [
   },
 ];
 
-export const HIT_TEXTURE = '/assets/characters/moles/all_mole_on_hit.png';
+export const HIT_TEXTURE = '/assets/characters/moles/all_mole_on_hit.v2.webp';
 export const HIT_TEXTURE_ATTACHMENT = attachment(bbox(198, 171, 1035, 1034), 619, 944, 640, 480, BODY_ANCHORS.hit);

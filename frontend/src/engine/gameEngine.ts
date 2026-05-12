@@ -1,9 +1,9 @@
-import type { Word } from '../types/word';
-import type { GameState, MoleReaction, MoleState, EvalResult } from '../types/game';
-import type { PronunciationEvaluator } from '../types/evaluator';
-import { shuffleWords } from '../data/words';
-import { getMoleSlots, pickMoleSlot, type BoardConfig } from './moleLayout';
-import { scoreForResult } from './scoring';
+import type { Word } from '../types/word.js';
+import type { GameState, MoleAnimState, MoleReaction, MoleState, EvalResult } from '../types/game.js';
+import type { PronunciationEvaluator } from '../types/evaluator.js';
+import { shuffleWords } from '../data/words.js';
+import { getMoleSlots, pickMoleSlot, type BoardConfig } from './moleLayout.js';
+import { scoreForResult } from './scoring.js';
 
 export type EngineEvent =
   | { type: 'stateChanged'; state: Readonly<GameState> }
@@ -15,7 +15,6 @@ interface GameEngineOptions {
   preserveWordOrder?: boolean;
 }
 
-const ROUND_SECONDS = 60;
 const HIT_ANIM_MS = 1180;
 const MISS_FEEDBACK_MS = 1080;
 const NEXT_MOLE_DELAY_MS = 450;
@@ -23,11 +22,13 @@ const SUCCESS_NEXT_MOLE_DELAY_MS = 120;
 const SUCCESS_NEXT_MOLE_LEAD_MS = 320;
 const TIMEOUT_NEXT_MOLE_DELAY_MS = 120;
 const MOLE_VISIBLE_MS = 10000;
+const ONE_HANZI_MOLE_VISIBLE_MS = 7000;
+const TWO_HANZI_MOLE_VISIBLE_MS = 8000;
 const WORD_HARD_TIMEOUT_MS = 15000;
 const SUCCESS_HINT_MS = 850;
 const EMERGE_MS = 260;
-const MIN_SECONDS_TO_SPAWN_MOLE = 7;
 const SUCCESS_HINTS = ['Great', 'Amazing', 'Fantastic'] as const;
+const CJK_HANZI_RE = /[\u3400-\u9fff]/g;
 
 export class GameEngine {
   private state: GameState;
@@ -41,7 +42,6 @@ export class GameEngine {
   private readonly evaluator: PronunciationEvaluator;
   private canvas: BoardConfig;
   private evaluating = false;
-  private endAfterEvaluation = false;
   private lastSlotIndex: number | null = null;
   private strikeId = 0;
   private wordLifeCounter = 0;
@@ -94,7 +94,6 @@ export class GameEngine {
     this.retryHandle = null;
     this.hardWordTimeoutHandle = null;
     this.evaluating = false;
-    this.endAfterEvaluation = false;
   }
 
   async submitEvaluation(audioBlob: Blob): Promise<void> {
@@ -132,11 +131,6 @@ export class GameEngine {
       confidence: result.confidence,
       elapsedMs: Math.round(performance.now() - evaluationStartedAt),
     });
-    if (this.endAfterEvaluation) {
-      this.handleFinalResult(result);
-      return;
-    }
-
     this.handleResult(result);
   }
 
@@ -257,24 +251,27 @@ export class GameEngine {
   }
 
   private countdown(): void {
-    const newTime = this.state.timeRemaining - 1;
-    if (newTime <= 0) {
-      this.setState({ timeRemaining: 0 });
-      this.finishRound();
-      return;
+    if (this.state.screen !== 'game') return;
+    if (!this.state.activeMole) return;
+    if (!this.isActionableMoleState(this.state.activeMole.animState)) return;
+
+    const newTime = Math.max(0, this.state.timeRemaining - 1);
+    if (newTime !== this.state.timeRemaining) {
+      this.setState({ timeRemaining: newTime });
     }
-    this.setState({ timeRemaining: newTime });
+  }
+
+  private isActionableMoleState(animState: MoleAnimState): boolean {
+    return animState === 'active' || animState === 'retry' || animState === 'listening';
   }
 
   private spawnNextMole(): void {
     if (this.state.screen !== 'game') return;
 
-    if (!this.hasEnoughTimeForNewMole()) {
-      this.finishRound();
-      return;
-    }
-
     if (this.wordQueue.length === 0) {
+      if (this.state.activeMole) {
+        return;
+      }
       this.endGame();
       return;
     }
@@ -286,10 +283,6 @@ export class GameEngine {
   private scheduleNextMole(delayMs = NEXT_MOLE_DELAY_MS): void {
     setTimeout(() => {
       if (this.state.screen !== 'game' || this.state.activeMole) return;
-      if (!this.hasEnoughTimeForNewMole()) {
-        this.finishRound();
-        return;
-      }
       this.spawnNextMole();
     }, delayMs);
   }
@@ -332,12 +325,14 @@ export class GameEngine {
   }
 
   private initialState(): GameState {
+    const totalVisibleMs = this.wordQueue.reduce((sum, word) => sum + this.visibleTimeoutMsForWord(word), 0);
+    const initialRoundSeconds = Math.max(1, Math.ceil(totalVisibleMs / 1000));
     return {
       screen: 'game',
       activeMole: null,
       score: 0,
       combo: 0,
-      timeRemaining: ROUND_SECONDS,
+      timeRemaining: initialRoundSeconds,
       wordsHit: [],
       wordsMissed: [],
       secondChanceQueue: [],
@@ -349,11 +344,19 @@ export class GameEngine {
 
   private armActiveMoleTimeout(): void {
     this.clearActiveMoleTimeout();
-    const timeoutMs = Math.min(MOLE_VISIBLE_MS, Math.max(1200, this.state.timeRemaining * 1000));
+    if (!this.state.activeMole) return;
+    const timeoutMs = this.visibleTimeoutMsForWord(this.state.activeMole.word);
     this.activeMoleTimeout = setTimeout(() => {
       if (!this.state.activeMole || this.evaluating) return;
       this.handleAutoMiss(this.state.activeMole);
     }, timeoutMs);
+  }
+
+  private visibleTimeoutMsForWord(word: Word): number {
+    const hanziCount = (word.hanzi.match(CJK_HANZI_RE) ?? []).length;
+    if (hanziCount <= 1) return ONE_HANZI_MOLE_VISIBLE_MS;
+    if (hanziCount === 2) return TWO_HANZI_MOLE_VISIBLE_MS;
+    return MOLE_VISIBLE_MS;
   }
 
   private clearActiveMoleTimeout(): void {
@@ -415,60 +418,6 @@ export class GameEngine {
     if (this.state.isEvaluating) {
       this.setState({ isEvaluating: false });
     }
-  }
-
-  private hasEnoughTimeForNewMole(): boolean {
-    return this.state.timeRemaining >= MIN_SECONDS_TO_SPAWN_MOLE;
-  }
-
-  private finishRound(): void {
-    if (this.evaluating) {
-      this.endAfterEvaluation = true;
-      if (this.countdownHandle) clearInterval(this.countdownHandle);
-      this.countdownHandle = null;
-      this.clearActiveMoleTimeout();
-      return;
-    }
-
-    const activeMole = this.state.activeMole;
-    if (
-      activeMole &&
-      activeMole.animState !== 'hit' &&
-      activeMole.animState !== 'escaping'
-    ) {
-      this.setState({
-        combo: 0,
-        wordsMissed: [...this.state.wordsMissed, activeMole.word],
-      });
-    }
-    this.endGame();
-  }
-
-  private handleFinalResult(result: EvalResult): void {
-    this.endAfterEvaluation = false;
-    if (this.state.screen !== 'game') return;
-
-    const activeMole = this.state.activeMole;
-    const word = activeMole?.word;
-    const nextState: Partial<GameState> = {
-      lastHint: this.buildEvalHint(result),
-      isEvaluating: false,
-    };
-
-    if (word && !result.error) {
-      if (result.success) {
-        const newCombo = this.state.combo + 1;
-        nextState.score = this.state.score + scoreForResult(word, newCombo);
-        nextState.combo = newCombo;
-        nextState.wordsHit = [...this.state.wordsHit, word];
-      } else {
-        nextState.combo = 0;
-        nextState.wordsMissed = [...this.state.wordsMissed, word];
-      }
-    }
-
-    this.setState(nextState);
-    this.endGame();
   }
 
   private endGame(): void {

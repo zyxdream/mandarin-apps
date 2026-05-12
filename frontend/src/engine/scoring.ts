@@ -1,4 +1,4 @@
-import type { Word } from '../types/word';
+import type { Word } from '../types/word.js';
 
 export function scoreForResult(word: Word, combo: number): number {
   const multiplier = combo >= 5 ? 2 : combo >= 3 ? 1.5 : 1;

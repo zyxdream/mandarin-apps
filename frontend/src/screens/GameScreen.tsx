@@ -17,9 +17,16 @@ interface GameScreenProps {
   onSelectFood: (food: RewardFood) => void;
   scriptSession: ScriptSession;
   onGameOver: (finalState: GameState) => void;
+  onBackToSessionSelect: () => void;
 }
 
-export function GameScreen({ selectedFood, onSelectFood, scriptSession, onGameOver }: GameScreenProps) {
+export function GameScreen({
+  selectedFood,
+  onSelectFood,
+  scriptSession,
+  onGameOver,
+  onBackToSessionSelect,
+}: GameScreenProps) {
   const {
     gameState,
     activeMoleRef,
@@ -122,6 +129,10 @@ export function GameScreen({ selectedFood, onSelectFood, scriptSession, onGameOv
     '--hint-anchor-y': `${Math.round(gameState.activeMole.y)}px`,
   } as CSSProperties : undefined;
   const isMicStartScreen = !hasRoundStarted && micState !== 'listening';
+  const showPauseButton = hasRoundStarted && micState === 'listening';
+  const handlePausePlaceholder = useCallback(() => {
+    // Pause behavior is intentionally deferred.
+  }, []);
 
   useGameAudio(gameState, micState === 'listening' && gameState?.screen === 'game');
 
@@ -312,7 +323,38 @@ export function GameScreen({ selectedFood, onSelectFood, scriptSession, onGameOv
             onEnableMic={startListening}
           />
         </div>
+        {!isMicStartScreen ? (
+          <div className="gameplay-actions gameplay-actions--gameplay">
+            <button
+              type="button"
+              className="session-select-back-button gameplay-action-button"
+              onClick={onBackToSessionSelect}
+            >
+              Back
+            </button>
+            {showPauseButton ? (
+              <button
+                type="button"
+                className="session-select-back-button gameplay-action-button"
+                onClick={handlePausePlaceholder}
+              >
+                Pause
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
+      {isMicStartScreen ? (
+        <div className="ready-back-anchor">
+          <button
+            type="button"
+            className="session-select-back-button gameplay-action-button"
+            onClick={onBackToSessionSelect}
+          >
+            Back
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

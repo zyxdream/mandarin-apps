@@ -43,10 +43,10 @@ const HAMMER_HEAD_SAFETY_POINTS = [
   { x: 0.71, y: 0.47 },
 ];
 
-const BACKGROUND_TEXTURE = '/assets/backgrounds/grass_world_with_holes_expand.png';
-const HAMMER_TEXTURE = '/assets/objects/hammer_right_transparent.png';
-const HIT_EFFECT_TEXTURE = '/assets/effects/sparkle.png';
-const MISS_EFFECT_TEXTURE = '/assets/effects/miss.png';
+const BACKGROUND_TEXTURE = '/assets/backgrounds/grass_world_with_holes_expand.v2.webp';
+const HAMMER_TEXTURE = '/assets/objects/hammer_right_transparent.v2.webp';
+const HIT_EFFECT_TEXTURE = '/assets/effects/sparkle.v2.webp';
+const MISS_EFFECT_TEXTURE = '/assets/effects/miss.v2.webp';
 
 const MOLE_EMERGE_LIFT = 132;
 const MOLE_EMERGE_FRAMES = 30;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import type { MicState } from '../hooks/useMicrophone';
 import type { PracticeUnit, SessionPracticeUnits } from '../data/session';
 import { pinyinUnitAudioUrl } from '../data/session';
@@ -12,6 +12,12 @@ const PHRASE_PAUSE_WEIGHT = 0.8;
 const OTHER_PUNCTUATION_WEIGHT = 0.35;
 const SENTENCE_PAUSE_RE = /[。！？!?]/;
 const PHRASE_PAUSE_RE = /[，、；：,;:]/;
+const READY_PANEL_DEFAULT_WIDTH = 760;
+const READY_PANEL_DEFAULT_MAX_HEIGHT = 520;
+const READY_PANEL_MIN_WIDTH = 240;
+const READY_PANEL_MIN_MAX_HEIGHT = 260;
+const READY_PANEL_MAX_WIDTH_CAP = 1200;
+const READY_PANEL_MAX_HEIGHT_CAP = 1300;
 
 interface VoiceMeterProps {
   micState: MicState;
@@ -21,6 +27,43 @@ interface VoiceMeterProps {
   selectedFood: RewardFood;
   onSelectFood: (food: RewardFood) => void;
   onEnableMic: () => void | Promise<void>;
+}
+
+interface ReadyPanelSize {
+  widthPx: number;
+  maxHeightPx: number;
+}
+
+type ReadyPanelResizeAnchor = 'top-left' | 'top-right';
+
+interface ReadyPanelBounds {
+  minWidth: number;
+  maxWidth: number;
+  minMaxHeight: number;
+  maxMaxHeight: number;
+}
+
+function clampPanelSize(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getReadyPanelBounds(viewportWidth: number, viewportHeight: number): ReadyPanelBounds {
+  const maxWidth = clampPanelSize(Math.round(viewportWidth * 0.98), READY_PANEL_MIN_WIDTH, READY_PANEL_MAX_WIDTH_CAP);
+  const minWidth = clampPanelSize(Math.round(viewportWidth * 0.3), READY_PANEL_MIN_WIDTH, maxWidth);
+  const minMaxHeight = clampPanelSize(Math.round(viewportHeight * 0.28), READY_PANEL_MIN_MAX_HEIGHT, READY_PANEL_MAX_HEIGHT_CAP);
+  const maxMaxHeight = READY_PANEL_MAX_HEIGHT_CAP;
+  return { minWidth, maxWidth, minMaxHeight, maxMaxHeight };
+}
+
+function getDefaultReadyPanelSize(): ReadyPanelSize {
+  if (typeof window === 'undefined') {
+    return { widthPx: READY_PANEL_DEFAULT_WIDTH, maxHeightPx: READY_PANEL_DEFAULT_MAX_HEIGHT };
+  }
+  const bounds = getReadyPanelBounds(window.innerWidth, window.innerHeight);
+  return {
+    widthPx: clampPanelSize(READY_PANEL_DEFAULT_WIDTH, bounds.minWidth, bounds.maxWidth),
+    maxHeightPx: clampPanelSize(READY_PANEL_DEFAULT_MAX_HEIGHT, bounds.minMaxHeight, bounds.maxMaxHeight),
+  };
 }
 
 function SessionUnitChip({
@@ -232,6 +275,17 @@ export function VoiceMeter({
   const [scriptCurrentTime, setScriptCurrentTime] = useState(0);
   const [scriptDuration, setScriptDuration] = useState(0);
   const needsEnable = micState === 'idle' || micState === 'requesting';
+  const [readyPanelSize, setReadyPanelSize] = useState<ReadyPanelSize>(() => getDefaultReadyPanelSize());
+  const [isResizingReadyPanel, setIsResizingReadyPanel] = useState(false);
+  const readyPanelDragRef = useRef<{
+    anchor: ReadyPanelResizeAnchor;
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startMaxHeight: number;
+    bounds: ReadyPanelBounds;
+  } | null>(null);
+  const wasNeedsEnableRef = useRef(needsEnable);
   const currentScriptTokenIndex = isScriptPlaying
     ? activeScriptTokenIndex(scriptSession.scriptTokens, scriptCurrentTime, scriptDuration)
     : null;
@@ -420,6 +474,84 @@ export function VoiceMeter({
     void onEnableMic();
   }, [onEnableMic, stopCurrentAudio]);
 
+  const clampReadyPanelSizeToViewport = useCallback((size: ReadyPanelSize): ReadyPanelSize => {
+    if (typeof window === 'undefined') return size;
+    const bounds = getReadyPanelBounds(window.innerWidth, window.innerHeight);
+    return {
+      widthPx: clampPanelSize(size.widthPx, bounds.minWidth, bounds.maxWidth),
+      maxHeightPx: clampPanelSize(size.maxHeightPx, bounds.minMaxHeight, bounds.maxMaxHeight),
+    };
+  }, []);
+
+  const handleResizeStart = useCallback((anchor: ReadyPanelResizeAnchor, event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!needsEnable || typeof window === 'undefined') return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    readyPanelDragRef.current = {
+      anchor,
+      startX: event.clientX,
+      startY: event.clientY,
+      startWidth: readyPanelSize.widthPx,
+      startMaxHeight: readyPanelSize.maxHeightPx,
+      bounds: getReadyPanelBounds(window.innerWidth, window.innerHeight),
+    };
+
+    setIsResizingReadyPanel(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }, [needsEnable, readyPanelSize.maxHeightPx, readyPanelSize.widthPx]);
+
+  useEffect(() => {
+    if (needsEnable && !wasNeedsEnableRef.current) {
+      setReadyPanelSize(getDefaultReadyPanelSize());
+    }
+    wasNeedsEnableRef.current = needsEnable;
+  }, [needsEnable]);
+
+  useEffect(() => {
+    if (!needsEnable) return undefined;
+    const handleViewportResize = () => {
+      setReadyPanelSize(current => clampReadyPanelSizeToViewport(current));
+    };
+
+    window.addEventListener('resize', handleViewportResize);
+    return () => window.removeEventListener('resize', handleViewportResize);
+  }, [clampReadyPanelSizeToViewport, needsEnable]);
+
+  useEffect(() => {
+    if (!isResizingReadyPanel) return undefined;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = readyPanelDragRef.current;
+      if (!dragState) return;
+      const deltaX = event.clientX - dragState.startX;
+      const deltaY = event.clientY - dragState.startY;
+      const widthDelta = dragState.anchor === 'top-left' ? -deltaX : deltaX;
+      setReadyPanelSize({
+        widthPx: clampPanelSize(dragState.startWidth + widthDelta, dragState.bounds.minWidth, dragState.bounds.maxWidth),
+        maxHeightPx: clampPanelSize(
+          dragState.startMaxHeight - deltaY,
+          dragState.bounds.minMaxHeight,
+          dragState.bounds.maxMaxHeight,
+        ),
+      });
+    };
+
+    const stopResizing = () => {
+      readyPanelDragRef.current = null;
+      setIsResizingReadyPanel(false);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', stopResizing);
+    window.addEventListener('pointercancel', stopResizing);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', stopResizing);
+      window.removeEventListener('pointercancel', stopResizing);
+    };
+  }, [isResizingReadyPanel]);
+
   useEffect(() => stopCurrentAudio, [stopCurrentAudio]);
 
   if (micState === 'denied') {
@@ -430,16 +562,24 @@ export function VoiceMeter({
     );
   }
 
-  const percent = Math.round(volume * 100);
+  const readyPanelStyle: (CSSProperties & {
+    '--ready-panel-width': string;
+    '--ready-panel-max-height': string;
+  }) | undefined = needsEnable
+    ? {
+      '--ready-panel-width': `${readyPanelSize.widthPx}px`,
+      '--ready-panel-max-height': `${readyPanelSize.maxHeightPx}px`,
+    }
+    : undefined;
+  const volumePercent = Math.round(Math.max(0, Math.min(100, volume * 100)));
 
   return (
-    <div className={`voice-meter voice-meter--${micState}`}>
+    <div
+      className={`voice-meter voice-meter--${micState}${needsEnable ? ' voice-meter--ready' : ''}${isResizingReadyPanel ? ' voice-meter--resizing' : ''}`}
+      style={readyPanelStyle}
+    >
       <div className="voice-meter-header">
-        <span>Practice before the game</span>
-        <span className="voice-meter-percent">{percent}%</span>
-      </div>
-      <div className="voice-meter-track" aria-label="Voice volume meter">
-        <div className="voice-meter-fill" style={{ width: `${percent}%` }} />
+        <span>{needsEnable ? 'Practice before the game' : 'Voice meter'}</span>
       </div>
       {needsEnable && (
         <div className="session-practice">
@@ -516,12 +656,36 @@ export function VoiceMeter({
           </div>
         </div>
       )}
+      {needsEnable && (
+        <>
+          <button
+            type="button"
+            className="voice-meter-resize-handle voice-meter-resize-handle--top-left"
+            onPointerDown={event => handleResizeStart('top-left', event)}
+            aria-label="Drag top-left corner to resize panel"
+            title="Drag to resize panel"
+          />
+          <button
+            type="button"
+            className="voice-meter-resize-handle voice-meter-resize-handle--top-right"
+            onPointerDown={event => handleResizeStart('top-right', event)}
+            aria-label="Drag top-right corner to resize panel"
+            title="Drag to resize panel"
+          />
+        </>
+      )}
       {needsEnable ? (
         <button className="voice-meter-button" onClick={handleEnableMic} disabled={micState === 'requesting'}>
           {micState === 'requesting' ? 'Opening mic...' : 'Ready? Set, Go!'}
         </button>
       ) : (
-        <div className="voice-meter-hint">Speak louder to swing harder!</div>
+        <>
+          <div className="voice-meter-percent">{volumePercent}%</div>
+          <div className="voice-meter-track" aria-hidden="true">
+            <div className="voice-meter-fill" style={{ width: `${volumePercent}%` }} />
+          </div>
+          <div className="voice-meter-hint">Speak louder to swing harder!</div>
+        </>
       )}
     </div>
   );

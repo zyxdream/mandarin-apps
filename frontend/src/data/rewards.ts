@@ -14,25 +14,25 @@ export const REWARD_FOODS: RewardFoodOption[] = [
     id: 'apple',
     label: 'Apple',
     shortLabel: 'Apples',
-    image: '/assets/rewards/apple.png',
+    image: '/assets/rewards/apple.v2.webp',
   },
   {
     id: 'berry',
     label: 'Berry',
     shortLabel: 'Berries',
-    image: '/assets/rewards/berry.png',
+    image: '/assets/rewards/berry.v2.webp',
   },
   {
     id: 'tree_nut',
     label: 'Tree Nut',
     shortLabel: 'Nuts',
-    image: '/assets/rewards/tree_nut.png',
+    image: '/assets/rewards/tree_nut.v2.webp',
   },
   {
     id: 'insect',
     label: 'Insect',
     shortLabel: 'Bugs',
-    image: '/assets/rewards/insect.png',
+    image: '/assets/rewards/insect.v2.webp',
   },
 ];
 

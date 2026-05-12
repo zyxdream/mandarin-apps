@@ -1,10 +1,10 @@
-import type { MoleState } from '../types/game';
+import type { MoleState } from '../types/game.js';
 import {
   computeSceneRenderRect,
   DEFAULT_SCENE_FIT_MODE,
   type SceneFitMode,
   type SceneRenderRect,
-} from './sceneProjection';
+} from './sceneProjection.js';
 
 export interface BoardConfig {
   canvasWidth: number;

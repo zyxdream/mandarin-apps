@@ -1,4 +1,4 @@
-import type { Word } from '../types/word';
+import type { Word } from '../types/word.js';
 
 /** When adding a word, also add it to `backend/word_catalog.py` and run `backend/scripts/generate_reference_audio.py`. */
 export const WORDS: Word[] = [

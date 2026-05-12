@@ -4,12 +4,15 @@ import { StartScreen } from './screens/StartScreen';
 import { GameScreen as GameScreenView } from './screens/GameScreen';
 import { CelebrationScreen } from './screens/CelebrationScreen';
 import { ResultScreen } from './screens/ResultScreen';
+import { SessionSelectScreen } from './screens/SessionSelectScreen';
 import { DEFAULT_REWARD_FOOD, type RewardFood } from './data/rewards';
 import { getNextScriptSessionIndex, getPreviousScriptSessionIndex, getScriptSession } from './data/scriptSessions';
 import './styles/game.css';
 import './styles/animations.css';
 
-type AppScreen = 'start' | 'game' | 'celebration' | 'result';
+const SESSION_SELECTOR_COUNT = 22;
+
+type AppScreen = 'start' | 'sessionSelect' | 'game' | 'celebration' | 'result';
 
 export default function App() {
   const [screen, setScreen] = useState<AppScreen>('start');
@@ -22,6 +25,17 @@ export default function App() {
 
   const handleStart = useCallback(() => {
     setFinalState(null);
+    setScreen('sessionSelect');
+  }, []);
+
+  const handleBackToStart = useCallback(() => {
+    setFinalState(null);
+    setScreen('start');
+  }, []);
+
+  const handleSelectSession = useCallback((sessionIndex: number) => {
+    setFinalState(null);
+    setScriptSessionIndex(sessionIndex);
     setScreen('game');
   }, []);
 
@@ -51,6 +65,21 @@ export default function App() {
     setScreen('game');
   }, []);
 
+  const handleExitGameToSessionSelect = useCallback(() => {
+    setFinalState(null);
+    setScreen('sessionSelect');
+  }, []);
+
+  if (screen === 'sessionSelect') {
+    return (
+      <SessionSelectScreen
+        sessionCount={SESSION_SELECTOR_COUNT}
+        onSelectSession={handleSelectSession}
+        onBack={handleBackToStart}
+      />
+    );
+  }
+
   if (screen === 'game') {
     return (
       <GameScreenView
@@ -58,6 +87,7 @@ export default function App() {
         onSelectFood={setSelectedFood}
         scriptSession={scriptSession}
         onGameOver={handleGameOver}
+        onBackToSessionSelect={handleExitGameToSessionSelect}
       />
     );
   }

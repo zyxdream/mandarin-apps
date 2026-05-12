@@ -1,5 +1,5 @@
-import type { Word } from './word';
-import type { EvalResult } from './game';
+import type { Word } from './word.js';
+import type { EvalResult } from './game.js';
 
 /**
  * Seam between V1 (fake) and V2 (real backend).

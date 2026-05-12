@@ -32,6 +32,8 @@ interface FoodDropState {
   settleScale: number;
   spin: number;
   bounce: number;
+  flipPhase: number;
+  landedRotation: number;
 }
 
 interface SparkleState {
@@ -47,15 +49,24 @@ interface SparkleState {
 }
 
 const CELEBRATION_MS = 10_000;
-const BACKGROUND_TEXTURE = '/assets/backgrounds/grass_world_with_holes_expand.png';
-const SPARKLE_TEXTURE = '/assets/effects/sparkle.png';
+const BACKGROUND_TEXTURE = '/assets/backgrounds/grass_world_with_holes_expand.v2.webp';
+const SPARKLE_TEXTURE = '/assets/effects/sparkle.v2.webp';
 const MOLE_SHADOW_ALPHA = 0.18;
 const RIM_SHADOW_ALPHA = 0.46;
 const RIM_HIGHLIGHT_ALPHA = 0.2;
 const MAX_FOOD_DROPS = 150;
 const MAX_SPARKLES = 44;
-const CONFETTI_COUNT = 54;
+const CONFETTI_COUNT = 72;
 const PARTY_BURST_FRAMES = 210;
+const PARTY_SECOND_BURST_DELAY = 72;
+const WIGGLE_FLOWERS = [
+  { x: 0.47, y: 0.55, size: 10, petal: 0xffb6d5, center: 0xffe066, phase: 0.2 },
+  { x: 0.53, y: 0.52, size: 8, petal: 0xffd2e4, center: 0xffb347, phase: 1.1 },
+  { x: 0.61, y: 0.58, size: 11, petal: 0xff8fb8, center: 0xffe066, phase: 2.4 },
+  { x: 0.78, y: 0.54, size: 12, petal: 0xffc3dc, center: 0xffe066, phase: 0.8 },
+  { x: 0.86, y: 0.58, size: 10, petal: 0xffe6f2, center: 0xffc04a, phase: 1.9 },
+  { x: 0.91, y: 0.52, size: 9, petal: 0xff9fc5, center: 0xffe066, phase: 2.8 },
+];
 
 function seededValue(seed: number) {
   const value = Math.sin(seed * 12.9898) * 43758.5453;
@@ -66,10 +77,109 @@ function easeOutCubic(value: number) {
   return 1 - Math.pow(1 - value, 3);
 }
 
+function drawStar(layer: Graphics, x: number, y: number, outerRadius: number, innerRadius: number, points: number, rotation: number) {
+  for (let point = 0; point < points * 2; point += 1) {
+    const radius = point % 2 === 0 ? outerRadius : innerRadius;
+    const angle = rotation + point * Math.PI / points;
+    const px = x + Math.cos(angle) * radius;
+    const py = y + Math.sin(angle) * radius;
+    if (point === 0) {
+      layer.moveTo(px, py);
+    } else {
+      layer.lineTo(px, py);
+    }
+  }
+  layer.closePath();
+}
+
+function drawTriangle(layer: Graphics, x: number, y: number, radius: number, rotation: number) {
+  for (let point = 0; point < 3; point += 1) {
+    const angle = rotation + point * Math.PI * 2 / 3;
+    const px = x + Math.cos(angle) * radius;
+    const py = y + Math.sin(angle) * radius;
+    if (point === 0) {
+      layer.moveTo(px, py);
+    } else {
+      layer.lineTo(px, py);
+    }
+  }
+  layer.closePath();
+}
+
+function drawPartyBurst(
+  layer: Graphics,
+  originX: number,
+  originY: number,
+  direction: number,
+  frame: number,
+  startFrame: number,
+  height: number,
+  seedOffset: number,
+  strength: number,
+) {
+  const colors = [0xffe066, 0xff6b6b, 0x68d8ff, 0x9cff6e, 0xff9f1c, 0xffc2e2];
+  const elapsed = frame - startFrame;
+  if (elapsed < 0 || elapsed > PARTY_BURST_FRAMES) return;
+
+  const burstProgress = Math.min(1, elapsed / PARTY_BURST_FRAMES);
+  const live = Math.max(0, 1 - burstProgress);
+  const pieceCount = Math.round(34 * strength);
+
+  for (let i = 0; i < pieceCount; i += 1) {
+    const seed = seedOffset + i;
+    const pieceDelay = i * 1.4;
+    const localProgress = Math.max(0, Math.min(1, (elapsed - pieceDelay) / PARTY_BURST_FRAMES));
+    const distance = (90 + seededValue(seed + 13) * 320) * easeOutCubic(localProgress) * strength;
+    const angle = (-0.88 - seededValue(seed + 17) * 1.18) * direction;
+    const x = originX + Math.cos(angle) * distance * direction;
+    const gravity = Math.pow(localProgress, 2) * height * 0.16;
+    const y = originY + Math.sin(Math.abs(angle)) * distance - localProgress * height * 0.18 + gravity;
+    const color = colors[i % colors.length];
+    const alpha = live * (0.54 + seededValue(seed + 31) * 0.4);
+    const rotation = localProgress * (2.2 + seededValue(seed + 41) * 4.8) * direction;
+    const size = 5 + seededValue(seed + 23) * 13;
+
+    switch (i % 5) {
+      case 0:
+        layer.rect(x, y, size * 2.1, size * 0.34);
+        layer.fill({ color, alpha });
+        break;
+      case 1:
+        layer.circle(x, y, size * 0.42);
+        layer.fill({ color, alpha: alpha * 0.88 });
+        break;
+      case 2:
+        drawStar(layer, x, y, size * 0.7, size * 0.32, 5, rotation);
+        layer.fill({ color, alpha });
+        break;
+      case 3:
+        drawTriangle(layer, x, y, size * 0.72, rotation);
+        layer.fill({ color, alpha: alpha * 0.9 });
+        break;
+      default:
+        layer.moveTo(x, y);
+        layer.quadraticCurveTo(
+          x + direction * size * (1.4 + seededValue(seed + 53)),
+          y - size * (1.8 + seededValue(seed + 59)),
+          x + direction * size * (3 + seededValue(seed + 61)),
+          y + size * (0.2 + seededValue(seed + 67)),
+        );
+        layer.stroke({ color, alpha, width: Math.max(1.2, size * 0.22) });
+        break;
+    }
+  }
+
+  layer.circle(originX, originY, 18 + Math.sin(frame * 0.16) * 2);
+  layer.fill({ color: 0x6b3415, alpha: 0.78 });
+  layer.circle(originX + direction * 14, originY - 8, 9);
+  layer.fill({ color: 0xffe066, alpha: 0.9 });
+}
+
 function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) {
   const { app } = useApplication();
   const food = getRewardFoodOption(selectedFood);
   const backgroundRef = useRef<Sprite | null>(null);
+  const flowerLayerRef = useRef<Graphics | null>(null);
   const glowLayerRef = useRef<Graphics | null>(null);
   const shadowLayerRef = useRef<Graphics | null>(null);
   const rimLayerRef = useRef<Graphics | null>(null);
@@ -98,6 +208,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       if (disposed) return;
 
       const background = new Sprite(Texture.from(BACKGROUND_TEXTURE));
+      const flowerLayer = new Graphics();
       const glowLayer = new Graphics();
       const shadowLayer = new Graphics();
       const rimLayer = new Graphics();
@@ -110,6 +221,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
 
       app.stage.addChild(
         background,
+        flowerLayer,
         glowLayer,
         shadowLayer,
         moleLayer,
@@ -121,6 +233,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
         confettiLayer,
       );
       backgroundRef.current = background;
+      flowerLayerRef.current = flowerLayer;
       glowLayerRef.current = glowLayer;
       shadowLayerRef.current = shadowLayer;
       rimLayerRef.current = rimLayer;
@@ -142,6 +255,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       moleSpritesRef.current = [];
       app.stage?.removeChildren().forEach(child => child.destroy({ children: true }));
       backgroundRef.current = null;
+      flowerLayerRef.current = null;
       glowLayerRef.current = null;
       shadowLayerRef.current = null;
       rimLayerRef.current = null;
@@ -156,6 +270,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
 
   useTick(() => {
     const background = backgroundRef.current;
+    const flowerLayer = flowerLayerRef.current;
     const glowLayer = glowLayerRef.current;
     const shadowLayer = shadowLayerRef.current;
     const rimLayer = rimLayerRef.current;
@@ -167,6 +282,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
     const sparkleLayer = sparkleLayerRef.current;
     if (
       !background ||
+      !flowerLayer ||
       !glowLayer ||
       !shadowLayer ||
       !rimLayer ||
@@ -219,7 +335,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
         const startY = -openingWidth * (1.6 + seededValue(index + 39) * 2.2);
         const endX = slot.darkCenterX + (seededValue(index + 47) - 0.5) * openingWidth * 1.95;
         const endY = slot.darkFrontY + openingWidth * (0.52 + seededValue(index + 53) * 1.1);
-        const maxSize = openingWidth * (0.66 + seededValue(index + 67) * 0.28);
+        const maxSize = openingWidth * (0.78 + seededValue(index + 67) * 0.3);
         const textureMax = Math.max(sprite.texture.width || 1, sprite.texture.height || 1);
         sprite.anchor.set(0.5);
         sprite.scale.set(maxSize / textureMax);
@@ -238,6 +354,8 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
           settleScale: 0.92 + seededValue(index + 97) * 0.24,
           spin: (seededValue(index + 107) - 0.5) * 3.6,
           bounce: 6 + seededValue(index + 113) * 13,
+          flipPhase: seededValue(index + 127) * Math.PI * 2,
+          landedRotation: (seededValue(index + 131) - 0.5) * 0.45,
         };
       });
     }
@@ -269,6 +387,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
     }
 
     glowLayer.clear();
+    flowerLayer.clear();
     shadowLayer.clear();
     rimLayer.clear();
     highlightLayer.clear();
@@ -276,7 +395,36 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
     confettiLayer.clear();
 
     const lookUpProgress = Math.max(0, 1 - frame / 270);
-    const partyProgress = Math.min(1, frame / PARTY_BURST_FRAMES);
+    const renderRect = getSceneRenderRect({ canvasWidth: width, canvasHeight: height }, DEFAULT_SCENE_FIT_MODE);
+
+    WIGGLE_FLOWERS.forEach((flower, index) => {
+      const baseX = renderRect.x + renderRect.width * flower.x;
+      const baseY = renderRect.y + renderRect.height * flower.y;
+      const sceneScale = Math.min(renderRect.width, renderRect.height) / 900;
+      const size = flower.size * sceneScale;
+      const sway = Math.sin(frame * 0.045 + flower.phase) * size * 0.42;
+      const lean = Math.sin(frame * 0.052 + flower.phase) * 0.28;
+      const stemTopX = baseX + sway;
+      const stemTopY = baseY - size * 2.2;
+
+      flowerLayer.moveTo(baseX, baseY + size * 1.2);
+      flowerLayer.quadraticCurveTo(baseX + sway * 0.55, baseY - size * 0.8, stemTopX, stemTopY);
+      flowerLayer.stroke({ color: 0x4f8f2f, alpha: 0.58, width: Math.max(1.2, size * 0.18) });
+
+      for (let petalIndex = 0; petalIndex < 5; petalIndex += 1) {
+        const angle = lean + petalIndex * (Math.PI * 2 / 5);
+        flowerLayer.ellipse(
+          stemTopX + Math.cos(angle) * size * 0.64,
+          stemTopY + Math.sin(angle) * size * 0.48,
+          size * 0.44,
+          size * 0.28,
+        );
+        flowerLayer.fill({ color: flower.petal, alpha: 0.68 });
+      }
+
+      flowerLayer.circle(stemTopX, stemTopY, size * (0.28 + (index % 2) * 0.04));
+      flowerLayer.fill({ color: flower.center, alpha: 0.82 });
+    });
 
     slots.forEach((slot, index) => {
       const style = CELEBRATION_MOLE_STYLES[index % CELEBRATION_MOLE_STYLES.length];
@@ -354,22 +502,18 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       const direction = side === 0 ? 1 : -1;
       const originX = side === 0 ? width * 0.08 : width * 0.92;
       const originY = height * 0.86;
-      const live = Math.max(0, 1 - partyProgress);
-      for (let i = 0; i < 18; i += 1) {
-        const seed = side * 100 + i;
-        const burst = Math.max(0, Math.min(1, (frame - i * 2) / PARTY_BURST_FRAMES));
-        const distance = (80 + seededValue(seed + 13) * 260) * easeOutCubic(burst);
-        const angle = (-1.25 - seededValue(seed + 17) * 0.85) * direction;
-        const x = originX + Math.cos(angle) * distance * direction;
-        const y = originY + Math.sin(Math.abs(angle)) * distance - burst * height * 0.12;
-        const color = [0xffe066, 0xff6b6b, 0x68d8ff, 0x9cff6e, 0xff9f1c][i % 5];
-        partyLayer.rect(x, y, 7 + seededValue(seed + 23) * 12, 3 + seededValue(seed + 29) * 6);
-        partyLayer.fill({ color, alpha: live * (0.72 + seededValue(seed + 31) * 0.24) });
-      }
-      partyLayer.circle(originX, originY, 18 + Math.sin(frame * 0.16) * 2);
-      partyLayer.fill({ color: 0x6b3415, alpha: 0.78 });
-      partyLayer.circle(originX + direction * 14, originY - 8, 9);
-      partyLayer.fill({ color: 0xffe066, alpha: 0.9 });
+      drawPartyBurst(partyLayer, originX, originY, direction, frame, 0, height, side * 200, 1);
+      drawPartyBurst(
+        partyLayer,
+        originX + direction * width * 0.035,
+        originY - height * 0.05,
+        direction,
+        frame,
+        PARTY_SECOND_BURST_DELAY,
+        height,
+        side * 200 + 100,
+        0.68,
+      );
     }
 
     for (let i = 0; i < CONFETTI_COUNT; i += 1) {
@@ -388,6 +532,11 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       const progress = Math.max(0, Math.min(1, age / drop.duration));
       const eased = easeOutCubic(progress);
       const arc = Math.sin(progress * Math.PI) * -34;
+      const landing = progress >= 1 ? Math.min(1, (age - drop.duration) / 20) : 0;
+      const groundProgress = Math.max(0, Math.min(1, (progress - 0.72) / 0.28));
+      const flip = Math.cos(progress * Math.PI * 3.2 + drop.flipPhase);
+      const fakeDepthX = 1 + Math.abs(flip) * 0.16;
+      const fakeDepthY = 1 - Math.abs(flip) * 0.09;
       drop.sprite.visible = age >= 0;
       drop.sprite.alpha = progress <= 0 ? 0 : Math.min(1, progress * 4);
       drop.sprite.x = drop.startX + (drop.endX - drop.startX) * eased;
@@ -395,10 +544,28 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       if (progress >= 1) {
         drop.sprite.y = drop.endY - Math.sin((age - drop.duration) * 0.16) * drop.bounce * Math.exp(-(age - drop.duration) * 0.045);
       }
-      drop.sprite.rotation = drop.spin * eased + index * 0.03;
-      const landing = progress >= 1 ? Math.min(1, (age - drop.duration) / 20) : 0;
+      drop.sprite.rotation = progress >= 1
+        ? drop.landedRotation
+        : drop.spin * eased + index * 0.03;
       const squash = 1 - Math.sin(landing * Math.PI) * 0.16;
-      drop.sprite.scale.set(drop.baseScale * drop.settleScale / squash, drop.baseScale * drop.settleScale * squash);
+      const groundFlatten = progress >= 1 ? 0.88 : 1;
+      drop.sprite.scale.set(
+        drop.baseScale * drop.settleScale * fakeDepthX / squash,
+        drop.baseScale * drop.settleScale * fakeDepthY * squash * groundFlatten,
+      );
+
+      if (age >= 0 && progress > 0.62) {
+        const shadowWidth = 18 + drop.sprite.texture.width * drop.baseScale * drop.settleScale * (0.3 + groundProgress * 0.52);
+        const shadowHeight = 6 + drop.sprite.texture.height * drop.baseScale * drop.settleScale * (0.045 + groundProgress * 0.08);
+        shadowLayer.ellipse(drop.endX, drop.endY + shadowHeight * 0.5, shadowWidth, shadowHeight);
+        shadowLayer.fill({ color: 0x120804, alpha: 0.06 + groundProgress * 0.16 });
+      }
+
+      if (landing > 0 && landing < 1) {
+        const contactPulse = Math.sin(landing * Math.PI);
+        glowLayer.ellipse(drop.endX, drop.endY, 28 + contactPulse * 24, 10 + contactPulse * 9);
+        glowLayer.fill({ color: 0xffe066, alpha: contactPulse * 0.18 });
+      }
     });
 
     sparklesRef.current.forEach((sparkle, index) => {

@@ -9,7 +9,7 @@
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(45, 27, 14, 0.14) 100%),
-    url('/assets/backgrounds/grass_world_with_holes_expand.png') center center / cover no-repeat;
+    url('/assets/backgrounds/grass_world_with_holes_expand.v2.webp') center center / cover no-repeat;
   --ui-dock-height: 0px;
   --ui-dock-safe-bottom: 0px;
 }
@@ -17,7 +17,7 @@
 .game-root--mic-start {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(45, 27, 14, 0.16) 100%),
-    url('/assets/backgrounds/grass_world_with_holes_expand.png') center center / cover no-repeat;
+    url('/assets/backgrounds/grass_world_with_holes_expand.v2.webp') center center / cover no-repeat;
 }
 
 .game-scene-shell {
@@ -82,13 +82,14 @@
 .game-controls-dock {
   position: absolute;
   left: 50%;
-  bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  bottom: calc(1.35rem + env(safe-area-inset-bottom));
   width: min(560px, calc(100vw - 1.5rem));
   transform: translateX(-50%);
   z-index: 20;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   padding: 0;
 }
 
@@ -97,6 +98,38 @@
   max-height: min(34dvh, 310px);
   overflow: auto;
   scrollbar-gutter: stable;
+}
+
+.gameplay-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 0.45rem;
+  pointer-events: auto;
+}
+
+.gameplay-actions--single {
+  gap: 0;
+}
+
+.gameplay-actions--gameplay {
+  position: static;
+}
+
+.gameplay-action-button {
+  margin-top: 0;
+  min-width: 6rem;
+  padding: 0.4rem 1rem;
+}
+
+.ready-back-anchor {
+  position: absolute;
+  left: 50%;
+  bottom: calc(1.1rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 21;
+  pointer-events: auto;
 }
 
 .game-root--mic-start .game-scene-shell,
@@ -110,15 +143,18 @@
 .game-root--mic-start .game-controls-dock {
   position: absolute;
   left: 50%;
-  top: clamp(46dvh, 52dvh, 58dvh);
-  width: min(92vw, 760px);
+  bottom: calc(4.2rem + env(safe-area-inset-bottom));
+  width: min(98vw, 1200px);
   padding: 0;
-  transform: translate(-50%, -10%);
+  transform: translateX(-50%);
+  overflow: visible;
 }
 
 .game-root--mic-start .mic-overlay {
   width: 100%;
-  max-height: min(80dvh, 820px);
+  max-height: none;
+  overflow: visible;
+  scrollbar-gutter: auto;
 }
 
 .game-root--mic-start .voice-meter {
@@ -134,8 +170,12 @@
 
 @media (max-height: 760px) {
   .game-root--mic-start .game-controls-dock {
-    top: 50dvh;
-    width: min(94vw, 700px);
+    bottom: calc(3.6rem + env(safe-area-inset-bottom));
+    width: min(98vw, 1000px);
+  }
+
+  .ready-back-anchor {
+    bottom: calc(0.9rem + env(safe-area-inset-bottom));
   }
 
   .game-root--mic-start .voice-meter {
@@ -542,6 +582,7 @@
    ========================================================= */
 
 .voice-meter {
+  position: relative;
   width: 100%;
   padding: clamp(0.85rem, 1.7vh, 1.15rem) clamp(0.95rem, 2vw, 1.35rem);
   border: 2px solid rgba(255, 240, 196, 0.38);
@@ -554,37 +595,77 @@
 
 .voice-meter-header {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.55rem;
+  justify-content: flex-start;
+  margin-bottom: 0.4rem;
   font-size: clamp(0.86rem, 1.4vw, 1rem);
   font-weight: 800;
   letter-spacing: 0.5px;
   color: rgba(255, 246, 218, 0.92);
 }
 
-.voice-meter-percent {
-  color: #ffe066;
-  font-size: 0.82em;
-  text-shadow: 0 1px 8px rgba(255, 159, 28, 0.35);
+.voice-meter--ready {
+  width: min(100%, var(--ready-panel-width, 640px));
+  margin-inline: auto;
 }
 
-.voice-meter-track {
-  overflow: hidden;
-  height: 18px;
-  border: 1px solid rgba(255, 240, 196, 0.24);
-  border-radius: 999px;
-  background: rgba(20, 12, 7, 0.68);
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.28);
+.voice-meter--resizing {
+  user-select: none;
 }
 
-.voice-meter-fill {
-  height: 100%;
-  min-width: 4px;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ff9f1c 0%, #ffe066 64%, #ff7043 100%);
-  box-shadow: 0 0 12px rgba(255, 224, 102, 0.34);
-  transition: width 80ms linear;
+.voice-meter-resize-handle {
+  position: absolute;
+  z-index: 8;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 224, 102, 0.14);
+  color: transparent;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.voice-meter-resize-handle::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+}
+
+.voice-meter-resize-handle--top-left {
+  left: 0.3rem;
+  top: 0.3rem;
+  cursor: nesw-resize;
+}
+
+.voice-meter-resize-handle--top-left::before {
+  border-left: 2px solid rgba(255, 240, 196, 0.72);
+  border-top: 2px solid rgba(255, 240, 196, 0.72);
+  border-radius: 4px 0 0 0;
+}
+
+.voice-meter-resize-handle--top-right {
+  right: 0.3rem;
+  top: 0.3rem;
+  cursor: nwse-resize;
+}
+
+.voice-meter-resize-handle--top-right::before {
+  border-right: 2px solid rgba(255, 240, 196, 0.72);
+  border-top: 2px solid rgba(255, 240, 196, 0.72);
+  border-radius: 0 4px 0 0;
+}
+
+.voice-meter-resize-handle:hover {
+  background: rgba(255, 224, 102, 0.2);
+}
+
+.voice-meter-resize-handle:focus-visible {
+  outline: 2px solid #fff59d;
+  outline-offset: 2px;
+}
+
+.voice-meter--resizing .voice-meter-resize-handle {
+  background: rgba(255, 224, 102, 0.26);
 }
 
 .voice-meter-hint,
@@ -597,6 +678,33 @@
 
 .voice-meter-hint {
   color: rgba(255, 246, 218, 0.84);
+}
+
+.voice-meter-percent {
+  margin-top: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-align: right;
+  color: rgba(255, 246, 218, 0.9);
+}
+
+.voice-meter-track {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  margin-top: 0.28rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 240, 196, 0.2);
+}
+
+.voice-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffcb57 0%, #ff8f2d 55%, #dc5f1b 100%);
+  transition: width 100ms linear;
 }
 
 .voice-meter-button {
@@ -634,6 +742,17 @@
   padding: clamp(0.7rem, 1.5vh, 0.95rem);
   max-height: min(18dvh, 172px);
   overflow-y: auto;
+}
+
+.voice-meter--ready .session-practice {
+  max-height: var(--ready-panel-max-height, 520px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.voice-meter--ready .script-reading-text {
+  max-height: none;
+  overflow: visible;
 }
 
 .food-picker {
@@ -973,6 +1092,7 @@
    ========================================================= */
 
 .start-screen,
+.session-select-screen,
 .result-screen,
 .celebration-screen {
   position: relative;
@@ -990,12 +1110,13 @@
 }
 
 .start-screen::before,
+.session-select-screen::before,
 .result-screen::before,
 .celebration-screen::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/assets/backgrounds/grass_world_clean.png') center center / cover no-repeat;
+  background: url('/assets/backgrounds/grass_world_clean.v2.webp') center center / cover no-repeat;
   z-index: 0;
   pointer-events: none;
 }
@@ -1184,6 +1305,147 @@
 
 .start-button:active {
   transform: scale(0.97);
+}
+
+/* =========================================================
+   Session select
+   ========================================================= */
+
+.session-select-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: min(100vw, 1420px);
+  height: min(100dvh, 920px);
+  max-height: 100%;
+  gap: clamp(0.25rem, 0.8vh, 0.55rem);
+  overflow: hidden;
+  padding: clamp(0.25rem, 0.8vh, 0.6rem) clamp(0.35rem, 1.2vw, 0.8rem);
+}
+
+.session-select-screen {
+  padding: clamp(0.25rem, 0.9vh, 0.6rem);
+}
+
+.session-select-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  text-align: center;
+}
+
+.session-select-title {
+  margin: 0.05rem 0 0;
+  color: #fff6dd;
+  font-size: clamp(1.15rem, 2vw, 1.65rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-shadow: 2px 2px 0 rgba(44, 24, 10, 0.52);
+}
+
+.session-select-subtitle {
+  margin: 0;
+  color: rgba(255, 242, 216, 0.78);
+  font-size: clamp(0.72rem, 1.1vw, 0.86rem);
+  line-height: 1.15;
+}
+
+.session-select-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--session-cols, 2), minmax(0, 1fr));
+  grid-auto-rows: var(--session-card-height, 42px);
+  gap: var(--session-gap, 6px);
+  align-content: start;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.session-select-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  width: 100%;
+  height: var(--session-card-height, 42px);
+  overflow: hidden;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.session-select-card:hover {
+  transform: translateY(-0.5px) scale(1.003);
+  filter: brightness(1.03);
+}
+
+.session-select-card:active {
+  transform: scale(0.992);
+}
+
+.session-select-card:focus-visible {
+  outline: 2px solid #fff59d;
+  outline-offset: 2px;
+}
+
+.session-select-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+.session-select-card-label {
+  position: absolute;
+  left: 32%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffe8be;
+  font-size: clamp(1.02rem, 1.45vw, 1.34rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.014em;
+  white-space: nowrap;
+  text-shadow:
+    2px 2px 0 rgba(48, 26, 10, 0.88),
+    0 0 7px rgba(16, 9, 4, 0.6);
+  pointer-events: none;
+}
+
+.session-select-back-button {
+  align-self: center;
+  border: 1px solid rgba(255, 224, 128, 0.42);
+  border-radius: 999px;
+  background: rgba(78, 45, 22, 0.75);
+  color: #fff4dc;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  margin-top: 0.1rem;
+  padding: 0.42rem 1.15rem;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.session-select-back-button:hover {
+  background: rgba(104, 58, 28, 0.84);
+}
+
+.session-select-back-button:active {
+  transform: scale(0.98);
+}
+
+.session-select-back-button:focus-visible {
+  outline: 2px solid #fff59d;
+  outline-offset: 2px;
 }
 
 /* =========================================================
