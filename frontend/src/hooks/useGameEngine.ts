@@ -11,6 +11,7 @@ interface LogicalSnapshot {
   score: number;
   combo: number;
   timeRemaining: number;
+  isPaused: boolean;
   isEvaluating: boolean;
   animState: string | null;
   wordId: string | null;
@@ -29,6 +30,7 @@ function extractLogical(state: GameState): LogicalSnapshot {
     score: state.score,
     combo: state.combo,
     timeRemaining: state.timeRemaining,
+    isPaused: state.isPaused,
     isEvaluating: state.isEvaluating,
     animState: state.activeMole?.animState ?? null,
     wordId: state.activeMole?.word?.id ?? null,
@@ -49,6 +51,7 @@ function logicalChanged(a: LogicalSnapshot | null, b: LogicalSnapshot): boolean 
     a.score !== b.score ||
     a.combo !== b.combo ||
     a.timeRemaining !== b.timeRemaining ||
+    a.isPaused !== b.isPaused ||
     a.isEvaluating !== b.isEvaluating ||
     a.animState !== b.animState ||
     a.wordId !== b.wordId ||
@@ -116,6 +119,9 @@ export function useGameEngine(scriptSession?: ScriptSession) {
   const submitEvaluation = useCallback((blob: Blob) => {
     engineRef.current?.submitEvaluation(blob);
   }, []);
+  const togglePause = useCallback(() => {
+    engineRef.current?.togglePause();
+  }, []);
 
   return {
     gameState,
@@ -126,5 +132,6 @@ export function useGameEngine(scriptSession?: ScriptSession) {
     startGame,
     setCanvasSize,
     submitEvaluation,
+    togglePause,
   };
 }

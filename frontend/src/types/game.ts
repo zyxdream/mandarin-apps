@@ -32,6 +32,7 @@ export interface GameState {
   score: number;
   combo: number;
   timeRemaining: number;
+  isPaused: boolean;
   wordsHit: Word[];
   wordsMissed: Word[];
   secondChanceQueue: Word[];

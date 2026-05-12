@@ -34,6 +34,7 @@ export function GameScreen({
     startGame,
     setCanvasSize,
     submitEvaluation,
+    togglePause,
   } = useGameEngine(scriptSession);
   const { micState, volume, startListening, captureRecentAudio, resetCaptureBuffer } = useMicrophone();
   const calledGameOverRef = useRef(false);
@@ -130,14 +131,24 @@ export function GameScreen({
   } as CSSProperties : undefined;
   const isMicStartScreen = !hasRoundStarted && micState !== 'listening';
   const showPauseButton = hasRoundStarted && micState === 'listening';
-  const handlePausePlaceholder = useCallback(() => {
-    // Pause behavior is intentionally deferred.
-  }, []);
+  const isGamePaused = Boolean(gameState?.isPaused);
+  const pauseControlLabel = isGamePaused ? '▶' : '||';
+  const pauseControlAriaLabel = isGamePaused ? 'Resume' : 'Pause';
+  const handleTogglePause = useCallback(() => {
+    togglePause();
+  }, [togglePause]);
 
   useGameAudio(gameState, micState === 'listening' && gameState?.screen === 'game');
 
   useEffect(() => {
     if (micState !== 'listening' || !gameState?.activeMole) return;
+    if (isGamePaused) {
+      isSpeakingRef.current = false;
+      voiceCandidateStartedAtRef.current = 0;
+      speechPeakVolumeRef.current = 0;
+      resetCaptureBuffer();
+      return;
+    }
 
     const now = Date.now();
     const activeMole = gameState.activeMole;
@@ -260,7 +271,7 @@ export function GameScreen({
       bytes: audio.size,
     });
     submitEvaluation(audio);
-  }, [captureRecentAudio, gameState?.activeMole, micState, resetCaptureBuffer, submitEvaluation, volume]);
+  }, [captureRecentAudio, gameState?.activeMole, isGamePaused, micState, resetCaptureBuffer, submitEvaluation, volume]);
 
   return (
     <div
@@ -329,16 +340,18 @@ export function GameScreen({
               type="button"
               className="session-select-back-button gameplay-action-button"
               onClick={onBackToSessionSelect}
+              aria-label="Back to session list"
             >
-              Back
+              X
             </button>
             {showPauseButton ? (
               <button
                 type="button"
                 className="session-select-back-button gameplay-action-button"
-                onClick={handlePausePlaceholder}
+                onClick={handleTogglePause}
+                aria-label={pauseControlAriaLabel}
               >
-                Pause
+                {pauseControlLabel}
               </button>
             ) : null}
           </div>
@@ -350,8 +363,9 @@ export function GameScreen({
             type="button"
             className="session-select-back-button gameplay-action-button"
             onClick={onBackToSessionSelect}
+            aria-label="Back to session list"
           >
-            Back
+            X
           </button>
         </div>
       ) : null}

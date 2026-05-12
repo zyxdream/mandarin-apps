@@ -15,6 +15,31 @@ interface GameEngineOptions {
   preserveWordOrder?: boolean;
 }
 
+type TimerKey =
+  | 'countdown'
+  | 'emerge'
+  | 'activeMoleTimeout'
+  | 'retry'
+  | 'hardWordTimeout'
+  | 'hintClear'
+  | 'postHit'
+  | 'postEscape'
+  | 'nextMole';
+
+interface PausableTimerState {
+  armed: boolean;
+  callback: (() => void) | null;
+  remainingMs: number;
+  startedAtMs: number;
+  handle: ReturnType<typeof setTimeout> | null;
+}
+
+interface PendingEvaluation {
+  result: EvalResult;
+  wordId: string;
+  wordLife: number;
+}
+
 const HIT_ANIM_MS = 1180;
 const MISS_FEEDBACK_MS = 1080;
 const NEXT_MOLE_DELAY_MS = 450;
@@ -27,21 +52,51 @@ const TWO_HANZI_MOLE_VISIBLE_MS = 8000;
 const WORD_HARD_TIMEOUT_MS = 15000;
 const SUCCESS_HINT_MS = 850;
 const EMERGE_MS = 260;
+const COUNTDOWN_TICK_MS = 1000;
 const SUCCESS_HINTS = ['Great', 'Amazing', 'Fantastic'] as const;
 const CJK_HANZI_RE = /[\u3400-\u9fff]/g;
+const TIMER_KEYS: TimerKey[] = [
+  'countdown',
+  'emerge',
+  'activeMoleTimeout',
+  'retry',
+  'hardWordTimeout',
+  'hintClear',
+  'postHit',
+  'postEscape',
+  'nextMole',
+];
+
+function createTimerState(): PausableTimerState {
+  return {
+    armed: false,
+    callback: null,
+    remainingMs: 0,
+    startedAtMs: 0,
+    handle: null,
+  };
+}
 
 export class GameEngine {
   private state: GameState;
   private wordQueue: Word[];
   private readonly listeners = new Set<EngineListener>();
-  private countdownHandle: ReturnType<typeof setInterval> | null = null;
-  private activeMoleTimeout: ReturnType<typeof setTimeout> | null = null;
-  private retryHandle: ReturnType<typeof setTimeout> | null = null;
-  private hardWordTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  private hintClearHandle: ReturnType<typeof setTimeout> | null = null;
+  private readonly timers: Record<TimerKey, PausableTimerState> = {
+    countdown: createTimerState(),
+    emerge: createTimerState(),
+    activeMoleTimeout: createTimerState(),
+    retry: createTimerState(),
+    hardWordTimeout: createTimerState(),
+    hintClear: createTimerState(),
+    postHit: createTimerState(),
+    postEscape: createTimerState(),
+    nextMole: createTimerState(),
+  };
   private readonly evaluator: PronunciationEvaluator;
   private canvas: BoardConfig;
   private evaluating = false;
+  private running = false;
+  private pendingEvaluation: PendingEvaluation | null = null;
   private lastSlotIndex: number | null = null;
   private strikeId = 0;
   private wordLifeCounter = 0;
@@ -76,31 +131,51 @@ export class GameEngine {
   }
 
   start(): void {
-    if (this.countdownHandle) return;
+    if (this.running) return;
+    this.running = true;
+    this.pendingEvaluation = null;
+    this.clearAllTimers();
     this.state = this.initialState();
     this.spawnNextMole();
-
-    this.countdownHandle = setInterval(() => this.countdown(), 1000);
+    this.scheduleCountdownTick();
   }
 
   stop(): void {
-    if (this.countdownHandle) clearInterval(this.countdownHandle);
-    if (this.activeMoleTimeout) clearTimeout(this.activeMoleTimeout);
-    if (this.retryHandle) clearTimeout(this.retryHandle);
-    if (this.hardWordTimeoutHandle) clearTimeout(this.hardWordTimeoutHandle);
-    this.clearHintClearTimeout();
-    this.countdownHandle = null;
-    this.activeMoleTimeout = null;
-    this.retryHandle = null;
-    this.hardWordTimeoutHandle = null;
+    this.clearAllTimers();
     this.evaluating = false;
+    this.pendingEvaluation = null;
+    this.running = false;
+  }
+
+  togglePause(): void {
+    if (!this.running || this.state.screen !== 'game') return;
+    if (this.state.isPaused) {
+      this.resume();
+      return;
+    }
+    this.pause();
+  }
+
+  private pause(): void {
+    if (this.state.isPaused) return;
+    this.pauseAllTimers();
+    this.setState({ isPaused: true });
+  }
+
+  private resume(): void {
+    if (!this.state.isPaused) return;
+    this.setState({ isPaused: false });
+    this.resumeAllTimers();
+    this.flushPendingEvaluation();
   }
 
   async submitEvaluation(audioBlob: Blob): Promise<void> {
+    if (this.state.isPaused) return;
     if (!this.state.activeMole || this.evaluating) return;
     if (this.state.activeMole.animState !== 'active' && this.state.activeMole.animState !== 'retry') return;
 
     const word = this.state.activeMole.word;
+    const wordLife = this.wordLifeCounter;
     this.evaluating = true;
     this.clearActiveMoleTimeout();
     const evaluationStartedAt = performance.now();
@@ -131,7 +206,38 @@ export class GameEngine {
       confidence: result.confidence,
       elapsedMs: Math.round(performance.now() - evaluationStartedAt),
     });
+
+    if (this.state.isPaused) {
+      this.pendingEvaluation = { result, wordId: word.id, wordLife };
+      return;
+    }
+
+    this.applyEvaluationResult(result, word.id, wordLife);
+  }
+
+  private applyEvaluationResult(result: EvalResult, wordId: string, wordLife: number): void {
+    if (!this.canApplyEvaluationResult(wordId, wordLife)) {
+      if (this.state.isEvaluating) {
+        this.setState({ isEvaluating: false });
+      }
+      return;
+    }
     this.handleResult(result);
+  }
+
+  private canApplyEvaluationResult(wordId: string, wordLife: number): boolean {
+    if (this.state.screen !== 'game') return false;
+    if (this.wordLifeCounter !== wordLife) return false;
+    const activeMole = this.state.activeMole;
+    if (!activeMole || activeMole.word.id !== wordId) return false;
+    return this.isActionableMoleState(activeMole.animState);
+  }
+
+  private flushPendingEvaluation(): void {
+    const pending = this.pendingEvaluation;
+    if (!pending) return;
+    this.pendingEvaluation = null;
+    this.applyEvaluationResult(pending.result, pending.wordId, pending.wordLife);
   }
 
   private buildEvalHint(result: EvalResult): GameState['lastHint'] {
@@ -199,11 +305,11 @@ export class GameEngine {
     });
     this.armSuccessHintClear(lastHint);
 
-    setTimeout(() => {
+    this.scheduleTimer('postHit', Math.max(0, HIT_ANIM_MS - SUCCESS_NEXT_MOLE_LEAD_MS), () => {
       if (this.state.screen !== 'game') return;
       this.setState({ activeMole: null, lastHint: this.isSuccessHint(this.state.lastHint) ? null : this.state.lastHint });
       this.scheduleNextMole(SUCCESS_NEXT_MOLE_DELAY_MS);
-    }, Math.max(0, HIT_ANIM_MS - SUCCESS_NEXT_MOLE_LEAD_MS));
+    });
   }
 
   private handleMiss(lastHint: GameState['lastHint']): void {
@@ -219,15 +325,14 @@ export class GameEngine {
     });
 
     const retryWordId = this.state.activeMole.word.id;
-    this.retryHandle = setTimeout(() => {
-      this.retryHandle = null;
+    this.scheduleTimer('retry', MISS_FEEDBACK_MS, () => {
       if (!this.state.activeMole || this.state.activeMole.word.id !== retryWordId) return;
       if (this.state.screen !== 'game') return;
       this.setState({
         activeMole: { ...this.state.activeMole, animState: 'active', reaction: 'idle' },
       });
       this.armActiveMoleTimeout();
-    }, MISS_FEEDBACK_MS);
+    });
   }
 
   private handleAutoMiss(mole: MoleState): void {
@@ -242,16 +347,26 @@ export class GameEngine {
       wordsMissed: [...this.state.wordsMissed, word],
     });
 
-    setTimeout(() => {
+    this.scheduleTimer('postEscape', HIT_ANIM_MS, () => {
       if (this.state.screen !== 'game') return;
       if (!this.state.activeMole || this.state.activeMole.word.id !== word.id) return;
       this.setState({ activeMole: null });
       this.scheduleNextMole(TIMEOUT_NEXT_MOLE_DELAY_MS);
-    }, HIT_ANIM_MS);
+    });
+  }
+
+  private scheduleCountdownTick(): void {
+    this.scheduleTimer('countdown', COUNTDOWN_TICK_MS, () => {
+      this.countdown();
+      if (this.state.screen === 'game') {
+        this.scheduleCountdownTick();
+      }
+    });
   }
 
   private countdown(): void {
     if (this.state.screen !== 'game') return;
+    if (this.state.isPaused) return;
     if (!this.state.activeMole) return;
     if (!this.isActionableMoleState(this.state.activeMole.animState)) return;
 
@@ -281,10 +396,10 @@ export class GameEngine {
   }
 
   private scheduleNextMole(delayMs = NEXT_MOLE_DELAY_MS): void {
-    setTimeout(() => {
+    this.scheduleTimer('nextMole', delayMs, () => {
       if (this.state.screen !== 'game' || this.state.activeMole) return;
       this.spawnNextMole();
-    }, delayMs);
+    });
   }
 
   private spawnMole(word: Word, isSecondChance: boolean): void {
@@ -307,12 +422,12 @@ export class GameEngine {
     this.clearHintClearTimeout();
     this.setState({ activeMole: mole, lastHint: null });
 
-    setTimeout(() => {
+    this.scheduleTimer('emerge', EMERGE_MS, () => {
       if (wordLife !== this.wordLifeCounter) return;
       if (!this.state.activeMole || this.state.activeMole.word.id !== word.id) return;
       this.setState({ activeMole: { ...this.state.activeMole, animState: 'active' } });
       this.armActiveMoleTimeout();
-    }, EMERGE_MS);
+    });
   }
 
   private emit(event: EngineEvent): void {
@@ -333,6 +448,7 @@ export class GameEngine {
       score: 0,
       combo: 0,
       timeRemaining: initialRoundSeconds,
+      isPaused: false,
       wordsHit: [],
       wordsMissed: [],
       secondChanceQueue: [],
@@ -346,10 +462,10 @@ export class GameEngine {
     this.clearActiveMoleTimeout();
     if (!this.state.activeMole) return;
     const timeoutMs = this.visibleTimeoutMsForWord(this.state.activeMole.word);
-    this.activeMoleTimeout = setTimeout(() => {
+    this.scheduleTimer('activeMoleTimeout', timeoutMs, () => {
       if (!this.state.activeMole || this.evaluating) return;
       this.handleAutoMiss(this.state.activeMole);
-    }, timeoutMs);
+    });
   }
 
   private visibleTimeoutMsForWord(word: Word): number {
@@ -360,23 +476,19 @@ export class GameEngine {
   }
 
   private clearActiveMoleTimeout(): void {
-    if (this.activeMoleTimeout) clearTimeout(this.activeMoleTimeout);
-    this.activeMoleTimeout = null;
+    this.clearTimer('activeMoleTimeout');
   }
 
   private clearRetryTimeout(): void {
-    if (this.retryHandle) clearTimeout(this.retryHandle);
-    this.retryHandle = null;
+    this.clearTimer('retry');
   }
 
   private clearHardWordTimeout(): void {
-    if (this.hardWordTimeoutHandle) clearTimeout(this.hardWordTimeoutHandle);
-    this.hardWordTimeoutHandle = null;
+    this.clearTimer('hardWordTimeout');
   }
 
   private clearHintClearTimeout(): void {
-    if (this.hintClearHandle) clearTimeout(this.hintClearHandle);
-    this.hintClearHandle = null;
+    this.clearTimer('hintClear');
   }
 
   private randomSuccessHint(): string {
@@ -390,18 +502,16 @@ export class GameEngine {
   private armSuccessHintClear(hint: GameState['lastHint']): void {
     this.clearHintClearTimeout();
     if (!this.isSuccessHint(hint)) return;
-    this.hintClearHandle = setTimeout(() => {
-      this.hintClearHandle = null;
+    this.scheduleTimer('hintClear', SUCCESS_HINT_MS, () => {
       if (this.state.screen !== 'game') return;
       if (this.state.lastHint !== hint) return;
       this.setState({ lastHint: null });
-    }, SUCCESS_HINT_MS);
+    });
   }
 
   private armHardWordTimeout(word: Word, wordLife: number): void {
     this.clearHardWordTimeout();
-    this.hardWordTimeoutHandle = setTimeout(() => {
-      this.hardWordTimeoutHandle = null;
+    this.scheduleTimer('hardWordTimeout', WORD_HARD_TIMEOUT_MS, () => {
       if (this.state.screen !== 'game') return;
       if (wordLife !== this.wordLifeCounter) return;
       const activeMole = this.state.activeMole;
@@ -409,12 +519,13 @@ export class GameEngine {
       if (activeMole.animState === 'hit' || activeMole.animState === 'escaping') return;
       this.clearActiveMoleTimeout();
       this.handleAutoMiss(activeMole);
-    }, WORD_HARD_TIMEOUT_MS);
+    });
   }
 
   private cancelActiveEvaluation(): void {
     if (!this.evaluating) return;
     this.evaluating = false;
+    this.pendingEvaluation = null;
     if (this.state.isEvaluating) {
       this.setState({ isEvaluating: false });
     }
@@ -423,7 +534,74 @@ export class GameEngine {
   private endGame(): void {
     if (this.state.screen !== 'game') return;
     this.stop();
-    this.setState({ screen: 'result', activeMole: null, isEvaluating: false, timeRemaining: 0 });
+    this.setState({ screen: 'result', activeMole: null, isEvaluating: false, isPaused: false, timeRemaining: 0 });
     this.emit({ type: 'gameOver', finalState: this.state });
+  }
+
+  private scheduleTimer(key: TimerKey, delayMs: number, callback: () => void): void {
+    this.clearTimer(key);
+    const timer = this.timers[key];
+    timer.armed = true;
+    timer.callback = callback;
+    timer.remainingMs = Math.max(0, Math.round(delayMs));
+    if (this.state.isPaused) return;
+    this.armTimerHandle(key);
+  }
+
+  private armTimerHandle(key: TimerKey): void {
+    const timer = this.timers[key];
+    if (!timer.armed || !timer.callback || timer.handle) return;
+    timer.startedAtMs = Date.now();
+    timer.handle = setTimeout(() => this.fireTimer(key), timer.remainingMs);
+  }
+
+  private fireTimer(key: TimerKey): void {
+    const timer = this.timers[key];
+    if (!timer.armed || !timer.callback) return;
+
+    const callback = timer.callback;
+    timer.armed = false;
+    timer.callback = null;
+    timer.remainingMs = 0;
+    timer.startedAtMs = 0;
+    timer.handle = null;
+    callback();
+  }
+
+  private clearTimer(key: TimerKey): void {
+    const timer = this.timers[key];
+    if (timer.handle) {
+      clearTimeout(timer.handle);
+    }
+    timer.armed = false;
+    timer.callback = null;
+    timer.remainingMs = 0;
+    timer.startedAtMs = 0;
+    timer.handle = null;
+  }
+
+  private clearAllTimers(): void {
+    for (const key of TIMER_KEYS) {
+      this.clearTimer(key);
+    }
+  }
+
+  private pauseAllTimers(): void {
+    const now = Date.now();
+    for (const key of TIMER_KEYS) {
+      const timer = this.timers[key];
+      if (!timer.armed || !timer.handle) continue;
+      const elapsedMs = Math.max(0, now - timer.startedAtMs);
+      timer.remainingMs = Math.max(0, timer.remainingMs - elapsedMs);
+      clearTimeout(timer.handle);
+      timer.handle = null;
+      timer.startedAtMs = 0;
+    }
+  }
+
+  private resumeAllTimers(): void {
+    for (const key of TIMER_KEYS) {
+      this.armTimerHandle(key);
+    }
   }
 }
