@@ -25,8 +25,19 @@ def get_cors_origins() -> list[str]:
     return sorted(set([*DEFAULT_CORS_ORIGINS, *origins]))
 
 
+RESOLVED_CORS_ORIGINS = get_cors_origins()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print(
+        "[config] cors",
+        {
+            "origins": RESOLVED_CORS_ORIGINS,
+            "origin_regex": r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+        },
+        flush=True,
+    )
     # Future: load pronunciation model here
     yield
     # Future: clean up model resources here
@@ -40,7 +51,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_cors_origins(),
+    allow_origins=RESOLVED_CORS_ORIGINS,
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["GET", "POST"],

@@ -50,6 +50,7 @@ const MOLE_VISIBLE_MS = 10000;
 const ONE_HANZI_MOLE_VISIBLE_MS = 7000;
 const TWO_HANZI_MOLE_VISIBLE_MS = 8000;
 const WORD_HARD_TIMEOUT_MS = 15000;
+const HARD_TIMEOUT_EVAL_RECHECK_MS = 300;
 const SUCCESS_HINT_MS = 850;
 const EMERGE_MS = 260;
 const COUNTDOWN_TICK_MS = 1000;
@@ -216,7 +217,22 @@ export class GameEngine {
   }
 
   private applyEvaluationResult(result: EvalResult, wordId: string, wordLife: number): void {
-    if (!this.canApplyEvaluationResult(wordId, wordLife)) {
+    const ignoreReason = this.getEvaluationIgnoreReason(wordId, wordLife);
+    if (ignoreReason) {
+      console.warn('[latency] evaluation result ignored', {
+        wordId,
+        resultWordId: result.wordId,
+        wordLife,
+        success: result.success,
+        confidence: result.confidence,
+        reason: ignoreReason,
+        screen: this.state.screen,
+        currentWordLife: this.wordLifeCounter,
+        activeWordId: this.state.activeMole?.word.id ?? null,
+        activeAnimState: this.state.activeMole?.animState ?? null,
+        evaluatingFlag: this.evaluating,
+        isEvaluatingState: this.state.isEvaluating,
+      });
       if (this.state.isEvaluating) {
         this.setState({ isEvaluating: false });
       }
@@ -225,12 +241,14 @@ export class GameEngine {
     this.handleResult(result);
   }
 
-  private canApplyEvaluationResult(wordId: string, wordLife: number): boolean {
-    if (this.state.screen !== 'game') return false;
-    if (this.wordLifeCounter !== wordLife) return false;
+  private getEvaluationIgnoreReason(wordId: string, wordLife: number): string | null {
+    if (this.state.screen !== 'game') return `screen_${this.state.screen}`;
+    if (this.wordLifeCounter !== wordLife) return `word_life_changed_${wordLife}_to_${this.wordLifeCounter}`;
     const activeMole = this.state.activeMole;
-    if (!activeMole || activeMole.word.id !== wordId) return false;
-    return this.isActionableMoleState(activeMole.animState);
+    if (!activeMole) return 'no_active_mole';
+    if (activeMole.word.id !== wordId) return `active_word_changed_${wordId}_to_${activeMole.word.id}`;
+    if (!this.isActionableMoleState(activeMole.animState)) return `anim_state_${activeMole.animState}`;
+    return null;
   }
 
   private flushPendingEvaluation(): void {
@@ -509,14 +527,27 @@ export class GameEngine {
     });
   }
 
-  private armHardWordTimeout(word: Word, wordLife: number): void {
+  private armHardWordTimeout(word: Word, wordLife: number, delayMs = WORD_HARD_TIMEOUT_MS): void {
     this.clearHardWordTimeout();
-    this.scheduleTimer('hardWordTimeout', WORD_HARD_TIMEOUT_MS, () => {
+    this.scheduleTimer('hardWordTimeout', delayMs, () => {
       if (this.state.screen !== 'game') return;
       if (wordLife !== this.wordLifeCounter) return;
       const activeMole = this.state.activeMole;
       if (!activeMole || activeMole.word.id !== word.id) return;
       if (activeMole.animState === 'hit' || activeMole.animState === 'escaping') return;
+      if (this.evaluating || this.state.isEvaluating || activeMole.animState === 'listening') {
+        console.log('[latency] hard timeout deferred: evaluation in flight', {
+          word: word.hanzi,
+          wordId: word.id,
+          wordLife,
+          delayMs: HARD_TIMEOUT_EVAL_RECHECK_MS,
+          activeAnimState: activeMole.animState,
+          evaluatingFlag: this.evaluating,
+          isEvaluatingState: this.state.isEvaluating,
+        });
+        this.armHardWordTimeout(word, wordLife, HARD_TIMEOUT_EVAL_RECHECK_MS);
+        return;
+      }
       this.clearActiveMoleTimeout();
       this.handleAutoMiss(activeMole);
     });

@@ -11,12 +11,35 @@ import type { EvalResult } from '../types/game';
  * evaluation can feed the same EvalResult shape into GameEngine.
  */
 export class HttpEvaluator implements PronunciationEvaluator {
+  private static configLogged = false;
   private readonly baseUrl: string;
   private readonly evaluatePath: string;
 
   constructor(baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000') {
     this.baseUrl = baseUrl;
     this.evaluatePath = import.meta.env.VITE_EVALUATE_PATH ?? '/evaluate/local';
+    if (!HttpEvaluator.configLogged) {
+      HttpEvaluator.configLogged = true;
+      this.logRuntimeConfigWarnings();
+    }
+  }
+
+  private logRuntimeConfigWarnings(): void {
+    console.log('[config] evaluator runtime', {
+      mode: import.meta.env.MODE,
+      baseUrl: this.baseUrl,
+      evaluatePath: this.evaluatePath,
+    });
+    if (import.meta.env.PROD && /(localhost|127\.0\.0\.1)/.test(this.baseUrl)) {
+      console.warn('[config] VITE_API_URL appears to be localhost in production', {
+        baseUrl: this.baseUrl,
+      });
+    }
+    if (this.evaluatePath !== '/evaluate/local') {
+      console.warn('[config] VITE_EVALUATE_PATH is not /evaluate/local', {
+        evaluatePath: this.evaluatePath,
+      });
+    }
   }
 
   async evaluate(audioBlob: Blob, word: Word): Promise<EvalResult> {
@@ -33,6 +56,7 @@ export class HttpEvaluator implements PronunciationEvaluator {
         word: word.hanzi,
         pinyinRaw: word.pinyinRaw,
         bytes: audioBlob.size,
+        baseUrl: this.baseUrl,
         path: this.evaluatePath,
       });
       const res = await fetch(`${this.baseUrl}${this.evaluatePath}`, { method: 'POST', body: form });

@@ -7,7 +7,7 @@ import { useMicrophone } from '../hooks/useMicrophone';
 import { MoleCanvas } from '../components/MoleCanvas';
 import { HUD } from '../components/HUD';
 import { VoiceMeter } from '../components/MicButton';
-import { DevEvalCenterPanel, EvaluatingStatus, PedagogyHint } from '../components/PronunciationHint';
+import { DevEvalCenterPanel, PedagogyHint } from '../components/PronunciationHint';
 import type { UiDockLayout } from '../engine/uiDockLayout';
 import type { RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
@@ -309,13 +309,7 @@ export function GameScreen({
           ) : null}
         </div>
 
-        {gameState?.isEvaluating && !import.meta.env.DEV ? (
-          <div className="hint-overlay hint-overlay--evaluating">
-            <EvaluatingStatus />
-          </div>
-        ) : null}
-
-        {import.meta.env.DEV && gameState && (gameState.isEvaluating || gameState.lastHint) ? (
+        {gameState && (gameState.isEvaluating || gameState.lastHint) ? (
           <div className="hint-overlay hint-overlay--dev-center">
             <DevEvalCenterPanel isEvaluating={gameState.isEvaluating} hint={gameState.lastHint} />
           </div>
