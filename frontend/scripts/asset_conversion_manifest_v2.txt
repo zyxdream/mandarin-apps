@@ -1,0 +1,39 @@
+# Asset conversion manifest (lossless WebP, no resize)
+# Source root: frontend/public
+# Output naming: same directory, suffix .v2.webp
+# Command: cwebp -lossless -m 6 -mt <src.png> -o <dst.v2.webp>
+
+[backgrounds]
+/assets/backgrounds/grass_world_clean.png
+/assets/backgrounds/grass_world_with_holes_expand.png
+
+[characters/moles]
+/assets/characters/moles/all_mole_on_hit.png
+/assets/characters/moles/angry_mole_after_hit.png
+/assets/characters/moles/angry_mole_holding.png
+/assets/characters/moles/cool_mole_after_hit.png
+/assets/characters/moles/cool_mole_holding.png
+/assets/characters/moles/dizzy_mole_after_hit.png
+/assets/characters/moles/dizzy_mole_holding.png
+/assets/characters/moles/gray_eyebrow_mole_on_hit.png
+/assets/characters/moles/grey_eyebrow_mole_holding.png
+/assets/characters/moles/happy_ending_mole_1.png
+/assets/characters/moles/happy_ending_mole_2.png
+/assets/characters/moles/happy_ending_mole_3.png
+/assets/characters/moles/hat_mole_after_hit.png
+/assets/characters/moles/hat_mole_holding.png
+
+[effects]
+/assets/effects/miss.png
+/assets/effects/sparkle.png
+
+[objects]
+/assets/objects/cover_word_banner_lower.png
+/assets/objects/cover_word_banner_top.png
+/assets/objects/hammer_right_transparent.png
+
+[rewards]
+/assets/rewards/apple.png
+/assets/rewards/berry.png
+/assets/rewards/insect.png
+/assets/rewards/tree_nut.png
