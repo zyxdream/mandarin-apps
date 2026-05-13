@@ -54,8 +54,17 @@ const COLLECT_TARGET_Y = 84;
 const HAMMER_SWING_DECAY = 0.024;
 const HAMMER_HIT_FADE_START_FRAME = 34;
 const HAMMER_HIT_HIDE_FRAME = 46;
-const LISTENING_HAMMER_HOVER_PX = 6;
-const LISTENING_HAMMER_LEAN_RAD = 0.09;
+const LISTENING_HAMMER_HOVER_PX = 10;
+const LISTENING_HAMMER_LEAN_RAD = 0.14;
+const LISTENING_PUFF_CYCLE_MS = 420;
+const LISTENING_PUFF_SECOND_DELAY_MS = 180;
+const LISTENING_PUFF_RING_LIFETIME_MS = 240;
+const LISTENING_PUFF_COLOR = 0xffd8a6;
+const LISTENING_PUFF_MAX_ALPHA = 0.48;
+const LISTENING_PUFF_MIN_RADIUS_RATIO = 0.32;
+const LISTENING_PUFF_MAX_RADIUS_RATIO = 0.88;
+const LISTENING_PUFF_STROKE_START_RATIO = 0.07;
+const LISTENING_PUFF_STROKE_END_RATIO = 0.028;
 const HIT_EFFECT_FRAMES = 88;
 const MISS_EFFECT_FRAMES = 76;
 const HIT_SPARKLE_SIDE_OFFSET_RATIO = 0.16;
@@ -349,6 +358,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
   const moleContainerRef = useRef<Container | null>(null);
   const moleSpriteRef = useRef<Sprite | null>(null);
   const hammerSpriteRef = useRef<Sprite | null>(null);
+  const listeningPuffRef = useRef<Graphics | null>(null);
   const hitEffectRef = useRef<Sprite | null>(null);
   const missEffectRef = useRef<Sprite | null>(null);
   const pinyinRef = useRef<Text | null>(null);
@@ -365,6 +375,9 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
   const lastWordIdRef = useRef<string | null>(null);
   const lastStrikeIdRef = useRef(0);
   const lastSparkleStrikeIdRef = useRef<number | null>(null);
+  const listeningPuffStartedAtRef = useRef<number | null>(null);
+  const listeningPuffLastCycleRef = useRef<number>(-1);
+  const listeningPuffFirstVisibleLoggedRef = useRef(false);
   const currentStyleRef = useRef<MoleCharacterAttachmentStyle>(MOLE_CHARACTER_STYLES[0]);
   const currentTexturePathRef = useRef('');
   const hammerPlacementRef = useRef<HammerPlacementState>({
@@ -412,6 +425,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       const moleContainer = new Container();
       const moleSprite = new Sprite(Texture.from(MOLE_CHARACTER_STYLES[0].hold.texture));
       const hammer = new Sprite(Texture.from(HAMMER_TEXTURE));
+      const listeningPuff = new Graphics();
       const hitEffect = new Sprite(Texture.from(HIT_EFFECT_TEXTURE));
       const missEffect = new Sprite(Texture.from(MISS_EFFECT_TEXTURE));
       const collectGlow = new Sprite(Texture.from(HIT_EFFECT_TEXTURE));
@@ -501,6 +515,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
 
       moleContainer.visible = false;
       hammer.visible = false;
+      listeningPuff.visible = false;
       hitEffect.visible = false;
       missEffect.visible = false;
       reaction.visible = false;
@@ -527,6 +542,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
         holeFrontRim,
         collectGlow,
         collectWord,
+        listeningPuff,
         hammer,
         hitEffect,
         missEffect,
@@ -545,6 +561,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       moleContainerRef.current = moleContainer;
       moleSpriteRef.current = moleSprite;
       hammerSpriteRef.current = hammer;
+      listeningPuffRef.current = listeningPuff;
       hitEffectRef.current = hitEffect;
       missEffectRef.current = missEffect;
       pinyinRef.current = pinyin;
@@ -572,6 +589,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       const moleHighlight = moleHighlightRef.current;
       const moleContainer = moleContainerRef.current;
       const hammer = hammerSpriteRef.current;
+      const listeningPuff = listeningPuffRef.current;
       const hitEffect = hitEffectRef.current;
       const missEffect = missEffectRef.current;
       const collectGlow = collectGlowRef.current;
@@ -619,6 +637,10 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
         hammer.parent?.removeChild(hammer);
         if (!hammer.destroyed) hammer.destroy();
       }
+      if (listeningPuff) {
+        listeningPuff.parent?.removeChild(listeningPuff);
+        if (!listeningPuff.destroyed) listeningPuff.destroy();
+      }
       if (hitEffect) {
         hitEffect.parent?.removeChild(hitEffect);
         if (!hitEffect.destroyed) hitEffect.destroy();
@@ -655,6 +677,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       moleContainerRef.current = null;
       moleSpriteRef.current = null;
       hammerSpriteRef.current = null;
+      listeningPuffRef.current = null;
       hitEffectRef.current = null;
       missEffectRef.current = null;
       pinyinRef.current = null;
@@ -689,6 +712,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const moleContainer = moleContainerRef.current;
     const moleSprite = moleSpriteRef.current;
     const hammer = hammerSpriteRef.current;
+    const listeningPuff = listeningPuffRef.current;
     const hitEffect = hitEffectRef.current;
     const missEffect = missEffectRef.current;
     const collectGlow = collectGlowRef.current;
@@ -708,6 +732,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       !moleContainer ||
       !moleSprite ||
       !hammer ||
+      !listeningPuff ||
       !hitEffect ||
       !missEffect ||
       !collectGlow ||
@@ -793,6 +818,8 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     if (!mole) {
       moleContainer.visible = false;
       hammer.visible = false;
+      listeningPuff.visible = false;
+      listeningPuff.clear();
       hitEffect.visible = false;
       missEffect.visible = false;
       holeFrontRim.clear();
@@ -838,6 +865,15 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     if (mole.animState !== animStateRef.current) {
       animStateRef.current = mole.animState;
       animTickRef.current = 0;
+      if (mole.animState === 'listening') {
+        listeningPuffStartedAtRef.current = performance.now();
+        listeningPuffLastCycleRef.current = -1;
+        listeningPuffFirstVisibleLoggedRef.current = false;
+      } else {
+        listeningPuffStartedAtRef.current = null;
+        listeningPuffLastCycleRef.current = -1;
+        listeningPuffFirstVisibleLoggedRef.current = false;
+      }
       if (mole.animState === 'hit' && mole.strikeId !== lastStrikeIdRef.current) {
         lastStrikeIdRef.current = mole.strikeId;
         swingRef.current = 1;
@@ -908,9 +944,9 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       deltaY += Math.max(0, bob);
       renderRotation = Math.sin(t * 0.08) * wobbleAmp;
       if (mole.animState === 'listening') {
-        const pulse = 1 + Math.sin(t * 0.24) * 0.04;
+        const pulse = 1 + Math.sin(t * 0.28) * 0.075;
         renderScaleX = base.scale * pulse;
-        renderScaleY = base.scale * (1 + Math.sin(t * 0.24 + 0.28) * 0.025);
+        renderScaleY = base.scale * (1 + Math.sin(t * 0.28 + 0.28) * 0.05);
       }
     } else if (mole.animState === 'retry') {
       const dodge = easeOutBack(Math.min(1, t / 20));
@@ -963,7 +999,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       ? easeOutCubic(Math.min(1, t / MOLE_EMERGE_FRAMES))
       : 1;
     const depthFade = Math.max(0, Math.min(1, renderAlpha * emergeDepth));
-    const listeningGlow = mole.animState === 'listening' ? 1.12 : 1;
+    const listeningGlow = mole.animState === 'listening' ? 1.24 : 1;
     const hitShadeBoost = mole.animState === 'hit' ? Math.max(0, 1 - t / 36) * 0.025 : 0;
 
     moleBackShadow.visible = mole.animState !== 'hidden';
@@ -1107,6 +1143,66 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       boardKeepoutTop - placement.openingWidth * HIT_SPARKLE_BOARD_CLEAR_RATIO,
     );
 
+    listeningPuff.clear();
+    if (mole.animState === 'listening') {
+      const startedAt = listeningPuffStartedAtRef.current ?? performance.now();
+      if (listeningPuffStartedAtRef.current === null) {
+        listeningPuffStartedAtRef.current = startedAt;
+      }
+      const elapsedMs = Math.max(0, performance.now() - startedAt);
+      const cycleIndex = Math.floor(elapsedMs / LISTENING_PUFF_CYCLE_MS);
+      if (cycleIndex !== listeningPuffLastCycleRef.current) {
+        listeningPuffLastCycleRef.current = cycleIndex;
+        console.log('[latency] listening puff cycle start', {
+          cycleIndex,
+          elapsedMs: Math.round(elapsedMs),
+        });
+      }
+      const cycleMs = elapsedMs % LISTENING_PUFF_CYCLE_MS;
+      let hasVisibleRing = false;
+
+      const drawListeningRing = (delayMs: number, phaseSeed: number) => {
+        const ringElapsedMs = cycleMs - delayMs;
+        if (ringElapsedMs < 0 || ringElapsedMs > LISTENING_PUFF_RING_LIFETIME_MS) return;
+        const progress = ringElapsedMs / LISTENING_PUFF_RING_LIFETIME_MS;
+        const envelope = Math.max(0, 1 - Math.abs(progress * 2 - 1));
+        if (envelope <= 0) return;
+        const alpha = LISTENING_PUFF_MAX_ALPHA * envelope;
+        const radius =
+          placement.openingWidth *
+          (LISTENING_PUFF_MIN_RADIUS_RATIO +
+            (LISTENING_PUFF_MAX_RADIUS_RATIO - LISTENING_PUFF_MIN_RADIUS_RATIO) * progress);
+        const thickness = Math.max(
+          1.25,
+          placement.openingWidth *
+            (LISTENING_PUFF_STROKE_START_RATIO +
+              (LISTENING_PUFF_STROKE_END_RATIO - LISTENING_PUFF_STROKE_START_RATIO) * progress),
+        );
+        const driftX = Math.sin((elapsedMs + phaseSeed) * 0.011) * placement.openingWidth * 0.016;
+        const driftY = Math.cos((elapsedMs + phaseSeed) * 0.009) * placement.openingWidth * 0.013;
+        const ringX = sparkleAnchorX + driftX;
+        const ringY = sparkleAnchorY + driftY;
+        listeningPuff.circle(ringX, ringY, radius);
+        listeningPuff.stroke({ color: LISTENING_PUFF_COLOR, width: thickness, alpha });
+        listeningPuff.circle(ringX, ringY, radius * 0.6);
+        listeningPuff.fill({ color: LISTENING_PUFF_COLOR, alpha: alpha * 0.11 });
+        hasVisibleRing = true;
+      };
+
+      drawListeningRing(0, 0);
+      drawListeningRing(LISTENING_PUFF_SECOND_DELAY_MS, 120);
+      listeningPuff.visible = hasVisibleRing;
+      if (hasVisibleRing && !listeningPuffFirstVisibleLoggedRef.current) {
+        listeningPuffFirstVisibleLoggedRef.current = true;
+        console.log('[latency] listening puff first visible', {
+          elapsedMs: Math.round(elapsedMs),
+          cycleIndex,
+        });
+      }
+    } else {
+      listeningPuff.visible = false;
+    }
+
     if (shouldLaunchCollect) {
       const holdBase = computeBodyAnchoredMoleTransform(darkOpening, style.hold.meta, style.scaleBias ?? 1);
       const start = new Point(
@@ -1218,7 +1314,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const hammerTextureHeight = hammer.texture.height || HAMMER_TEXTURE_FALLBACK_SIZE;
     const listeningLean = mole.animState === 'listening' ? LISTENING_HAMMER_LEAN_RAD : 0;
     const listeningHover = mole.animState === 'listening'
-      ? (-LISTENING_HAMMER_HOVER_PX + Math.sin(t * 0.22) * 2.6)
+      ? (-LISTENING_HAMMER_HOVER_PX + Math.sin(t * 0.28) * 3.8)
       : 0;
     const idleBaseRotation = -0.52 + Math.sin(t * 0.06) * 0.05 - voicePower * 0.07 - listeningLean;
     const windupBaseRotation = -1.33;
