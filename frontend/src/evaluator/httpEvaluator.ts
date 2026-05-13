@@ -79,6 +79,11 @@ export class HttpEvaluator implements PronunciationEvaluator {
         transcript: data.transcript,
         elapsedMs: Math.round(performance.now() - requestStartedAt),
       });
+      console.log('[latency] submit to evaluator response', {
+        word: word.hanzi,
+        elapsedMs: Math.round(performance.now() - requestStartedAt),
+        success: data.success,
+      });
       return {
         success: data.success,
         confidence: data.confidence,
@@ -92,6 +97,11 @@ export class HttpEvaluator implements PronunciationEvaluator {
       };
     } catch (error) {
       console.warn('[latency] evaluator request failed', {
+        word: word.hanzi,
+        elapsedMs: Math.round(performance.now() - requestStartedAt),
+        error,
+      });
+      console.warn('[latency] submit to evaluator response failed', {
         word: word.hanzi,
         elapsedMs: Math.round(performance.now() - requestStartedAt),
         error,

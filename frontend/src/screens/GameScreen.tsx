@@ -12,6 +12,18 @@ import type { UiDockLayout } from '../engine/uiDockLayout';
 import type { RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
 
+const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
+const WARMUP_PING_TIMEOUT_MS = 5000;
+
+function buildHealthUrl(baseUrl: string): string {
+  try {
+    const normalized = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+    return new URL('health', normalized).toString();
+  } catch {
+    return `${baseUrl.replace(/\/+$/, '')}/health`;
+  }
+}
+
 interface GameScreenProps {
   selectedFood: RewardFood;
   onSelectFood: (food: RewardFood) => void;
@@ -46,11 +58,14 @@ export function GameScreen({
   const speechPeakVolumeRef = useRef(0);
   const voiceCandidateStartedAtRef = useRef(0);
   const noiseFloorRef = useRef(0.018);
+  const warmupInFlightRef = useRef(false);
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
   const [resizeTarget, setResizeTarget] = useState<HTMLDivElement | null>(null);
   const dockRef = useRef<HTMLDivElement | null>(null);
   const [dockLayout, setDockLayout] = useState<UiDockLayout>({ dockHeightPx: 0, safeBottomPx: 0 });
   const [hasRoundStarted, setHasRoundStarted] = useState(false);
+  const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+  const healthUrl = buildHealthUrl(apiBaseUrl);
   const activeWordId = gameState?.activeMole?.word.id ?? null;
   const handleCanvasHostRef = useCallback((node: HTMLDivElement | null) => {
     canvasHostRef.current = node;
@@ -140,6 +155,50 @@ export function GameScreen({
 
   useGameAudio(gameState, micState === 'listening' && gameState?.screen === 'game');
 
+  const sendWarmupPing = useCallback(async (reason: 'session_start' | 'keepalive') => {
+    if (warmupInFlightRef.current) return;
+    warmupInFlightRef.current = true;
+    const startedAt = performance.now();
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), WARMUP_PING_TIMEOUT_MS);
+    console.log('[warmup] ping start', { reason, url: healthUrl });
+    try {
+      const response = await fetch(healthUrl, {
+        method: 'GET',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      console.log('[warmup] ping complete', {
+        reason,
+        status: response.status,
+        ok: response.ok,
+        elapsedMs: Math.round(performance.now() - startedAt),
+      });
+    } catch (error) {
+      console.warn('[warmup] ping failed', {
+        reason,
+        elapsedMs: Math.round(performance.now() - startedAt),
+        error,
+      });
+    } finally {
+      window.clearTimeout(timeoutId);
+      warmupInFlightRef.current = false;
+    }
+  }, [healthUrl]);
+
+  useEffect(() => {
+    const isWarmupActive =
+      micState === 'listening' &&
+      gameState?.screen === 'game' &&
+      !isGamePaused;
+    if (!isWarmupActive) return;
+    void sendWarmupPing('session_start');
+    const timer = window.setInterval(() => {
+      void sendWarmupPing('keepalive');
+    }, WARMUP_PING_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [gameState?.screen, isGamePaused, micState, sendWarmupPing]);
+
   useEffect(() => {
     if (micState !== 'listening' || !gameState?.activeMole) return;
     if (isGamePaused) {
@@ -155,7 +214,7 @@ export function GameScreen({
     const speechStartThreshold = Math.max(0.09, noiseFloorRef.current * 3.1);
     const speechEndThreshold = Math.max(0.04, noiseFloorRef.current * 1.45);
     const speechStartHoldMs = 160;
-    const speechEndSilenceMs = 400;
+    const speechEndSilenceMs = 280;
     const strikeCooldownMs = 1200;
     const minSpeechDurationMs = 440;
     const minSpeechPeakVolume = Math.max(0.115, speechStartThreshold + 0.025);
@@ -220,7 +279,12 @@ export function GameScreen({
       return;
     }
 
-    const capture = captureRecentAudio({ sinceMs: speechStartedAtRef.current, preRollMs: 220 });
+    const capture = captureRecentAudio({
+      sinceMs: speechStartedAtRef.current,
+      preRollMs: 220,
+      untilMs: lastVoiceAtRef.current,
+      postRollMs: 90,
+    });
     if (!capture) {
       console.warn('[speech] skipped: no captured audio', {
         word: activeMole.word.hanzi,
@@ -269,6 +333,10 @@ export function GameScreen({
       peakVolume: Number(speechPeakVolume.toFixed(3)),
       averageVolume: Number(stats.averageVolume.toFixed(3)),
       bytes: audio.size,
+    });
+    console.log('[latency] speech end to submit', {
+      word: activeMole.word.hanzi,
+      elapsedMs: Math.max(0, Date.now() - speechEndedAt),
     });
     submitEvaluation(audio);
   }, [captureRecentAudio, gameState?.activeMole, isGamePaused, micState, resetCaptureBuffer, submitEvaluation, volume]);

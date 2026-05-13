@@ -38,6 +38,7 @@ interface PendingEvaluation {
   result: EvalResult;
   wordId: string;
   wordLife: number;
+  responseReceivedAt: number;
 }
 
 const HIT_ANIM_MS = 1180;
@@ -200,6 +201,7 @@ export class GameEngine {
       result = { success: false, confidence: 0, wordId: word.id, error: true };
     }
 
+    const responseReceivedAt = performance.now();
     this.evaluating = false;
     console.log('[latency] game evaluation result', {
       word: word.hanzi,
@@ -209,14 +211,14 @@ export class GameEngine {
     });
 
     if (this.state.isPaused) {
-      this.pendingEvaluation = { result, wordId: word.id, wordLife };
+      this.pendingEvaluation = { result, wordId: word.id, wordLife, responseReceivedAt };
       return;
     }
 
-    this.applyEvaluationResult(result, word.id, wordLife);
+    this.applyEvaluationResult(result, word.id, wordLife, responseReceivedAt);
   }
 
-  private applyEvaluationResult(result: EvalResult, wordId: string, wordLife: number): void {
+  private applyEvaluationResult(result: EvalResult, wordId: string, wordLife: number, responseReceivedAt: number): void {
     const ignoreReason = this.getEvaluationIgnoreReason(wordId, wordLife);
     if (ignoreReason) {
       console.warn('[latency] evaluation result ignored', {
@@ -225,6 +227,7 @@ export class GameEngine {
         wordLife,
         success: result.success,
         confidence: result.confidence,
+        responseToApplyMs: Math.round(performance.now() - responseReceivedAt),
         reason: ignoreReason,
         screen: this.state.screen,
         currentWordLife: this.wordLifeCounter,
@@ -238,7 +241,7 @@ export class GameEngine {
       }
       return;
     }
-    this.handleResult(result);
+    this.handleResult(result, responseReceivedAt);
   }
 
   private getEvaluationIgnoreReason(wordId: string, wordLife: number): string | null {
@@ -255,7 +258,12 @@ export class GameEngine {
     const pending = this.pendingEvaluation;
     if (!pending) return;
     this.pendingEvaluation = null;
-    this.applyEvaluationResult(pending.result, pending.wordId, pending.wordLife);
+    this.applyEvaluationResult(
+      pending.result,
+      pending.wordId,
+      pending.wordLife,
+      pending.responseReceivedAt,
+    );
   }
 
   private buildEvalHint(result: EvalResult): GameState['lastHint'] {
@@ -278,12 +286,16 @@ export class GameEngine {
     };
   }
 
-  private handleResult(result: EvalResult): void {
+  private handleResult(result: EvalResult, responseReceivedAt: number): void {
     if (this.state.screen !== 'game') return;
     const lastHint = this.buildEvalHint(result);
 
     if (result.error) {
       if (!this.state.activeMole) return;
+      console.log('[latency] response applied as error-recovery', {
+        word: this.state.activeMole.word.hanzi,
+        responseToTransitionMs: Math.round(performance.now() - responseReceivedAt),
+      });
       this.setState({
         lastHint,
         isEvaluating: false,
@@ -294,19 +306,23 @@ export class GameEngine {
     }
 
     if (result.success) {
-      this.handleSuccess(lastHint);
+      this.handleSuccess(lastHint, responseReceivedAt);
     } else {
-      this.handleMiss(lastHint);
+      this.handleMiss(lastHint, responseReceivedAt);
     }
   }
 
-  private handleSuccess(lastHint: GameState['lastHint']): void {
+  private handleSuccess(lastHint: GameState['lastHint'], responseReceivedAt: number): void {
     if (!this.state.activeMole) return;
     this.clearRetryTimeout();
     this.clearHardWordTimeout();
     const word = this.state.activeMole.word;
     const newCombo = this.state.combo + 1;
     const earned = scoreForResult(word, newCombo);
+    console.log('[latency] response applied as hit', {
+      word: word.hanzi,
+      responseToTransitionMs: Math.round(performance.now() - responseReceivedAt),
+    });
     console.log('[latency] confirmed bonk triggered', {
       word: word.hanzi,
       strikeId: this.strikeId + 1,
@@ -330,10 +346,15 @@ export class GameEngine {
     });
   }
 
-  private handleMiss(lastHint: GameState['lastHint']): void {
+  private handleMiss(lastHint: GameState['lastHint'], responseReceivedAt: number): void {
     if (!this.state.activeMole) return;
     this.clearRetryTimeout();
     const reaction: MoleReaction = Math.random() > 0.5 ? 'angry' : 'laugh';
+    console.log('[latency] response applied as retry', {
+      word: this.state.activeMole.word.hanzi,
+      responseToTransitionMs: Math.round(performance.now() - responseReceivedAt),
+      reaction,
+    });
 
     this.setState({
       lastHint,

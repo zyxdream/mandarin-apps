@@ -54,6 +54,8 @@ const COLLECT_TARGET_Y = 84;
 const HAMMER_SWING_DECAY = 0.024;
 const HAMMER_HIT_FADE_START_FRAME = 34;
 const HAMMER_HIT_HIDE_FRAME = 46;
+const LISTENING_HAMMER_HOVER_PX = 6;
+const LISTENING_HAMMER_LEAN_RAD = 0.09;
 const HIT_EFFECT_FRAMES = 88;
 const MISS_EFFECT_FRAMES = 76;
 const HIT_SPARKLE_SIDE_OFFSET_RATIO = 0.16;
@@ -362,6 +364,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
   const swingRef = useRef(0);
   const lastWordIdRef = useRef<string | null>(null);
   const lastStrikeIdRef = useRef(0);
+  const lastSparkleStrikeIdRef = useRef<number | null>(null);
   const currentStyleRef = useRef<MoleCharacterAttachmentStyle>(MOLE_CHARACTER_STYLES[0]);
   const currentTexturePathRef = useRef('');
   const hammerPlacementRef = useRef<HammerPlacementState>({
@@ -835,12 +838,13 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     if (mole.animState !== animStateRef.current) {
       animStateRef.current = mole.animState;
       animTickRef.current = 0;
-      if (mole.animState === 'listening') {
-        swingRef.current = 1;
-      }
       if (mole.animState === 'hit' && mole.strikeId !== lastStrikeIdRef.current) {
         lastStrikeIdRef.current = mole.strikeId;
+        swingRef.current = 1;
         shouldLaunchCollect = true;
+      }
+      if (mole.animState === 'retry') {
+        swingRef.current = 1;
       }
     }
 
@@ -1165,6 +1169,13 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       const life = 1 - easeOutCubic(fadeProgress);
       const bloom = Math.sin(progress * Math.PI);
       const spinProgress = Math.max(0, (progress - 0.62) / 0.38);
+      if (lastSparkleStrikeIdRef.current !== mole.strikeId) {
+        lastSparkleStrikeIdRef.current = mole.strikeId;
+        console.log('[latency] state transition to sparkle visible', {
+          strikeId: mole.strikeId,
+          animTick: t,
+        });
+      }
       hitEffect.visible = true;
       hitEffect.position.set(sparkleAnchorX, sparkleAnchorY);
       hitEffect.scale.set(base.scale * (0.82 + bloom * 0.38 + progress * 0.08));
@@ -1205,7 +1216,11 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const hammerSafetyScaleX = hammerSafetyScale * hammerSide;
     const hammerTextureWidth = hammer.texture.width || HAMMER_TEXTURE_FALLBACK_SIZE;
     const hammerTextureHeight = hammer.texture.height || HAMMER_TEXTURE_FALLBACK_SIZE;
-    const idleBaseRotation = -0.52 + Math.sin(t * 0.06) * 0.05 - voicePower * 0.07;
+    const listeningLean = mole.animState === 'listening' ? LISTENING_HAMMER_LEAN_RAD : 0;
+    const listeningHover = mole.animState === 'listening'
+      ? (-LISTENING_HAMMER_HOVER_PX + Math.sin(t * 0.22) * 2.6)
+      : 0;
+    const idleBaseRotation = -0.52 + Math.sin(t * 0.06) * 0.05 - voicePower * 0.07 - listeningLean;
     const windupBaseRotation = -1.33;
     const impactBaseRotation = 0.42;
     const recoveryBaseRotation = -0.42;
@@ -1274,7 +1289,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     recoveryY = Math.min(recoveryY - hammerSafetyLift, keepoutLimitY);
 
     hammer.texture = Texture.from(HAMMER_TEXTURE);
-    hammer.position.set(hammerIdleX, hammerIdleY - voicePower * 18);
+    hammer.position.set(hammerIdleX, hammerIdleY - voicePower * 18 + listeningHover);
     hammer.scale.set(hammerScaleX, hammerVisualScale);
     hammer.alpha = 1;
     hammer.visible = true;
