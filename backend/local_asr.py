@@ -1,6 +1,7 @@
 import os
 import subprocess
 import tempfile
+import time
 import wave
 from pathlib import Path
 from threading import Lock
@@ -41,6 +42,18 @@ class SherpaOnnxAsr:
         stream.accept_waveform(sample_rate, waveform)
         recognizer.decode_stream(stream)
         return getattr(stream.result, "text", "") or ""
+
+    def ensure_ready(self) -> dict[str, bool | int | str]:
+        already_loaded = self._recognizer is not None
+        started_at = time.perf_counter()
+        recognizer = self._get_recognizer()
+        elapsed_ms = int((time.perf_counter() - started_at) * 1000)
+        return {
+            "ready": recognizer is not None,
+            "already_loaded": already_loaded,
+            "elapsed_ms": elapsed_ms,
+            "model_dir": str(self.model_dir),
+        }
 
     def _get_recognizer(self):
         if self._recognizer is not None:

@@ -11,18 +11,9 @@ import { DevEvalCenterPanel, PedagogyHint } from '../components/PronunciationHin
 import type { UiDockLayout } from '../engine/uiDockLayout';
 import type { RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
+import { pingHealthWarmup, warmupDeepIfStaleOrFailed } from '../warmup/backendWarmup';
 
 const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
-const WARMUP_PING_TIMEOUT_MS = 5000;
-
-function buildHealthUrl(baseUrl: string): string {
-  try {
-    const normalized = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-    return new URL('health', normalized).toString();
-  } catch {
-    return `${baseUrl.replace(/\/+$/, '')}/health`;
-  }
-}
 
 interface GameScreenProps {
   selectedFood: RewardFood;
@@ -58,14 +49,11 @@ export function GameScreen({
   const speechPeakVolumeRef = useRef(0);
   const voiceCandidateStartedAtRef = useRef(0);
   const noiseFloorRef = useRef(0.018);
-  const warmupInFlightRef = useRef(false);
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
   const [resizeTarget, setResizeTarget] = useState<HTMLDivElement | null>(null);
   const dockRef = useRef<HTMLDivElement | null>(null);
   const [dockLayout, setDockLayout] = useState<UiDockLayout>({ dockHeightPx: 0, safeBottomPx: 0 });
   const [hasRoundStarted, setHasRoundStarted] = useState(false);
-  const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-  const healthUrl = buildHealthUrl(apiBaseUrl);
   const activeWordId = gameState?.activeMole?.word.id ?? null;
   const handleCanvasHostRef = useCallback((node: HTMLDivElement | null) => {
     canvasHostRef.current = node;
@@ -152,39 +140,12 @@ export function GameScreen({
   const handleTogglePause = useCallback(() => {
     togglePause();
   }, [togglePause]);
+  const handleEnableMic = useCallback(async () => {
+    void warmupDeepIfStaleOrFailed('ready_click');
+    await startListening();
+  }, [startListening]);
 
   useGameAudio(gameState, micState === 'listening' && gameState?.screen === 'game');
-
-  const sendWarmupPing = useCallback(async (reason: 'session_start' | 'keepalive') => {
-    if (warmupInFlightRef.current) return;
-    warmupInFlightRef.current = true;
-    const startedAt = performance.now();
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), WARMUP_PING_TIMEOUT_MS);
-    console.log('[warmup] ping start', { reason, url: healthUrl });
-    try {
-      const response = await fetch(healthUrl, {
-        method: 'GET',
-        cache: 'no-store',
-        signal: controller.signal,
-      });
-      console.log('[warmup] ping complete', {
-        reason,
-        status: response.status,
-        ok: response.ok,
-        elapsedMs: Math.round(performance.now() - startedAt),
-      });
-    } catch (error) {
-      console.warn('[warmup] ping failed', {
-        reason,
-        elapsedMs: Math.round(performance.now() - startedAt),
-        error,
-      });
-    } finally {
-      window.clearTimeout(timeoutId);
-      warmupInFlightRef.current = false;
-    }
-  }, [healthUrl]);
 
   useEffect(() => {
     const isWarmupActive =
@@ -192,12 +153,12 @@ export function GameScreen({
       gameState?.screen === 'game' &&
       !isGamePaused;
     if (!isWarmupActive) return;
-    void sendWarmupPing('session_start');
+    void pingHealthWarmup('game_session_start');
     const timer = window.setInterval(() => {
-      void sendWarmupPing('keepalive');
+      void pingHealthWarmup('game_keepalive');
     }, WARMUP_PING_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [gameState?.screen, isGamePaused, micState, sendWarmupPing]);
+  }, [gameState?.screen, isGamePaused, micState]);
 
   useEffect(() => {
     if (micState !== 'listening' || !gameState?.activeMole) return;
@@ -393,7 +354,7 @@ export function GameScreen({
             scriptSession={scriptSession}
             selectedFood={selectedFood}
             onSelectFood={onSelectFood}
-            onEnableMic={startListening}
+            onEnableMic={handleEnableMic}
           />
         </div>
         {!isMicStartScreen ? (

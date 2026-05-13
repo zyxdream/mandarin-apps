@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { warmupDeep } from '../warmup/backendWarmup';
 
 interface SessionSelectScreenProps {
   sessionCount: number;
@@ -92,6 +93,23 @@ export function SessionSelectScreen({ sessionCount, onSelectSession, onBack }: S
       return resolved;
     });
   }, [sessionCount]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId = 0;
+    const frameId = window.requestAnimationFrame(() => {
+      timeoutId = window.setTimeout(() => {
+        if (cancelled) return;
+        void warmupDeep('session_list');
+      }, 200);
+    });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frameId);
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   useEffect(() => {
     let frameId = 0;

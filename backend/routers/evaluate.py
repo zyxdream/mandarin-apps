@@ -82,6 +82,13 @@ class LocalAsrStatusResponse(BaseModel):
     error: str | None = None
 
 
+class LocalAsrWarmupResponse(BaseModel):
+    ready: bool
+    already_loaded: bool
+    elapsed_ms: int
+    model_dir: str
+
+
 class PinyinSyllable(BaseModel):
     raw: str
     base: str
@@ -290,6 +297,36 @@ async def local_asr_status() -> LocalAsrStatusResponse:
         model_exists=model_exists,
         tokens_exists=tokens_exists,
         error=error,
+    )
+
+
+@router.get("/local/warmup", response_model=LocalAsrWarmupResponse)
+async def local_asr_warmup() -> LocalAsrWarmupResponse:
+    started_at = time.perf_counter()
+    print("[warmup][asr] start", {"model_dir": str(local_asr.model_dir)}, flush=True)
+    try:
+        warmup = await asyncio.to_thread(local_asr.ensure_ready)
+    except LocalAsrUnavailable as exc:
+        print(
+            "[warmup][asr] failed",
+            {"error": str(exc), "elapsed_ms": int((time.perf_counter() - started_at) * 1000)},
+            flush=True,
+        )
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        print(
+            "[warmup][asr] failed",
+            {"error": str(exc), "elapsed_ms": int((time.perf_counter() - started_at) * 1000)},
+            flush=True,
+        )
+        raise HTTPException(status_code=502, detail="Local ASR warmup failed") from exc
+
+    print("[warmup][asr] complete", warmup, flush=True)
+    return LocalAsrWarmupResponse(
+        ready=bool(warmup["ready"]),
+        already_loaded=bool(warmup["already_loaded"]),
+        elapsed_ms=int(warmup["elapsed_ms"]),
+        model_dir=str(warmup["model_dir"]),
     )
 
 
