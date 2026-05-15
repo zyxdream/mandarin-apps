@@ -35,5 +35,7 @@
 [rewards]
 /assets/rewards/apple.png
 /assets/rewards/berry.png
-/assets/rewards/insect.png
 /assets/rewards/tree_nut.png
+/assets/rewards/strawberry.png
+/assets/rewards/baozi.png
+/assets/rewards/mooncake.png

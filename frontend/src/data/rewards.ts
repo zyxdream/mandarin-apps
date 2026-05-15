@@ -1,4 +1,10 @@
-export type RewardFood = 'apple' | 'berry' | 'tree_nut' | 'insect';
+export type RewardFood =
+  | 'apple'
+  | 'berry'
+  | 'tree_nut'
+  | 'strawberry'
+  | 'baozi'
+  | 'mooncake';
 
 export interface RewardFoodOption {
   id: RewardFood;
@@ -29,10 +35,22 @@ export const REWARD_FOODS: RewardFoodOption[] = [
     image: '/assets/rewards/tree_nut.v2.webp',
   },
   {
-    id: 'insect',
-    label: 'Insect',
-    shortLabel: 'Bugs',
-    image: '/assets/rewards/insect.v2.webp',
+    id: 'strawberry',
+    label: 'Strawberry',
+    shortLabel: 'Strawberries',
+    image: '/assets/rewards/strawberry.v2.webp',
+  },
+  {
+    id: 'baozi',
+    label: 'Baozi',
+    shortLabel: 'Baozi',
+    image: '/assets/rewards/baozi.v2.webp',
+  },
+  {
+    id: 'mooncake',
+    label: 'Mooncake',
+    shortLabel: 'Mooncakes',
+    image: '/assets/rewards/mooncake.v2.webp',
   },
 ];
 

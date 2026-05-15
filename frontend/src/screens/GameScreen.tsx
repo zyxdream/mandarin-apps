@@ -6,14 +6,37 @@ import { useGameAudio } from '../hooks/useGameAudio';
 import { useMicrophone } from '../hooks/useMicrophone';
 import { MoleCanvas } from '../components/MoleCanvas';
 import { HUD } from '../components/HUD';
+import { RewardComboPopup } from '../components/RewardComboPopup';
+import type { RewardComboPopupVariant } from '../components/RewardComboPopup';
 import { VoiceMeter } from '../components/MicButton';
 import { DevEvalCenterPanel, PedagogyHint } from '../components/PronunciationHint';
 import type { UiDockLayout } from '../engine/uiDockLayout';
-import type { RewardFood } from '../data/rewards';
+import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
 import { pingHealthWarmup, warmupDeepIfStaleOrFailed } from '../warmup/backendWarmup';
 
 const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
+const COMBO_POPUP_MARGIN_PX = 92;
+const COMBO_POPUP_MIN_Y_PX = 72;
+const COMBO_POPUP_VERTICAL_LIFT_PX = 152;
+const COMBO_POPUP_UPPER_HALF_RATIO = 0.46;
+
+interface RewardComboPopupState {
+  triggerId: number;
+  x: number;
+  y: number;
+  foodLabel: string;
+  foodImage: string;
+  amount: number;
+  variant: RewardComboPopupVariant;
+  showFoodLabel: boolean;
+}
+
+function clampToRange(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min;
+  if (max < min) return (min + max) / 2;
+  return Math.min(max, Math.max(min, value));
+}
 
 interface GameScreenProps {
   selectedFood: RewardFood;
@@ -54,6 +77,10 @@ export function GameScreen({
   const dockRef = useRef<HTMLDivElement | null>(null);
   const [dockLayout, setDockLayout] = useState<UiDockLayout>({ dockHeightPx: 0, safeBottomPx: 0 });
   const [hasRoundStarted, setHasRoundStarted] = useState(false);
+  const [comboPopupState, setComboPopupState] = useState<RewardComboPopupState | null>(null);
+  const comboPopupTriggerRef = useRef(0);
+  const previousHitCountRef = useRef(0);
+  const previousFoodUnitsRef = useRef(0);
   const activeWordId = gameState?.activeMole?.word.id ?? null;
   const handleCanvasHostRef = useCallback((node: HTMLDivElement | null) => {
     canvasHostRef.current = node;
@@ -120,6 +147,56 @@ export function GameScreen({
     speechPeakVolumeRef.current = 0;
     resetCaptureBuffer();
   }, [activeWordId, resetCaptureBuffer]);
+
+  useEffect(() => {
+    if (!gameState) return;
+
+    const hitCount = gameState.wordsHit.length;
+    const foodUnits = foodUnitsForCorrectWords(hitCount);
+
+    if (gameState.screen !== 'game') {
+      previousHitCountRef.current = hitCount;
+      previousFoodUnitsRef.current = foodUnits;
+      return;
+    }
+
+    if (hitCount > previousHitCountRef.current) {
+      const amount = Math.max(1, foodUnits - previousFoodUnitsRef.current);
+      const food = getRewardFoodOption(selectedFood);
+      const viewportWidth = Math.max(1, window.innerWidth);
+      const viewportHeight = Math.max(1, window.innerHeight);
+      const marginX = Math.min(COMBO_POPUP_MARGIN_PX, Math.max(28, viewportWidth * 0.18));
+      const maxX = Math.max(marginX, viewportWidth - marginX);
+      const maxY = Math.max(COMBO_POPUP_MIN_Y_PX, viewportHeight * COMBO_POPUP_UPPER_HALF_RATIO);
+      const hitX = gameState.activeMole?.x ?? viewportWidth * 0.5;
+      const hitY = gameState.activeMole?.y ?? viewportHeight * 0.62;
+      const anchorX = clampToRange(hitX, marginX, maxX);
+      const anchorY = clampToRange(hitY - COMBO_POPUP_VERTICAL_LIFT_PX, COMBO_POPUP_MIN_Y_PX, maxY);
+      comboPopupTriggerRef.current += 1;
+      const isBaozi = selectedFood === 'baozi';
+      const variant: RewardComboPopupVariant = isBaozi ? 'baozi_focus' : 'default';
+
+      setComboPopupState({
+        triggerId: comboPopupTriggerRef.current,
+        x: anchorX,
+        y: anchorY,
+        foodLabel: food.label.toLowerCase(),
+        foodImage: isBaozi
+          ? '/assets/rewards/baozi.png'
+          : selectedFood === 'strawberry'
+            ? '/assets/rewards/strawberry.png'
+            : food.image,
+        amount,
+        variant,
+        showFoodLabel: !isBaozi,
+      });
+    } else if (hitCount < previousHitCountRef.current) {
+      setComboPopupState(null);
+    }
+
+    previousHitCountRef.current = hitCount;
+    previousFoodUnitsRef.current = foodUnits;
+  }, [gameState, selectedFood]);
 
   const combo = gameState?.combo ?? 0;
   const timeRemaining = gameState?.timeRemaining ?? 45;
@@ -327,6 +404,26 @@ export function GameScreen({
             collectedWords={collectedWords}
             selectedFood={selectedFood}
           />
+        </div>
+
+        <div className="combo-reward-overlay">
+          {comboPopupState ? (
+            <RewardComboPopup
+              triggerId={comboPopupState.triggerId}
+              x={comboPopupState.x}
+              y={comboPopupState.y}
+              foodLabel={comboPopupState.foodLabel}
+              foodImage={comboPopupState.foodImage}
+              amount={comboPopupState.amount}
+              variant={comboPopupState.variant}
+              showFoodLabel={comboPopupState.showFoodLabel}
+              onDone={() => {
+                setComboPopupState(current => (
+                  current?.triggerId === comboPopupState.triggerId ? null : current
+                ));
+              }}
+            />
+          ) : null}
         </div>
 
         <div className="hint-overlay hint-overlay--pedagogy" style={pedagogyHintStyle}>
