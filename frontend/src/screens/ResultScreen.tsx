@@ -14,6 +14,7 @@ interface ResultScreenProps {
   onPreviousGame: () => void;
   onReplay: () => void;
   onNextGame: () => void;
+  onBackToSessionSelect: () => void;
 }
 
 export function ResultScreen({
@@ -25,6 +26,7 @@ export function ResultScreen({
   onPreviousGame,
   onReplay,
   onNextGame,
+  onBackToSessionSelect,
 }: ResultScreenProps) {
   const { wordsHit, wordsMissed, combo } = finalState;
   const total = wordsHit.length + wordsMissed.length;
@@ -89,72 +91,84 @@ export function ResultScreen({
 
   return (
     <div className="result-screen">
-      <div className="result-content">
-        <h1 className="result-title">Round Over!</h1>
-        <div className="result-round-label">Finished: {scriptSession.title}</div>
+      <div className="result-stack">
+        <div className="result-content">
+          <h1 className="result-title">Round Over!</h1>
+          <div className="result-round-label">Finished: {scriptSession.title}</div>
 
-        <div className="result-food-score">
-          <img src={food.image} alt="" />
-          <span>{foodUnits}</span>
-        </div>
-        <div className="result-score-label">{food.shortLabel} earned</div>
+          <div className="result-food-score">
+            <img src={food.image} alt="" />
+            <span>{foodUnits}</span>
+          </div>
+          <div className="result-score-label">{food.shortLabel} earned</div>
 
-        <div className="result-stats">
-          <div className="result-stat">
-            <span className="result-stat-value result-stat-value--hit">{wordsHit.length}</span>
-            <span className="result-stat-label">Whacked</span>
-          </div>
-          <div className="result-stat">
-            <span className="result-stat-value">{accuracy}%</span>
-            <span className="result-stat-label">Accuracy</span>
-          </div>
-          <div className="result-stat">
-            <span className="result-stat-value result-stat-value--combo">{combo > 0 ? `x${combo}` : '—'}</span>
-            <span className="result-stat-label">Last Combo</span>
-          </div>
-        </div>
-
-        {wordsMissed.length > 0 && (
-          <div className="result-missed">
-            <h3 className="result-missed-title">Words to practice:</h3>
-            <div className="result-missed-list">
-              {wordsMissed.map((word, index) => {
-                const isPlaying = playingWordId === word.id;
-                const hasError = audioErrorWordId === word.id;
-                return (
-                  <button
-                    key={`${word.id}-${index}`}
-                    type="button"
-                    className={`result-missed-word result-missed-word--playable${isPlaying ? ' result-missed-word--playing' : ''}${hasError ? ' result-missed-word--error' : ''}`}
-                    onClick={() => playWord(word)}
-                    aria-label={`Play pronunciation: ${word.hanzi}`}
-                  >
-                    <span className="result-missed-hanzi">{word.hanzi}</span>
-                    <span className="result-missed-pinyin">{word.pinyin}</span>
-                    {hasError && (
-                      <span className="result-missed-audio-hint" title="Reference clip missing or blocked">
-                        ?
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+          <div className="result-stats">
+            <div className="result-stat">
+              <span className="result-stat-value result-stat-value--hit">{wordsHit.length}</span>
+              <span className="result-stat-label">Whacked</span>
+            </div>
+            <div className="result-stat">
+              <span className="result-stat-value">{accuracy}%</span>
+              <span className="result-stat-label">Accuracy</span>
+            </div>
+            <div className="result-stat">
+              <span className="result-stat-value result-stat-value--combo">{combo > 0 ? `x${combo}` : '—'}</span>
+              <span className="result-stat-label">Last Combo</span>
             </div>
           </div>
-        )}
 
-        <div className="result-navigation">
-          <button className="result-nav-button" onClick={() => handleNavigate(onPreviousGame)}>
-            <span>Previous Game</span>
-            <small>Previous: {previousScriptSession.title}</small>
-          </button>
-          <button className="result-nav-button result-nav-button--primary" onClick={() => handleNavigate(onReplay)}>
-            <span>Replay</span>
-            <small>Replay: {scriptSession.title}</small>
-          </button>
-          <button className="result-nav-button" onClick={() => handleNavigate(onNextGame)}>
-            <span>Next Game</span>
-            <small>Next: {nextScriptSession.title}</small>
+          {wordsMissed.length > 0 && (
+            <div className="result-missed">
+              <h3 className="result-missed-title">Words to practice:</h3>
+              <div className="result-missed-list">
+                {wordsMissed.map((word, index) => {
+                  const isPlaying = playingWordId === word.id;
+                  const hasError = audioErrorWordId === word.id;
+                  return (
+                    <button
+                      key={`${word.id}-${index}`}
+                      type="button"
+                      className={`result-missed-word result-missed-word--playable${isPlaying ? ' result-missed-word--playing' : ''}${hasError ? ' result-missed-word--error' : ''}`}
+                      onClick={() => playWord(word)}
+                      aria-label={`Play pronunciation: ${word.hanzi}`}
+                    >
+                      <span className="result-missed-hanzi">{word.hanzi}</span>
+                      <span className="result-missed-pinyin">{word.pinyin}</span>
+                      {hasError && (
+                        <span className="result-missed-audio-hint" title="Reference clip missing or blocked">
+                          ?
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="result-navigation">
+            <button className="result-nav-button" onClick={() => handleNavigate(onPreviousGame)}>
+              <span>Previous Game</span>
+              <small>Previous: {previousScriptSession.title}</small>
+            </button>
+            <button className="result-nav-button result-nav-button--primary" onClick={() => handleNavigate(onReplay)}>
+              <span>Replay</span>
+              <small>Replay: {scriptSession.title}</small>
+            </button>
+            <button className="result-nav-button" onClick={() => handleNavigate(onNextGame)}>
+              <span>Next Game</span>
+              <small>Next: {nextScriptSession.title}</small>
+            </button>
+          </div>
+        </div>
+        <div className="result-back-unit">
+          <button
+            type="button"
+            className="session-select-back-button result-back-button"
+            onClick={() => handleNavigate(onBackToSessionSelect)}
+            aria-label="Back to session list"
+          >
+            ↩
           </button>
         </div>
       </div>

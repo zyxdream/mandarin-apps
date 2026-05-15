@@ -113,6 +113,7 @@ export default function App() {
         onPreviousGame={handlePreviousGame}
         onReplay={handleReplay}
         onNextGame={handleNextGame}
+        onBackToSessionSelect={handleExitGameToSessionSelect}
       />
     );
   }

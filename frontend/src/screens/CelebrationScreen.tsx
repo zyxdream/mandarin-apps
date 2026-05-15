@@ -597,17 +597,29 @@ export function CelebrationScreen({ finalState, selectedFood, onComplete }: Cele
 
   useEffect(() => {
     const timer = window.setTimeout(onComplete, CELEBRATION_MS);
-    const audio = new Audio('/audio/sound_effects/victory-chime.mp3');
-    audio.volume = 0.45;
-    void audio.play().catch(error => {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      console.warn('[audio] victory chime play failed', error);
-    });
+    const chime = new Audio('/audio/sound_effects/victory-chime.mp3');
+    chime.volume = 0.45;
+    const laugh = new Audio('/audio/sound_effects/children-laughing-377305.mp3');
+    laugh.volume = 0.28;
+
+    const play = (element: HTMLAudioElement, label: string) => {
+      void element.play().catch(error => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        console.warn(`[audio] ${label} play failed`, error);
+      });
+    };
+    play(chime, 'victory chime');
+    play(laugh, 'children laughing');
+
+    const stop = (element: HTMLAudioElement) => {
+      element.pause();
+      element.src = '';
+    };
 
     return () => {
       window.clearTimeout(timer);
-      audio.pause();
-      audio.src = '';
+      stop(chime);
+      stop(laugh);
     };
   }, [onComplete]);
 

@@ -365,7 +365,7 @@ export function GameScreen({
               onClick={onBackToSessionSelect}
               aria-label="Back to session list"
             >
-              X
+              ↩
             </button>
             {showPauseButton ? (
               <button
@@ -388,7 +388,7 @@ export function GameScreen({
             onClick={onBackToSessionSelect}
             aria-label="Back to session list"
           >
-            X
+            ↩
           </button>
         </div>
       ) : null}
