@@ -20,18 +20,22 @@ const PARTICLE_VECTORS: RewardParticleVector[] = [
   { dx: -44, dy: -18, delayMs: 38, scale: 0.74, accentClass: 'combo-reward-particle--strawberry' },
 ];
 
-const BAOZI_EXTRA_PARTICLE_VECTORS: RewardParticleVector[] = [
-  { dx: -104, dy: -34, delayMs: 12, scale: 0.76, accentClass: 'combo-reward-particle--gold' },
-  { dx: -92, dy: -74, delayMs: 24, scale: 0.66, accentClass: 'combo-reward-particle--green' },
-  { dx: -68, dy: -110, delayMs: 36, scale: 0.78, accentClass: 'combo-reward-particle--strawberry' },
-  { dx: -6, dy: -126, delayMs: 18, scale: 0.7, accentClass: 'combo-reward-particle--gold' },
-  { dx: 56, dy: -114, delayMs: 26, scale: 0.72, accentClass: 'combo-reward-particle--green' },
-  { dx: 92, dy: -72, delayMs: 34, scale: 0.8, accentClass: 'combo-reward-particle--strawberry' },
-  { dx: 108, dy: -26, delayMs: 22, scale: 0.74, accentClass: 'combo-reward-particle--gold' },
-  { dx: 0, dy: -58, delayMs: 42, scale: 0.62, accentClass: 'combo-reward-particle--strawberry' },
-];
+const DEFAULT_POPUP_LIFETIME_MS = 980;
+const BAOZI_POPUP_LIFETIME_MS = 1540;
+const BAOZI_PRAISE_WORDS = ['GREAT', 'AMAZING', 'FANTASTIC'] as const;
 
-const POPUP_LIFETIME_MS = 980;
+function stableBaoziTilt(triggerId: number): number {
+  const seeded = Math.imul(triggerId + 17, 1103515245) >>> 0;
+  const direction = (seeded & 1) === 0 ? -1 : 1;
+  const magnitude = 4 + ((seeded % 1000) / 1000) * 2.4;
+  return Number((direction * magnitude).toFixed(2));
+}
+
+function stableBaoziPraise(triggerId: number): string {
+  const seeded = Math.imul(triggerId + 23, 2654435761) >>> 0;
+  return BAOZI_PRAISE_WORDS[seeded % BAOZI_PRAISE_WORDS.length];
+}
+
 export type RewardComboPopupVariant = 'default' | 'baozi_focus';
 
 export interface RewardComboPopupProps {
@@ -57,53 +61,74 @@ export function RewardComboPopup({
   showFoodLabel = true,
   onDone,
 }: RewardComboPopupProps) {
+  const isBaoziFocus = variant === 'baozi_focus';
+  const popupLifetimeMs = isBaoziFocus ? BAOZI_POPUP_LIFETIME_MS : DEFAULT_POPUP_LIFETIME_MS;
+  const baoziPraise = stableBaoziPraise(triggerId);
+  const baoziTilt = stableBaoziTilt(triggerId);
+
   useEffect(() => {
     if (!onDone) return;
     const timer = window.setTimeout(() => {
       onDone();
-    }, POPUP_LIFETIME_MS);
+    }, popupLifetimeMs);
     return () => window.clearTimeout(timer);
-  }, [onDone, triggerId]);
+  }, [onDone, popupLifetimeMs, triggerId]);
 
   const anchorStyle = {
     '--combo-reward-x': `${Math.round(x)}px`,
     '--combo-reward-y': `${Math.round(y)}px`,
   } as CSSProperties;
-  const particles = variant === 'baozi_focus'
-    ? [...PARTICLE_VECTORS, ...BAOZI_EXTRA_PARTICLE_VECTORS]
-    : PARTICLE_VECTORS;
-  const popupClassName = `combo-reward-popup${variant === 'baozi_focus' ? ' combo-reward-popup--baozi-focus' : ''}`;
+  const baoziStyle = {
+    '--combo-baozi-tilt': `${baoziTilt}deg`,
+  } as CSSProperties;
+  const popupClassName = `combo-reward-popup${isBaoziFocus ? ' combo-reward-popup--baozi-focus' : ''}`;
 
   return (
     <div className="combo-reward-popup-anchor" style={anchorStyle}>
       <div key={triggerId} className={popupClassName} aria-live="polite" aria-atomic="true">
-        <span className="combo-reward-flare" aria-hidden="true" />
-        <span className="combo-reward-flare combo-reward-flare--alt" aria-hidden="true" />
+        {isBaoziFocus ? (
+          <>
+            <span className="combo-reward-sr-only">{`Baozi bonus ${baoziPraise}`}</span>
+            <div className="combo-reward-baozi-group" style={baoziStyle} aria-hidden="true">
+              <div className="combo-reward-baozi-stack">
+                <img className="combo-reward-baozi-image combo-reward-baozi-image--base" src={foodImage} alt="" />
+                <img className="combo-reward-baozi-image combo-reward-baozi-image--puff-one" src={foodImage} alt="" />
+                <img className="combo-reward-baozi-image combo-reward-baozi-image--puff-two" src={foodImage} alt="" />
+              </div>
+              <span className="combo-reward-baozi-praise">{baoziPraise}</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="combo-reward-flare" aria-hidden="true" />
+            <span className="combo-reward-flare combo-reward-flare--alt" aria-hidden="true" />
 
-        <div className="combo-reward-particles" aria-hidden="true">
-          {particles.map((particle, index) => {
-            const particleStyle = {
-              '--particle-dx': `${particle.dx}px`,
-              '--particle-dy': `${particle.dy}px`,
-              '--particle-delay': `${particle.delayMs}ms`,
-              '--particle-scale-peak': (particle.scale * 1.06).toFixed(3),
-              '--particle-scale-end': (particle.scale * 0.74).toFixed(3),
-            } as CSSProperties;
-            return (
-              <span
-                key={`${triggerId}-${index}`}
-                className={`combo-reward-particle ${particle.accentClass}`}
-                style={particleStyle}
-              />
-            );
-          })}
-        </div>
+            <div className="combo-reward-particles" aria-hidden="true">
+              {PARTICLE_VECTORS.map((particle, index) => {
+                const particleStyle = {
+                  '--particle-dx': `${particle.dx}px`,
+                  '--particle-dy': `${particle.dy}px`,
+                  '--particle-delay': `${particle.delayMs}ms`,
+                  '--particle-scale-peak': (particle.scale * 1.06).toFixed(3),
+                  '--particle-scale-end': (particle.scale * 0.74).toFixed(3),
+                } as CSSProperties;
+                return (
+                  <span
+                    key={`${triggerId}-${index}`}
+                    className={`combo-reward-particle ${particle.accentClass}`}
+                    style={particleStyle}
+                  />
+                );
+              })}
+            </div>
 
-        <img className="combo-reward-food-image" src={foodImage} alt="" />
-        <div className="combo-reward-copy">
-          {showFoodLabel ? <span className="combo-reward-food-label">{foodLabel}</span> : null}
-          <span className="combo-reward-amount">+{amount}</span>
-        </div>
+            <img className="combo-reward-food-image" src={foodImage} alt="" />
+            <div className="combo-reward-copy">
+              {showFoodLabel ? <span className="combo-reward-food-label">{foodLabel}</span> : null}
+              <span className="combo-reward-amount">+{amount}</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -26,6 +26,7 @@ const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
 const COMBO_POPUP_MARGIN_PX = 92;
 const COMBO_POPUP_MIN_Y_PX = 72;
 const COMBO_POPUP_VERTICAL_LIFT_PX = 152;
+const BAOZI_COMBO_EXTRA_LIFT_PX = 32;
 const COMBO_POPUP_UPPER_HALF_RATIO = 0.46;
 
 interface RewardComboPopupState {
@@ -177,10 +178,11 @@ export function GameScreen({
       const maxY = Math.max(COMBO_POPUP_MIN_Y_PX, viewportHeight * COMBO_POPUP_UPPER_HALF_RATIO);
       const hitX = gameState.activeMole?.x ?? viewportWidth * 0.5;
       const hitY = gameState.activeMole?.y ?? viewportHeight * 0.62;
-      const anchorX = clampToRange(hitX, marginX, maxX);
-      const anchorY = clampToRange(hitY - COMBO_POPUP_VERTICAL_LIFT_PX, COMBO_POPUP_MIN_Y_PX, maxY);
-      comboPopupTriggerRef.current += 1;
       const isBaozi = selectedFood === 'baozi';
+      const popupLiftPx = COMBO_POPUP_VERTICAL_LIFT_PX + (isBaozi ? BAOZI_COMBO_EXTRA_LIFT_PX : 0);
+      const anchorX = clampToRange(hitX, marginX, maxX);
+      const anchorY = clampToRange(hitY - popupLiftPx, COMBO_POPUP_MIN_Y_PX, maxY);
+      comboPopupTriggerRef.current += 1;
       const variant: RewardComboPopupVariant = isBaozi ? 'baozi_focus' : 'default';
 
       setComboPopupState({
@@ -189,7 +191,7 @@ export function GameScreen({
         y: anchorY,
         foodLabel: food.label.toLowerCase(),
         foodImage: isBaozi
-          ? '/assets/rewards/baozi.png'
+          ? '/assets/rewards/baozi_x5.v2.webp'
           : selectedFood === 'strawberry'
             ? '/assets/rewards/strawberry.png'
             : food.image,
