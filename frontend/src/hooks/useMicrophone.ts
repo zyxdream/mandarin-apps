@@ -47,6 +47,12 @@ interface VolumeSample {
 const RECENT_AUDIO_WINDOW_MS = 1800;
 const MAX_AUDIO_BUFFER_MS = 3200;
 const TARGET_SAMPLE_RATE = 16000;
+const METER_SENSITIVITY = {
+  rmsFloor: 0.0065,
+  rmsGain: 14,
+  smoothingKeep: 0.54,
+  smoothingApply: 0.46,
+} as const;
 
 function buildPreferredAudioConstraints(): MediaTrackConstraints {
   const supported = navigator.mediaDevices.getSupportedConstraints();
@@ -135,8 +141,11 @@ export function useMicrophone(): UseMicrophoneReturn {
       }
 
       const rms = Math.sqrt(sum / data.length);
-      const target = Math.min(1, Math.max(0, rms - 0.01) * 12);
-      volumeRef.current = volumeRef.current * 0.62 + target * 0.38;
+      const target = Math.min(1, Math.max(0, rms - METER_SENSITIVITY.rmsFloor) * METER_SENSITIVITY.rmsGain);
+      volumeRef.current = (
+        (volumeRef.current * METER_SENSITIVITY.smoothingKeep) +
+        (target * METER_SENSITIVITY.smoothingApply)
+      );
       setVolume(volumeRef.current);
 
       const now = Date.now();

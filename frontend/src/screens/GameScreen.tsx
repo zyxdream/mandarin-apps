@@ -9,6 +9,13 @@ import { HUD } from '../components/HUD';
 import { RewardComboPopup } from '../components/RewardComboPopup';
 import type { RewardComboPopupVariant } from '../components/RewardComboPopup';
 import { VoiceMeter } from '../components/MicButton';
+import {
+  blendNoiseFloor,
+  computeSpeechThresholds,
+  HIGH_SENSITIVITY_SPEECH_CONFIG,
+  shouldSkipCaptureQuality,
+  shouldSkipWeakUtterance,
+} from '../engine/speechDetection';
 import { DevEvalCenterPanel, PedagogyHint } from '../components/PronunciationHint';
 import type { UiDockLayout } from '../engine/uiDockLayout';
 import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
@@ -249,19 +256,25 @@ export function GameScreen({
 
     const now = Date.now();
     const activeMole = gameState.activeMole;
-    const speechStartThreshold = Math.max(0.09, noiseFloorRef.current * 3.1);
-    const speechEndThreshold = Math.max(0.04, noiseFloorRef.current * 1.45);
-    const speechStartHoldMs = 160;
-    const speechEndSilenceMs = 280;
-    const strikeCooldownMs = 1200;
-    const minSpeechDurationMs = 440;
-    const minSpeechPeakVolume = Math.max(0.115, speechStartThreshold + 0.025);
-    const minSpeechAverageVolume = Math.max(0.058, noiseFloorRef.current + 0.018);
-    const minSpeechRiseOverNoise = Math.max(0.05, noiseFloorRef.current * 1.35);
+    const thresholds = computeSpeechThresholds(noiseFloorRef.current);
+    const {
+      speechStartThreshold,
+      speechEndThreshold,
+      minSpeechPeakVolume,
+      minSpeechAverageVolume,
+      minSpeechRiseOverNoise,
+      speechStartHoldMs,
+      speechEndSilenceMs,
+      strikeCooldownMs,
+      minSpeechDurationMs,
+    } = thresholds;
 
     if (!isSpeakingRef.current) {
-      const blended = noiseFloorRef.current * 0.975 + volume * 0.025;
-      noiseFloorRef.current = Math.max(0.008, Math.min(0.14, blended));
+      noiseFloorRef.current = blendNoiseFloor(
+        noiseFloorRef.current,
+        volume,
+        HIGH_SENSITIVITY_SPEECH_CONFIG,
+      );
     }
 
     if (isSpeakingRef.current) {
@@ -300,7 +313,7 @@ export function GameScreen({
     const speechDurationMs = now - speechStartedAtRef.current;
     const speechPeakVolume = speechPeakVolumeRef.current;
 
-    if (speechDurationMs < minSpeechDurationMs || speechPeakVolume < minSpeechPeakVolume) {
+    if (shouldSkipWeakUtterance(speechDurationMs, speechPeakVolume, thresholds)) {
       console.log('[speech] skipped weak utterance', {
         word: activeMole.word.hanzi,
         pinyinRaw: activeMole.word.pinyinRaw,
@@ -332,12 +345,7 @@ export function GameScreen({
     }
     const { blob: audio, stats } = capture;
     const peakRiseOverNoise = stats.peakVolume - noiseFloorRef.current;
-    if (
-      stats.durationMs < minSpeechDurationMs ||
-      stats.peakVolume < minSpeechPeakVolume ||
-      stats.averageVolume < minSpeechAverageVolume ||
-      peakRiseOverNoise < minSpeechRiseOverNoise
-    ) {
+    if (shouldSkipCaptureQuality(stats, noiseFloorRef.current, thresholds)) {
       console.log('[speech] skipped capture quality gate', {
         word: activeMole.word.hanzi,
         pinyinRaw: activeMole.word.pinyinRaw,
