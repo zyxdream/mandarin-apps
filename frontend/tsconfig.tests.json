@@ -12,6 +12,7 @@
   "include": [
     "src/engine/sceneProjection.ts",
     "src/engine/moleAttachment.ts",
+    "src/engine/molePlacementProfile.ts",
     "tests/**/*.test.ts"
   ]
 }

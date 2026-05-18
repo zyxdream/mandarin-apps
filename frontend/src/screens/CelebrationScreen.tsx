@@ -6,6 +6,10 @@ import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '
 import { CELEBRATION_MOLE_STYLES } from '../engine/celebrationMoles';
 import { computeBodyAnchoredMoleTransform, computeBodyOpeningShadowBounds } from '../engine/moleAttachment';
 import { getMoleSlots, getSceneRenderRect } from '../engine/moleLayout';
+import {
+  FEASTING_MOLE_PLACEMENT_PROFILE,
+  resolveMoleAnchoredPosition,
+} from '../engine/molePlacementProfile';
 import { DEFAULT_SCENE_FIT_MODE } from '../engine/sceneProjection';
 
 interface CelebrationScreenProps {
@@ -441,22 +445,57 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
         style.meta,
         style.scaleBias ?? 1,
       );
-      const bodyWidth = transform.bodyWidth;
-      const bodyHeight = transform.bodyHeight;
-      const bodyCenterX = transform.bodyLeftX + bodyWidth / 2;
-      const bodyCenterY = transform.bodyTopY + bodyHeight / 2;
+      const bodyBBox = style.meta.bodyBBox ?? style.meta.visibleBBox;
       const wiggle = Math.sin(frame * 0.08 + index * 0.7);
       const bounce = Math.sin(frame * 0.11 + index * 0.55);
       const lookLean = Math.sin(index * 1.3) * lookUpProgress;
-      const scaleX = transform.scale * (1 + wiggle * 0.028 + lookUpProgress * 0.028);
-      const scaleY = transform.scale * (1 - wiggle * 0.018 - lookUpProgress * 0.045 + Math.max(0, bounce) * 0.018);
+      const motionBodyWidth = transform.bodyWidth * FEASTING_MOLE_PLACEMENT_PROFILE.sizeMultiplier;
+      const motionBodyHeight = transform.bodyHeight * FEASTING_MOLE_PLACEMENT_PROFILE.sizeMultiplier;
+      const renderScaleX = (
+        transform.scale * (1 + wiggle * 0.028 + lookUpProgress * 0.028)
+      ) * FEASTING_MOLE_PLACEMENT_PROFILE.sizeMultiplier;
+      const renderScaleY = (
+        transform.scale * (1 - wiggle * 0.018 - lookUpProgress * 0.045 + Math.max(0, bounce) * 0.018)
+      ) * FEASTING_MOLE_PLACEMENT_PROFILE.sizeMultiplier;
+      const anchored = resolveMoleAnchoredPosition({
+        darkLeftX: slot.darkLeftX,
+        baseBodyBottomY: transform.bodyBottomY,
+        openingWidth: slot.openingWidth,
+        canvasWidth: style.meta.canvasWidth,
+        canvasHeight: style.meta.canvasHeight,
+        bodyBBoxLeft: bodyBBox.left,
+        bodyBBoxBottom: bodyBBox.bottom,
+        bodyLeftBottomX: style.meta.bodyLeftBottomX,
+        bodyBottomY: style.meta.bodyBottomY,
+        renderScaleX,
+        renderScaleY,
+        profile: FEASTING_MOLE_PLACEMENT_PROFILE,
+      });
+      const animatedX = anchored.x + wiggle * 3.6 + lookLean * motionBodyWidth * 0.02;
+      const animatedY = anchored.y - Math.max(0, bounce) * 7.5 - lookUpProgress * motionBodyHeight * 0.035;
+      const bodyLeftX = animatedX + (bodyBBox.left - style.meta.canvasWidth / 2) * renderScaleX;
+      const bodyRightX = animatedX + (bodyBBox.right - style.meta.canvasWidth / 2) * renderScaleX;
+      const bodyTopY = animatedY - (style.meta.canvasHeight - bodyBBox.top) * renderScaleY;
+      const bodyBottomY = animatedY - (style.meta.canvasHeight - bodyBBox.bottom) * renderScaleY;
+      const bodyWidth = bodyRightX - bodyLeftX;
+      const bodyHeight = bodyBottomY - bodyTopY;
+      const bodyCenterX = bodyLeftX + bodyWidth / 2;
+      const bodyCenterY = bodyTopY + bodyHeight / 2;
+      const renderedBody = {
+        x: animatedX,
+        y: animatedY,
+        scale: (renderScaleX + renderScaleY) / 2,
+        bodyLeftX,
+        bodyRightX,
+        bodyTopY,
+        bodyBottomY,
+        bodyWidth,
+        bodyHeight,
+      };
 
       sprite.texture = Texture.from(style.texture);
-      sprite.position.set(
-        transform.x + wiggle * 3.6 + lookLean * bodyWidth * 0.02,
-        transform.y - Math.max(0, bounce) * 7.5 - lookUpProgress * bodyHeight * 0.035,
-      );
-      sprite.scale.set(scaleX, scaleY);
+      sprite.position.set(animatedX, animatedY);
+      sprite.scale.set(renderScaleX, renderScaleY);
       sprite.rotation = wiggle * 0.035 + lookLean * 0.045;
       sprite.alpha = 1;
 
@@ -476,12 +515,12 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
           darkBackY: slot.darkBackY,
           darkFrontY: slot.darkFrontY,
         },
-        transform,
+        renderedBody,
         1.04 + wiggle * 0.025,
       );
       shadowLayer.ellipse(shadowBounds.centerX, shadowBounds.centerY, shadowBounds.width * 0.42, shadowBounds.height * 0.4);
       shadowLayer.fill({ color: 0x070301, alpha: MOLE_SHADOW_ALPHA * 0.52 });
-      shadowLayer.ellipse(bodyCenterX + bodyWidth * 0.13, transform.bodyBottomY - bodyHeight * 0.12, bodyWidth * 0.35, bodyHeight * 0.15);
+      shadowLayer.ellipse(bodyCenterX + bodyWidth * 0.13, renderedBody.bodyBottomY - bodyHeight * 0.12, bodyWidth * 0.35, bodyHeight * 0.15);
       shadowLayer.fill({ color: 0x030100, alpha: MOLE_SHADOW_ALPHA * 0.42 });
 
       highlightLayer.ellipse(bodyCenterX - bodyWidth * 0.22, bodyCenterY - bodyHeight * 0.22, bodyWidth * 0.18, bodyHeight * 0.14);

@@ -21,6 +21,11 @@ import {
   type MoleCharacterAttachmentStyle,
 } from '../engine/moleAttachmentMetadata';
 import type { ActiveMoleOverlayLayout, OverlayRect } from '../engine/overlayPlacement';
+import {
+  GAMEPLAY_MOLE_PLACEMENT_PROFILE,
+  resolveGameplaySlotPlacementOverride,
+  resolveMoleAnchoredPosition,
+} from '../engine/molePlacementProfile';
 
 const BOARD_TEXT_FILL = 0xfff2c4;
 const BOARD_TEXT_STROKE = 0x4a2c16;
@@ -1019,8 +1024,29 @@ function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: Re
       renderAlpha = Math.max(0, 1 - t / 30);
     }
 
-    const anchoredX = darkOpening.darkLeftX - (bodyLeftBottomX - placementAttachmentMeta.canvasWidth / 2) * renderScaleX;
-    const anchoredY = base.bodyBottomY + (placementAttachmentMeta.canvasHeight - bodyBottomY) * renderScaleY;
+    const slotPlacementOverride = resolveGameplaySlotPlacementOverride(mole.slotIndex);
+    const effectiveGameplayScaleMultiplier = (
+      GAMEPLAY_MOLE_PLACEMENT_PROFILE.sizeMultiplier * slotPlacementOverride.scaleMultiplier
+    );
+    renderScaleX *= effectiveGameplayScaleMultiplier;
+    renderScaleY *= effectiveGameplayScaleMultiplier;
+    const anchoredPosition = resolveMoleAnchoredPosition({
+      darkLeftX: darkOpening.darkLeftX,
+      baseBodyBottomY: base.bodyBottomY,
+      openingWidth: placement.openingWidth,
+      canvasWidth: placementAttachmentMeta.canvasWidth,
+      canvasHeight: placementAttachmentMeta.canvasHeight,
+      bodyBBoxLeft: bodyBBox.left,
+      bodyBBoxBottom: bodyBBox.bottom,
+      bodyLeftBottomX,
+      bodyBottomY,
+      renderScaleX,
+      renderScaleY,
+      profile: GAMEPLAY_MOLE_PLACEMENT_PROFILE,
+      extraLeftNudgePx: slotPlacementOverride.extraLeftNudgePx,
+    });
+    const anchoredX = anchoredPosition.x;
+    const anchoredY = anchoredPosition.y;
     moleContainer.position.set(anchoredX + deltaX, anchoredY + deltaY);
     moleContainer.scale.set(renderScaleX, renderScaleY);
     moleContainer.alpha = renderAlpha;
