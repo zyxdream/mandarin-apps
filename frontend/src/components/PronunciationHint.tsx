@@ -25,10 +25,44 @@ const HINT_CONTEXT_LABELS: Record<string, string> = {
   heard_retry: 'Try again',
 };
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function normalizeHintToken(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[\s:：,.;!?'"`~\-_/\\|()[\]{}]+/g, '');
+}
+
+function stripLeadingLabelPrefix(body: string, label: string): string {
+  const trimmedBody = body.trim();
+  const trimmedLabel = label.trim();
+  if (!trimmedBody || !trimmedLabel) return trimmedBody;
+  const pattern = new RegExp(`^${escapeRegExp(trimmedLabel)}\\s*[:：-]\\s*`, 'i');
+  return trimmedBody.replace(pattern, '').trim();
+}
+
 function formatTeachingHint(hint: PronunciationHintData): string {
+  const rawText = hint.text.trim();
+  if (!rawText) return '';
   const label = HINT_CONTEXT_LABELS[hint.code];
-  if (!label) return hint.text;
-  return `${label}: ${hint.text}`;
+  if (!label) return rawText;
+  const trimmedLabel = label.trim();
+  const dedupedBody = stripLeadingLabelPrefix(rawText, trimmedLabel);
+
+  if (hint.code === 'heard_correct') {
+    if (!dedupedBody) return trimmedLabel;
+    return normalizeHintToken(dedupedBody) === normalizeHintToken(trimmedLabel)
+      ? trimmedLabel
+      : dedupedBody;
+  }
+
+  if (!dedupedBody) return trimmedLabel;
+  if (normalizeHintToken(dedupedBody) === normalizeHintToken(trimmedLabel)) {
+    return trimmedLabel;
+  }
+  return `${trimmedLabel}: ${dedupedBody}`;
 }
 
 export function PedagogyHint({ hint }: { hint: PronunciationHintData }) {

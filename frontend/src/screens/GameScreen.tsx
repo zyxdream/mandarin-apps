@@ -21,6 +21,13 @@ import type { UiDockLayout } from '../engine/uiDockLayout';
 import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
 import { pingHealthWarmup, warmupDeepIfStaleOrFailed } from '../warmup/backendWarmup';
+import type { ActiveMoleOverlayLayout } from '../engine/overlayPlacement';
+import {
+  estimateBaoziOverlaySizes,
+  resolveBaoziLinkedHintTop,
+  resolveLegacyBaoziAnchorWithBoardGuard,
+  resolveBaoziRewardX,
+} from '../engine/overlayPlacement';
 
 const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
 const COMBO_POPUP_MARGIN_PX = 92;
@@ -28,6 +35,11 @@ const COMBO_POPUP_MIN_Y_PX = 72;
 const COMBO_POPUP_VERTICAL_LIFT_PX = 152;
 const BAOZI_COMBO_EXTRA_LIFT_PX = 32;
 const COMBO_POPUP_UPPER_HALF_RATIO = 0.46;
+const BAOZI_HINT_TIGHT_GAP_PX = 10;
+const BAOZI_HINT_MIN_TOP_PX = 72;
+const BAOZI_HINT_BOTTOM_MARGIN_PX = 16;
+const BAOZI_RIGHT_SHIFT_PX = 24;
+const BAOZI_LEFT_OF_MOLE_GAP_PX = 14;
 
 interface RewardComboPopupState {
   triggerId: number;
@@ -38,12 +50,104 @@ interface RewardComboPopupState {
   amount: number;
   variant: RewardComboPopupVariant;
   showFoodLabel: boolean;
+  linkedHintX?: number;
+  linkedHintTop?: number;
+}
+
+interface BaoziUnitPlacement {
+  rewardAnchorX: number;
+  rewardAnchorY: number;
+  hintAnchorX: number;
+  hintTop: number;
 }
 
 function clampToRange(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   if (max < min) return (min + max) / 2;
   return Math.min(max, Math.max(min, value));
+}
+
+function resolveBaoziUnitPlacement({
+  viewportWidth,
+  viewportHeight,
+  hitX,
+  hitY,
+  moleX,
+  moleY,
+  activeWordId,
+  overlayLayout,
+}: {
+  viewportWidth: number;
+  viewportHeight: number;
+  hitX: number;
+  hitY: number;
+  moleX: number;
+  moleY: number;
+  activeWordId: string | null;
+  overlayLayout: ActiveMoleOverlayLayout | null;
+}): BaoziUnitPlacement {
+  const marginX = Math.min(COMBO_POPUP_MARGIN_PX, Math.max(28, viewportWidth * 0.18));
+  const maxX = Math.max(marginX, viewportWidth - marginX);
+  const maxRewardY = Math.max(COMBO_POPUP_MIN_Y_PX, viewportHeight * COMBO_POPUP_UPPER_HALF_RATIO);
+  const { rewardSize, hintSize } = estimateBaoziOverlaySizes(viewportWidth);
+
+  let rewardAnchorX = resolveBaoziRewardX({
+    hitX,
+    moleX,
+    minX: marginX,
+    maxX,
+    rightShiftPx: BAOZI_RIGHT_SHIFT_PX,
+    leftOfMoleGapPx: BAOZI_LEFT_OF_MOLE_GAP_PX,
+  });
+  const popupLiftPx = COMBO_POPUP_VERTICAL_LIFT_PX + BAOZI_COMBO_EXTRA_LIFT_PX;
+  let rewardAnchorY = clampToRange(hitY - popupLiftPx, COMBO_POPUP_MIN_Y_PX, maxRewardY);
+  const hasMatchingOverlay = Boolean(
+    overlayLayout &&
+    activeWordId &&
+    overlayLayout.wordId === activeWordId,
+  );
+
+  if (hasMatchingOverlay && overlayLayout) {
+    const leftOfMoleMaxX = clampToRange(
+      moleX - BAOZI_LEFT_OF_MOLE_GAP_PX,
+      marginX,
+      maxX,
+    );
+    const resolvedAnchor = resolveLegacyBaoziAnchorWithBoardGuard({
+      baseAnchor: { x: rewardAnchorX, y: rewardAnchorY },
+      rewardSize,
+      boardKeepoutRect: overlayLayout.boardKeepoutRect,
+      anchorBounds: {
+        minX: marginX,
+        maxX: leftOfMoleMaxX,
+        minY: COMBO_POPUP_MIN_Y_PX,
+        maxY: maxRewardY,
+      },
+    });
+    rewardAnchorX = resolvedAnchor.x;
+    rewardAnchorY = resolvedAnchor.y;
+  }
+
+  const maxHintTop = Math.max(
+    BAOZI_HINT_MIN_TOP_PX,
+    viewportHeight - hintSize.height - BAOZI_HINT_BOTTOM_MARGIN_PX,
+  );
+  const hintTop = resolveBaoziLinkedHintTop({
+    rewardAnchorY,
+    rewardHeight: rewardSize.height,
+    hintHeight: hintSize.height,
+    tightGapPx: BAOZI_HINT_TIGHT_GAP_PX,
+    minTop: BAOZI_HINT_MIN_TOP_PX,
+    maxTop: maxHintTop,
+    moleY,
+  });
+
+  return {
+    rewardAnchorX,
+    rewardAnchorY,
+    hintAnchorX: rewardAnchorX,
+    hintTop,
+  };
 }
 
 interface GameScreenProps {
@@ -89,10 +193,14 @@ export function GameScreen({
   const comboPopupTriggerRef = useRef(0);
   const previousHitCountRef = useRef(0);
   const previousFoodUnitsRef = useRef(0);
+  const activeOverlayLayoutRef = useRef<ActiveMoleOverlayLayout | null>(null);
   const activeWordId = gameState?.activeMole?.word.id ?? null;
   const handleCanvasHostRef = useCallback((node: HTMLDivElement | null) => {
     canvasHostRef.current = node;
     setResizeTarget(node);
+  }, []);
+  const handleOverlayLayout = useCallback((layout: ActiveMoleOverlayLayout | null) => {
+    activeOverlayLayoutRef.current = layout;
   }, []);
 
   useEffect(() => {
@@ -176,12 +284,32 @@ export function GameScreen({
       const marginX = Math.min(COMBO_POPUP_MARGIN_PX, Math.max(28, viewportWidth * 0.18));
       const maxX = Math.max(marginX, viewportWidth - marginX);
       const maxY = Math.max(COMBO_POPUP_MIN_Y_PX, viewportHeight * COMBO_POPUP_UPPER_HALF_RATIO);
-      const hitX = gameState.activeMole?.x ?? viewportWidth * 0.5;
-      const hitY = gameState.activeMole?.y ?? viewportHeight * 0.62;
+      const activeMole = gameState.activeMole;
+      const hitX = activeMole?.x ?? viewportWidth * 0.5;
+      const hitY = activeMole?.y ?? viewportHeight * 0.62;
       const isBaozi = selectedFood === 'baozi';
-      const popupLiftPx = COMBO_POPUP_VERTICAL_LIFT_PX + (isBaozi ? BAOZI_COMBO_EXTRA_LIFT_PX : 0);
-      const anchorX = clampToRange(hitX, marginX, maxX);
-      const anchorY = clampToRange(hitY - popupLiftPx, COMBO_POPUP_MIN_Y_PX, maxY);
+      let anchorX = clampToRange(hitX, marginX, maxX);
+      let anchorY = clampToRange(hitY - COMBO_POPUP_VERTICAL_LIFT_PX, COMBO_POPUP_MIN_Y_PX, maxY);
+      let linkedHintX: number | undefined;
+      let linkedHintTop: number | undefined;
+
+      if (isBaozi) {
+        const placement = resolveBaoziUnitPlacement({
+          viewportWidth,
+          viewportHeight,
+          hitX,
+          hitY,
+          moleX: activeMole?.x ?? hitX,
+          moleY: activeMole?.y ?? hitY,
+          activeWordId: activeMole?.word.id ?? null,
+          overlayLayout: activeOverlayLayoutRef.current,
+        });
+        anchorX = placement.rewardAnchorX;
+        anchorY = placement.rewardAnchorY;
+        linkedHintX = Math.round(placement.hintAnchorX);
+        linkedHintTop = Math.round(placement.hintTop);
+      }
+
       comboPopupTriggerRef.current += 1;
       const variant: RewardComboPopupVariant = isBaozi ? 'baozi_focus' : 'default';
 
@@ -198,6 +326,8 @@ export function GameScreen({
         amount,
         variant,
         showFoodLabel: !isBaozi,
+        linkedHintX,
+        linkedHintTop,
       });
     } else if (hitCount < previousHitCountRef.current) {
       setComboPopupState(null);
@@ -210,14 +340,48 @@ export function GameScreen({
   const combo = gameState?.combo ?? 0;
   const timeRemaining = gameState?.timeRemaining ?? 45;
   const collectedWords = gameState?.wordsHit ?? [];
+  const isBaoziSelected = selectedFood === 'baozi';
+  const isLinkedBaoziHint = (
+    comboPopupState?.variant === 'baozi_focus' &&
+    Number.isFinite(comboPopupState.linkedHintX) &&
+    Number.isFinite(comboPopupState.linkedHintTop)
+  );
+  const fallbackBaoziHintPlacement = (
+    isBaoziSelected &&
+    gameState?.activeMole
+  )
+    ? resolveBaoziUnitPlacement({
+        viewportWidth: Math.max(1, window.innerWidth),
+        viewportHeight: Math.max(1, window.innerHeight),
+        hitX: gameState.activeMole.x,
+        hitY: gameState.activeMole.y,
+        moleX: gameState.activeMole.x,
+        moleY: gameState.activeMole.y,
+        activeWordId: gameState.activeMole.word.id,
+        overlayLayout: activeOverlayLayoutRef.current,
+      })
+    : null;
+  const hasBaoziLinkedHintAnchor = isLinkedBaoziHint || Boolean(fallbackBaoziHintPlacement);
   const rootStyle = {
     '--ui-dock-height': `${dockLayout.dockHeightPx}px`,
     '--ui-dock-safe-bottom': `${dockLayout.safeBottomPx}px`,
   } as CSSProperties;
-  const pedagogyHintStyle = gameState?.activeMole ? {
-    '--hint-anchor-x': `${Math.round(gameState.activeMole.x)}px`,
-    '--hint-anchor-y': `${Math.round(gameState.activeMole.y)}px`,
-  } as CSSProperties : undefined;
+  const pedagogyHintStyle = isLinkedBaoziHint
+    ? ({
+        '--hint-anchor-x': `${Math.round(comboPopupState?.linkedHintX ?? 0)}px`,
+        '--hint-anchor-top': `${Math.round(comboPopupState?.linkedHintTop ?? 0)}px`,
+      } as CSSProperties)
+    : fallbackBaoziHintPlacement
+      ? ({
+          '--hint-anchor-x': `${Math.round(fallbackBaoziHintPlacement.hintAnchorX)}px`,
+          '--hint-anchor-top': `${Math.round(fallbackBaoziHintPlacement.hintTop)}px`,
+        } as CSSProperties)
+    : gameState?.activeMole
+      ? ({
+          '--hint-anchor-x': `${Math.round(gameState.activeMole.x)}px`,
+          '--hint-anchor-y': `${Math.round(gameState.activeMole.y)}px`,
+        } as CSSProperties)
+      : undefined;
   const isMicStartScreen = !hasRoundStarted && micState !== 'listening';
   const showPauseButton = hasRoundStarted && micState === 'listening';
   const isGamePaused = Boolean(gameState?.isPaused);
@@ -391,7 +555,7 @@ export function GameScreen({
 
   return (
     <div
-      className={`game-root${isMicStartScreen ? ' game-root--mic-start' : ''}`}
+      className={`game-root${isMicStartScreen ? ' game-root--mic-start' : ''}${isBaoziSelected ? ' game-root--baozi-selected' : ''}`}
       style={rootStyle}
     >
       <div className="game-scene-shell">
@@ -404,6 +568,7 @@ export function GameScreen({
             activeMoleRef={activeMoleRef}
             volume={volume}
             resizeTarget={resizeTarget}
+            onOverlayLayout={handleOverlayLayout}
           />
         </div>
 
@@ -436,7 +601,10 @@ export function GameScreen({
           ) : null}
         </div>
 
-        <div className="hint-overlay hint-overlay--pedagogy" style={pedagogyHintStyle}>
+        <div
+          className={`hint-overlay hint-overlay--pedagogy${hasBaoziLinkedHintAnchor ? ' hint-overlay--linked' : ''}`}
+          style={pedagogyHintStyle}
+        >
           {!gameState?.isEvaluating && gameState?.activeMole && gameState?.lastHint ? (
             <PedagogyHint
               key={`${gameState.lastHint.code}-${gameState.lastHint.text}-${gameState.lastHint.transcriptPinyin ?? ''}-${Math.round(gameState.lastHint.confidence * 100)}`}

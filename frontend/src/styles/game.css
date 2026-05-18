@@ -62,6 +62,11 @@
   justify-content: center;
 }
 
+.hint-overlay--pedagogy.hint-overlay--linked {
+  top: clamp(5.5rem, var(--hint-anchor-top, 56vh), calc(100dvh - 5rem));
+  transform: translate(-50%, 0);
+}
+
 .hint-overlay--evaluating {
   left: 50%;
   bottom: calc(var(--ui-dock-height) + 0.35rem + env(safe-area-inset-bottom));
@@ -322,7 +327,7 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(4px, 0.6vw, 12px);
+  gap: 0;
   transform: rotate(var(--combo-baozi-tilt, 0deg));
   transform-origin: 50% 58%;
 }
@@ -370,34 +375,6 @@
 .combo-reward-baozi-image--puff-two {
   z-index: 1;
   animation: combo-reward-baozi-puff-two 620ms cubic-bezier(0.2, 0.9, 0.28, 1) 430ms both;
-}
-
-.combo-reward-baozi-praise {
-  position: relative;
-  z-index: 4;
-  padding: 0.24rem 0.84rem 0.28rem;
-  border-radius: 999px;
-  border: 2px solid rgba(95, 58, 24, 0.95);
-  background:
-    linear-gradient(180deg, rgba(182, 120, 66, 0.96) 0%, rgba(132, 79, 42, 0.96) 48%, rgba(90, 52, 26, 0.98) 100%);
-  box-shadow:
-    0 4px 0 rgba(72, 39, 19, 0.7),
-    0 8px 12px rgba(41, 23, 10, 0.32),
-    inset 0 1px 0 rgba(235, 200, 152, 0.62),
-    inset 0 -2px 7px rgba(63, 35, 17, 0.58);
-  font-family: "Papyrus", "Marker Felt", "Copperplate", "Trebuchet MS", var(--heading), sans-serif;
-  font-size: clamp(1.18rem, 2.7vw, 2.12rem);
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  line-height: 0.96;
-  text-transform: uppercase;
-  color: #ffe7bd;
-  text-shadow:
-    0 2px 0 rgba(84, 46, 20, 0.92),
-    0 0 8px rgba(255, 233, 188, 0.32);
-  animation: combo-reward-baozi-praise-branch 920ms cubic-bezier(0.2, 0.92, 0.28, 1) 70ms both;
-  user-select: none;
-  white-space: nowrap;
 }
 
 .combo-reward-copy {
@@ -456,27 +433,27 @@
 @keyframes combo-reward-popup-life-baozi-hold {
   0% {
     opacity: 0;
-    transform: translate(-50%, 16px) scale(0.56);
+    transform: translate(0, 16px) scale(0.56);
   }
   28% {
     opacity: 1;
-    transform: translate(-50%, -9px) scale(1.16);
+    transform: translate(0, -9px) scale(1.16);
   }
   42% {
     opacity: 1;
-    transform: translate(-50%, -6px) scale(0.96);
+    transform: translate(0, -6px) scale(0.96);
   }
   66% {
     opacity: 1;
-    transform: translate(-50%, -14px) scale(1);
+    transform: translate(0, -14px) scale(1);
   }
   83% {
     opacity: 1;
-    transform: translate(-50%, -14px) scale(1);
+    transform: translate(0, -14px) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -42px) scale(0.94);
+    transform: translate(0, -42px) scale(0.94);
   }
 }
 
@@ -580,29 +557,6 @@
       brightness(1.14) saturate(1.1)
       drop-shadow(0 0 9px rgba(255, 236, 186, 0.48))
       drop-shadow(0 0 18px rgba(255, 174, 84, 0.36));
-  }
-}
-
-@keyframes combo-reward-baozi-praise-branch {
-  0% {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.8) rotate(-5deg);
-  }
-  26% {
-    opacity: 1;
-    transform: translateY(0) scale(1.06) rotate(2.4deg);
-  }
-  52% {
-    opacity: 1;
-    transform: translateY(-1px) scale(0.98) rotate(-1.8deg);
-  }
-  74% {
-    opacity: 1;
-    transform: translateY(0) scale(1.02) rotate(1.1deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1) rotate(0deg);
   }
 }
 
@@ -2529,11 +2483,6 @@
     width: clamp(126px, 34vw, 188px);
   }
 
-  .combo-reward-baozi-praise {
-    padding: 0.2rem 0.62rem 0.24rem;
-    font-size: clamp(1.04rem, 5.4vw, 1.42rem);
-  }
-
   .combo-reward-food-label {
     font-size: clamp(0.92rem, 4vw, 1.08rem);
   }
@@ -2544,6 +2493,10 @@
 
   .hint-overlay--pedagogy {
     top: max(5.25rem, calc(var(--hint-anchor-y, 56vh) - clamp(7.5rem, 18dvh, 10rem)));
+  }
+
+  .hint-overlay--pedagogy.hint-overlay--linked {
+    top: clamp(5.1rem, var(--hint-anchor-top, 56vh), calc(100dvh - 4.4rem));
   }
 
   .food-picker-options {

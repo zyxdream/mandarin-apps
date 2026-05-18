@@ -22,18 +22,12 @@ const PARTICLE_VECTORS: RewardParticleVector[] = [
 
 const DEFAULT_POPUP_LIFETIME_MS = 980;
 const BAOZI_POPUP_LIFETIME_MS = 1540;
-const BAOZI_PRAISE_WORDS = ['GREAT', 'AMAZING', 'FANTASTIC'] as const;
 
 function stableBaoziTilt(triggerId: number): number {
   const seeded = Math.imul(triggerId + 17, 1103515245) >>> 0;
   const direction = (seeded & 1) === 0 ? -1 : 1;
   const magnitude = 4 + ((seeded % 1000) / 1000) * 2.4;
   return Number((direction * magnitude).toFixed(2));
-}
-
-function stableBaoziPraise(triggerId: number): string {
-  const seeded = Math.imul(triggerId + 23, 2654435761) >>> 0;
-  return BAOZI_PRAISE_WORDS[seeded % BAOZI_PRAISE_WORDS.length];
 }
 
 export type RewardComboPopupVariant = 'default' | 'baozi_focus';
@@ -63,7 +57,6 @@ export function RewardComboPopup({
 }: RewardComboPopupProps) {
   const isBaoziFocus = variant === 'baozi_focus';
   const popupLifetimeMs = isBaoziFocus ? BAOZI_POPUP_LIFETIME_MS : DEFAULT_POPUP_LIFETIME_MS;
-  const baoziPraise = stableBaoziPraise(triggerId);
   const baoziTilt = stableBaoziTilt(triggerId);
 
   useEffect(() => {
@@ -88,14 +81,13 @@ export function RewardComboPopup({
       <div key={triggerId} className={popupClassName} aria-live="polite" aria-atomic="true">
         {isBaoziFocus ? (
           <>
-            <span className="combo-reward-sr-only">{`Baozi bonus ${baoziPraise}`}</span>
+            <span className="combo-reward-sr-only">Baozi bonus</span>
             <div className="combo-reward-baozi-group" style={baoziStyle} aria-hidden="true">
               <div className="combo-reward-baozi-stack">
                 <img className="combo-reward-baozi-image combo-reward-baozi-image--base" src={foodImage} alt="" />
                 <img className="combo-reward-baozi-image combo-reward-baozi-image--puff-one" src={foodImage} alt="" />
                 <img className="combo-reward-baozi-image combo-reward-baozi-image--puff-two" src={foodImage} alt="" />
               </div>
-              <span className="combo-reward-baozi-praise">{baoziPraise}</span>
             </div>
           </>
         ) : (

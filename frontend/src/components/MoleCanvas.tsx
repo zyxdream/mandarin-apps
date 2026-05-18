@@ -20,6 +20,7 @@ import {
   MOLE_CHARACTER_STYLES,
   type MoleCharacterAttachmentStyle,
 } from '../engine/moleAttachmentMetadata';
+import type { ActiveMoleOverlayLayout, OverlayRect } from '../engine/overlayPlacement';
 
 const BOARD_TEXT_FILL = 0xfff2c4;
 const BOARD_TEXT_STROKE = 0x4a2c16;
@@ -113,6 +114,7 @@ interface RendererProps {
   activeMole: MoleState | null;
   activeMoleRef: RefObject<MoleState | null>;
   volume: number;
+  onOverlayLayout?: (layout: ActiveMoleOverlayLayout | null) => void;
 }
 
 interface GroundExtensionConfig {
@@ -344,7 +346,41 @@ function drawSlotAnchors(graphics: Graphics, slots: ReturnType<typeof getMoleSlo
   }
 }
 
-function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
+function toOverlayRect(left: number, top: number, width: number, height: number): OverlayRect {
+  const safeWidth = Math.max(0, width);
+  const safeHeight = Math.max(0, height);
+  return {
+    left,
+    top,
+    right: left + safeWidth,
+    bottom: top + safeHeight,
+    width: safeWidth,
+    height: safeHeight,
+    centerX: left + safeWidth / 2,
+    centerY: top + safeHeight / 2,
+  };
+}
+
+function overlayLayoutSignature(layout: ActiveMoleOverlayLayout | null): string {
+  if (!layout) return 'none';
+  const round2 = (value: number) => Math.round(value * 100) / 100;
+  return [
+    layout.wordId,
+    layout.moleRef.slotIndex,
+    round2(layout.moleRef.x),
+    round2(layout.moleRef.y),
+    round2(layout.boardKeepoutRect.left),
+    round2(layout.boardKeepoutRect.top),
+    round2(layout.boardKeepoutRect.width),
+    round2(layout.boardKeepoutRect.height),
+    round2(layout.moleBodyRect.left),
+    round2(layout.moleBodyRect.top),
+    round2(layout.moleBodyRect.width),
+    round2(layout.moleBodyRect.height),
+  ].join('|');
+}
+
+function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: RendererProps) {
   const { app } = useApplication();
 
   const backgroundRef = useRef<Sprite | null>(null);
@@ -389,6 +425,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
   const volumeRef = useRef(volume);
   const stageSizeRef = useRef({ width: 0, height: 0 });
   const slotsRef = useRef<ReturnType<typeof getMoleSlots>>([]);
+  const overlayLayoutSignatureRef = useRef<string>('init');
   const collectFlyRef = useRef<CollectFlyState>({
     active: false,
     progress: 0,
@@ -398,9 +435,21 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     endY: 0,
   });
 
+  const emitOverlayLayout = (layout: ActiveMoleOverlayLayout | null) => {
+    if (!onOverlayLayout) return;
+    const signature = overlayLayoutSignature(layout);
+    if (signature === overlayLayoutSignatureRef.current) return;
+    overlayLayoutSignatureRef.current = signature;
+    onOverlayLayout(layout);
+  };
+
   useEffect(() => {
     volumeRef.current = volume;
   }, [volume]);
+
+  useEffect(() => () => {
+    if (onOverlayLayout) onOverlayLayout(null);
+  }, [onOverlayLayout]);
 
   useEffect(() => {
     let disposed = false;
@@ -816,6 +865,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const mole = activeMoleRef.current;
 
     if (!mole) {
+      emitOverlayLayout(null);
       moleContainer.visible = false;
       hammer.visible = false;
       listeningPuff.visible = false;
@@ -1106,10 +1156,33 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
     const textCenterY = (style.pinyinY + style.hanziY) / 2;
     const pinyinBoardY = textCenterY - BOARD_TEXT_LINE_SPACING / 2;
     const hanziBoardY = textCenterY + BOARD_TEXT_LINE_SPACING / 2;
+    const boardCenterX = moleContainer.x + style.textAnchorX * renderScaleX;
     const boardTextCenterY = moleContainer.y + textCenterY * renderScaleY;
     const boardKeepoutHeight = BOARD_TEXT_LINE_SPACING * renderScaleY * 1.8;
     const boardKeepoutTop = boardTextCenterY - boardKeepoutHeight / 2;
     const boardKeepoutWidth = Math.max(placement.openingWidth * 1.78, renderedBody.bodyWidth * 1.18);
+    const boardKeepoutRect = toOverlayRect(
+      boardCenterX - boardKeepoutWidth / 2,
+      boardKeepoutTop,
+      boardKeepoutWidth,
+      boardKeepoutHeight,
+    );
+    const moleBodyRect = toOverlayRect(
+      renderedBody.bodyLeftX,
+      renderedBody.bodyTopY,
+      renderedBody.bodyWidth,
+      renderedBody.bodyHeight,
+    );
+    emitOverlayLayout({
+      wordId: mole.word.id,
+      moleRef: {
+        x: placement.centerX,
+        y: placement.rimY,
+        slotIndex: mole.slotIndex,
+      },
+      boardKeepoutRect,
+      moleBodyRect,
+    });
     const hammerPlacement = hammerPlacementRef.current;
     const hammerSide = hammerPlacement.side;
     const hammerClearance = placement.openingWidth * HAMMER_BOARD_CLEARANCE_RATIO;
@@ -1448,7 +1521,6 @@ function MoleRenderer({ activeMole, activeMoleRef, volume }: RendererProps) {
       const bboxTop = rect.top + bbox.top * debugScale;
       const bboxWidth = bbox.width * debugScale;
       const bboxHeight = bbox.height * debugScale;
-      const boardCenterX = moleContainer.x + style.textAnchorX * renderScaleX;
       const boardCenterY = moleContainer.y + ((style.pinyinY + style.hanziY) / 2) * renderScaleY;
       const bboxBottomX = bboxLeft + bboxWidth / 2;
       const bboxBottomY = bboxTop + bboxHeight;
@@ -1510,9 +1582,16 @@ interface MoleCanvasProps {
   activeMoleRef: RefObject<MoleState | null>;
   volume: number;
   resizeTarget: HTMLElement | null;
+  onOverlayLayout?: (layout: ActiveMoleOverlayLayout | null) => void;
 }
 
-export function MoleCanvas({ gameState, activeMoleRef, volume, resizeTarget }: MoleCanvasProps) {
+export function MoleCanvas({
+  gameState,
+  activeMoleRef,
+  volume,
+  resizeTarget,
+  onOverlayLayout,
+}: MoleCanvasProps) {
   return (
     <Application
       backgroundAlpha={0}
@@ -1523,6 +1602,7 @@ export function MoleCanvas({ gameState, activeMoleRef, volume, resizeTarget }: M
         activeMole={gameState?.activeMole ?? null}
         activeMoleRef={activeMoleRef}
         volume={volume}
+        onOverlayLayout={onOverlayLayout}
       />
     </Application>
   );
