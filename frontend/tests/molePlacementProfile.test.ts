@@ -106,6 +106,44 @@ test('extra left nudge changes x anchor without affecting y anchor', () => {
   assert.equal(base.x - nudged.x, 3);
 });
 
+test('left nudge is additive to base overhang and does not alter stable contact math', () => {
+  const darkLeftX = 320;
+  const openingWidth = 150;
+  const bodyBBoxLeft = 220;
+  const canvasWidth = 1254;
+  const base = resolveMoleAnchoredPosition({
+    darkLeftX,
+    baseBodyBottomY: 580,
+    openingWidth,
+    canvasWidth,
+    canvasHeight: 1254,
+    bodyBBoxLeft,
+    bodyBBoxBottom: 1004,
+    renderScaleX: 0.3,
+    renderScaleY: 0.32,
+    profile: GAMEPLAY_MOLE_PLACEMENT_PROFILE,
+  });
+
+  const nudged = resolveMoleAnchoredPosition({
+    darkLeftX,
+    baseBodyBottomY: 580,
+    openingWidth,
+    canvasWidth,
+    canvasHeight: 1254,
+    bodyBBoxLeft,
+    bodyBBoxBottom: 1004,
+    renderScaleX: 0.3,
+    renderScaleY: 0.32,
+    profile: GAMEPLAY_MOLE_PLACEMENT_PROFILE,
+    extraLeftNudgePx: 3,
+  });
+
+  const renderedLeftBase = base.x + (bodyBBoxLeft - canvasWidth / 2) * 0.3;
+  const renderedLeftNudged = nudged.x + (bodyBBoxLeft - canvasWidth / 2) * 0.3;
+  assert.equal(renderedLeftBase - renderedLeftNudged, 3);
+  assert.equal(base.y, nudged.y);
+});
+
 test('feasting profile adds down nudge while gameplay profile does not', () => {
   const gameplay = resolveMoleAnchoredPosition({
     darkLeftX: 300,
@@ -134,5 +172,5 @@ test('feasting profile adds down nudge while gameplay profile does not', () => {
   });
 
   assert.equal(feasting.x, gameplay.x);
-  assert.equal(feasting.y - gameplay.y, 4);
+  assert.equal(feasting.y - gameplay.y, 2);
 });

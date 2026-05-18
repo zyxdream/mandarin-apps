@@ -38,7 +38,7 @@ export const GAMEPLAY_MOLE_PLACEMENT_PROFILE: MolePlacementProfile = {
   leftOverhangRatio: 0.03,
   leftOverhangMinPx: 2,
   leftOverhangMaxPx: 6,
-  downNudgePx: 0,
+  downNudgePx: 8,
 };
 
 export const FEASTING_MOLE_PLACEMENT_PROFILE: MolePlacementProfile = {
@@ -46,7 +46,7 @@ export const FEASTING_MOLE_PLACEMENT_PROFILE: MolePlacementProfile = {
   leftOverhangRatio: 0.03,
   leftOverhangMinPx: 2,
   leftOverhangMaxPx: 6,
-  downNudgePx: 4,
+  downNudgePx: 10,
 };
 
 const DEFAULT_GAMEPLAY_SLOT_OVERRIDE: GameplaySlotPlacementOverride = {

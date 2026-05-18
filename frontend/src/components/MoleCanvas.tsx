@@ -78,6 +78,8 @@ const HIT_SPARKLE_UP_OFFSET_RATIO = 0.1;
 const HIT_SPARKLE_FACE_CLEAR_RATIO = 0.12;
 const HIT_SPARKLE_BOARD_CLEAR_RATIO = 0.08;
 const CONTACT_SHADOW_ALPHA = 0.18;
+const CONTACT_SHADOW_BLEED_PX = 3;
+const GLOBAL_GAMEPLAY_LEFT_NUDGE_PX = 3;
 const MOLE_BACK_SHADOW_ALPHA = 0.22;
 const MOLE_DEPTH_SHADE_ALPHA = 0.04;
 const MOLE_DEPTH_HIGHLIGHT_ALPHA = 0.18;
@@ -1043,7 +1045,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: Re
       renderScaleX,
       renderScaleY,
       profile: GAMEPLAY_MOLE_PLACEMENT_PROFILE,
-      extraLeftNudgePx: slotPlacementOverride.extraLeftNudgePx,
+      extraLeftNudgePx: slotPlacementOverride.extraLeftNudgePx + GLOBAL_GAMEPLAY_LEFT_NUDGE_PX,
     });
     const anchoredX = anchoredPosition.x;
     const anchoredY = anchoredPosition.y;
@@ -1132,16 +1134,16 @@ function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: Re
     const contactShadowHeight = shadowBounds.height * 0.34;
     const shadowX = shadowBounds.centerX;
     const shadowY = Math.min(
-      darkOpening.darkFrontY - contactShadowHeight * 0.58,
-      shadowBounds.centerY + holeHeight * 0.08,
+      darkOpening.darkFrontY - contactShadowHeight * 0.58 + CONTACT_SHADOW_BLEED_PX,
+      shadowBounds.centerY + holeHeight * 0.08 + CONTACT_SHADOW_BLEED_PX,
     );
     const innerShadowX = Math.min(
       darkOpening.darkRightX - contactShadowWidth * 0.42,
       shadowX + placement.openingWidth * 0.04,
     );
     const innerShadowY = Math.min(
-      darkOpening.darkFrontY - contactShadowHeight * 0.42,
-      shadowY + holeHeight * 0.04,
+      darkOpening.darkFrontY - contactShadowHeight * 0.42 + CONTACT_SHADOW_BLEED_PX,
+      shadowY + holeHeight * 0.04 + CONTACT_SHADOW_BLEED_PX,
     );
     contactShadow.visible = mole.animState !== 'hidden';
     contactShadow.clear();

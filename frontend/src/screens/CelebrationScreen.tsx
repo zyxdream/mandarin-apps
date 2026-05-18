@@ -58,6 +58,7 @@ const SPARKLE_TEXTURE = '/assets/effects/sparkle.v2.webp';
 const MOLE_SHADOW_ALPHA = 0.18;
 const RIM_SHADOW_ALPHA = 0.46;
 const RIM_HIGHLIGHT_ALPHA = 0.2;
+const GLOBAL_FEASTING_LEFT_NUDGE_PX = 3;
 const MAX_FOOD_DROPS = 150;
 const MAX_SPARKLES = 44;
 const CONFETTI_COUNT = 72;
@@ -470,6 +471,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
         renderScaleX,
         renderScaleY,
         profile: FEASTING_MOLE_PLACEMENT_PROFILE,
+        extraLeftNudgePx: GLOBAL_FEASTING_LEFT_NUDGE_PX,
       });
       const animatedX = anchored.x + wiggle * 3.6 + lookLean * motionBodyWidth * 0.02;
       const animatedY = anchored.y - Math.max(0, bounce) * 7.5 - lookUpProgress * motionBodyHeight * 0.035;
