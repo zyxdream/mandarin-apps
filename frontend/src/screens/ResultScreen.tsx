@@ -17,6 +17,12 @@ interface ResultScreenProps {
   onBackToSessionSelect: () => void;
 }
 
+const RESULT_AMBIENCE_AUDIO = '/audio/sound_effects/happy-logo-trim.mov';
+const RESULT_AMBIENCE_VOLUME = 0.32;
+const RESULT_AMBIENCE_DUCK_FACTOR = 0.3;
+const RESULT_AMBIENCE_FADE_IN_MS = 900;
+const RESULT_AMBIENCE_FADE_OUT_MS = 1800;
+
 export function ResultScreen({
   finalState,
   selectedFood,
@@ -31,6 +37,7 @@ export function ResultScreen({
   const { wordsHit, wordsMissed, maxCombo } = finalState;
   const totalWords = wordsHit.length + wordsMissed.length;
   const accuracyRate = totalWords > 0 ? wordsHit.length / totalWords : 0;
+  const accuracyPercent = Math.round(accuracyRate * 100);
   const earnedStars = totalWords > 0 && wordsHit.length === totalWords ? 3 : accuracyRate >= 0.3 ? 2 : 1;
   const food = getRewardFoodOption(selectedFood);
   const foodUnits = foodUnitsForCorrectWords(wordsHit.length);
@@ -38,8 +45,78 @@ export function ResultScreen({
   const SCORE_STAR = '/assets/ui/score_star.v2.webp';
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ambienceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const ambienceFadeOutTimerRef = useRef<number | null>(null);
+  const ambienceFadeRafRef = useRef<number | null>(null);
+  const ambienceDuckedRef = useRef(false);
+  const ambienceFadeGainRef = useRef(1);
   const [playingWordId, setPlayingWordId] = useState<string | null>(null);
   const [audioErrorWordId, setAudioErrorWordId] = useState<string | null>(null);
+
+  const setAmbienceElementVolume = useCallback((volume: number) => {
+    const ambience = ambienceAudioRef.current;
+    if (!ambience) return;
+    ambience.volume = Math.max(0, Math.min(1, volume));
+  }, []);
+
+  const applyAmbienceVolume = useCallback(() => {
+    const duckGain = ambienceDuckedRef.current ? RESULT_AMBIENCE_DUCK_FACTOR : 1;
+    const effectiveVolume = RESULT_AMBIENCE_VOLUME * ambienceFadeGainRef.current * duckGain;
+    setAmbienceElementVolume(effectiveVolume);
+  }, [setAmbienceElementVolume]);
+
+  const cancelAmbienceFadeAnimation = useCallback(() => {
+    if (ambienceFadeRafRef.current !== null) {
+      cancelAnimationFrame(ambienceFadeRafRef.current);
+      ambienceFadeRafRef.current = null;
+    }
+  }, []);
+
+  const animateAmbienceFade = useCallback(
+    (targetGain: number, durationMs: number) => {
+      const to = Math.max(0, Math.min(1, targetGain));
+      const from = Math.max(0, Math.min(1, ambienceFadeGainRef.current));
+      const clampedDurationMs = Math.max(0, durationMs);
+      if (Math.abs(from - to) < 0.001) {
+        ambienceFadeGainRef.current = to;
+        applyAmbienceVolume();
+        return;
+      }
+      if (clampedDurationMs === 0) {
+        ambienceFadeGainRef.current = to;
+        applyAmbienceVolume();
+        return;
+      }
+
+      cancelAmbienceFadeAnimation();
+      const startedAt = performance.now();
+      const tick = (now: number) => {
+        const progress = Math.max(0, Math.min(1, (now - startedAt) / clampedDurationMs));
+        ambienceFadeGainRef.current = from + (to - from) * progress;
+        applyAmbienceVolume();
+        if (progress < 1) {
+          ambienceFadeRafRef.current = requestAnimationFrame(tick);
+        } else {
+          ambienceFadeRafRef.current = null;
+        }
+      };
+
+      ambienceFadeRafRef.current = requestAnimationFrame(tick);
+    },
+    [applyAmbienceVolume, cancelAmbienceFadeAnimation],
+  );
+
+  const setAmbienceDucked = useCallback(
+    (ducked: boolean) => {
+      ambienceDuckedRef.current = ducked;
+      applyAmbienceVolume();
+    },
+    [applyAmbienceVolume],
+  );
+
+  const restoreAmbienceVolume = useCallback(() => {
+    setAmbienceDucked(false);
+  }, [setAmbienceDucked]);
 
   const stopReferenceAudio = useCallback(() => {
     const a = audioRef.current;
@@ -49,9 +126,82 @@ export function ResultScreen({
       audioRef.current = null;
     }
     setPlayingWordId(null);
-  }, []);
+    restoreAmbienceVolume();
+  }, [restoreAmbienceVolume]);
 
   useEffect(() => () => stopReferenceAudio(), [stopReferenceAudio]);
+
+  useEffect(() => {
+    let disposed = false;
+    const ambience = new Audio(RESULT_AMBIENCE_AUDIO);
+    ambience.loop = false;
+    ambience.preload = 'auto';
+    ambienceAudioRef.current = ambience;
+    ambienceFadeGainRef.current = 0;
+    applyAmbienceVolume();
+
+    const clearFadeOutTimer = () => {
+      if (ambienceFadeOutTimerRef.current !== null) {
+        window.clearTimeout(ambienceFadeOutTimerRef.current);
+        ambienceFadeOutTimerRef.current = null;
+      }
+    };
+
+    const scheduleFadeOut = () => {
+      clearFadeOutTimer();
+      const durationSec = ambience.duration;
+      if (!Number.isFinite(durationSec) || durationSec <= 0) return;
+      const fadeOutDelayMs = Math.max(0, Math.round(durationSec * 1000 - RESULT_AMBIENCE_FADE_OUT_MS));
+      ambienceFadeOutTimerRef.current = window.setTimeout(() => {
+        ambienceFadeOutTimerRef.current = null;
+        animateAmbienceFade(0, RESULT_AMBIENCE_FADE_OUT_MS);
+      }, fadeOutDelayMs);
+    };
+
+    const playAmbience = () => {
+      if (disposed) return;
+      clearFadeOutTimer();
+      cancelAmbienceFadeAnimation();
+      ambience.currentTime = 0;
+      ambienceFadeGainRef.current = 0;
+      setAmbienceDucked(ambienceDuckedRef.current);
+      applyAmbienceVolume();
+      void ambience.play().catch(error => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        console.warn('[audio] result ambience play failed', error);
+      });
+      animateAmbienceFade(1, RESULT_AMBIENCE_FADE_IN_MS);
+      scheduleFadeOut();
+    };
+
+    const handleEnded = () => {
+      clearFadeOutTimer();
+      playAmbience();
+    };
+
+    const handleLoadedMetadata = () => {
+      if (ambience.currentTime <= 0.1 && !ambience.paused) {
+        scheduleFadeOut();
+      }
+    };
+
+    ambience.addEventListener('ended', handleEnded);
+    ambience.addEventListener('loadedmetadata', handleLoadedMetadata);
+    playAmbience();
+
+    return () => {
+      disposed = true;
+      clearFadeOutTimer();
+      cancelAmbienceFadeAnimation();
+      ambience.removeEventListener('ended', handleEnded);
+      ambience.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      ambience.pause();
+      ambience.src = '';
+      if (ambienceAudioRef.current === ambience) {
+        ambienceAudioRef.current = null;
+      }
+    };
+  }, [animateAmbienceFade, applyAmbienceVolume, cancelAmbienceFadeAnimation, setAmbienceDucked]);
 
   const playWord = useCallback(
     (word: Word) => {
@@ -61,11 +211,13 @@ export function ResultScreen({
       const a = new Audio(url);
       audioRef.current = a;
       setPlayingWordId(word.id);
+      setAmbienceDucked(true);
       a.addEventListener('ended', () => {
         if (audioRef.current === a) {
           setPlayingWordId(null);
           audioRef.current = null;
         }
+        restoreAmbienceVolume();
       });
       a.addEventListener('error', () => {
         console.warn('[word-audio] failed to load', word.id, url);
@@ -74,14 +226,16 @@ export function ResultScreen({
           setPlayingWordId(null);
           audioRef.current = null;
         }
+        restoreAmbienceVolume();
       });
       void a.play().catch(() => {
         setAudioErrorWordId(word.id);
         setPlayingWordId(null);
         audioRef.current = null;
+        restoreAmbienceVolume();
       });
     },
-    [stopReferenceAudio],
+    [restoreAmbienceVolume, setAmbienceDucked, stopReferenceAudio],
   );
 
   const handleNavigate = useCallback(
@@ -117,7 +271,10 @@ export function ResultScreen({
 
           <div className="result-food-score">
             <img src={food.baseImage} alt="" />
-            <span>{foodUnits}</span>
+            <span className="result-food-score-amount">
+              <span className="result-food-score-earned">{foodUnits}</span>
+              <span className="result-food-score-total">of {maxFoodUnits}</span>
+            </span>
           </div>
           <div className="result-score-label">{food.shortLabel} earned</div>
 
@@ -127,8 +284,8 @@ export function ResultScreen({
               <span className="result-stat-label">Whacked</span>
             </div>
             <div className="result-stat">
-              <span className="result-stat-value result-stat-value--food">{`${foodUnits}/${maxFoodUnits}`}</span>
-              <span className="result-stat-label">Food earned</span>
+              <span className="result-stat-value result-stat-value--food">{`${accuracyPercent}%`}</span>
+              <span className="result-stat-label">Accuracy</span>
             </div>
             <div className="result-stat">
               <span className="result-stat-value result-stat-value--combo">{maxCombo}</span>
@@ -136,9 +293,9 @@ export function ResultScreen({
             </div>
           </div>
 
-          {wordsMissed.length > 0 && (
-            <div className="result-missed">
-              <h3 className="result-missed-title">Words missed:</h3>
+          <div className="result-missed">
+            <h3 className="result-missed-title">Words missed:</h3>
+            {wordsMissed.length > 0 ? (
               <div className="result-missed-list">
                 {wordsMissed.map((word, index) => {
                   const isPlaying = playingWordId === word.id;
@@ -162,8 +319,10 @@ export function ResultScreen({
                   );
                 })}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="result-missed-empty">None - perfect round!</div>
+            )}
+          </div>
 
           <div className="result-navigation">
             <button
@@ -171,7 +330,7 @@ export function ResultScreen({
               onClick={() => handleNavigate(onPreviousGame)}
             >
               <span>Previous Game</span>
-              <small>Previous game: {previousScriptSession.title}</small>
+              <small>{previousScriptSession.title}</small>
             </button>
             <button className="result-nav-button result-nav-button--primary" onClick={() => handleNavigate(onReplay)}>
               <span>Replay</span>
@@ -179,7 +338,7 @@ export function ResultScreen({
             </button>
             <button className="result-nav-button" onClick={() => handleNavigate(onNextGame)}>
               <span>Next Game</span>
-              <small>Next: {nextScriptSession.title}</small>
+              <small>{nextScriptSession.title}</small>
             </button>
           </div>
         </div>
