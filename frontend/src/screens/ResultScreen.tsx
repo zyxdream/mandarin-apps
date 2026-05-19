@@ -20,6 +20,7 @@ interface ResultScreenProps {
 const RESULT_AMBIENCE_AUDIO = '/audio/sound_effects/happy-logo-trim.mov';
 const RESULT_AMBIENCE_VOLUME = 0.32;
 const RESULT_AMBIENCE_DUCK_FACTOR = 0.3;
+const RESULT_AMBIENCE_LOOP_GAP_MS = 1000;
 const RESULT_AMBIENCE_FADE_IN_MS = 900;
 const RESULT_AMBIENCE_FADE_OUT_MS = 1800;
 
@@ -46,6 +47,7 @@ export function ResultScreen({
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ambienceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const ambienceRestartTimerRef = useRef<number | null>(null);
   const ambienceFadeOutTimerRef = useRef<number | null>(null);
   const ambienceFadeRafRef = useRef<number | null>(null);
   const ambienceDuckedRef = useRef(false);
@@ -140,6 +142,13 @@ export function ResultScreen({
     ambienceFadeGainRef.current = 0;
     applyAmbienceVolume();
 
+    const clearRestartTimer = () => {
+      if (ambienceRestartTimerRef.current !== null) {
+        window.clearTimeout(ambienceRestartTimerRef.current);
+        ambienceRestartTimerRef.current = null;
+      }
+    };
+
     const clearFadeOutTimer = () => {
       if (ambienceFadeOutTimerRef.current !== null) {
         window.clearTimeout(ambienceFadeOutTimerRef.current);
@@ -160,6 +169,7 @@ export function ResultScreen({
 
     const playAmbience = () => {
       if (disposed) return;
+      clearRestartTimer();
       clearFadeOutTimer();
       cancelAmbienceFadeAnimation();
       ambience.currentTime = 0;
@@ -175,8 +185,12 @@ export function ResultScreen({
     };
 
     const handleEnded = () => {
+      clearRestartTimer();
       clearFadeOutTimer();
-      playAmbience();
+      ambienceRestartTimerRef.current = window.setTimeout(() => {
+        ambienceRestartTimerRef.current = null;
+        playAmbience();
+      }, RESULT_AMBIENCE_LOOP_GAP_MS);
     };
 
     const handleLoadedMetadata = () => {
@@ -191,6 +205,7 @@ export function ResultScreen({
 
     return () => {
       disposed = true;
+      clearRestartTimer();
       clearFadeOutTimer();
       cancelAmbienceFadeAnimation();
       ambience.removeEventListener('ended', handleEnded);
