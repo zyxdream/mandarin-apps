@@ -21,13 +21,18 @@ import type { UiDockLayout } from '../engine/uiDockLayout';
 import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
 import { pingHealthWarmup, warmupDeepIfStaleOrFailed } from '../warmup/backendWarmup';
-import type { ActiveMoleOverlayLayout } from '../engine/overlayPlacement';
+import type { ActiveMoleOverlayLayout, ResolveIncorrectHintPlacementResult } from '../engine/overlayPlacement';
 import {
   estimateBaoziOverlaySizes,
   resolveBaoziLinkedHintTop,
   resolveLegacyBaoziAnchorWithBoardGuard,
   resolveBaoziRewardX,
+  resolveIncorrectHintPlacement,
 } from '../engine/overlayPlacement';
+import {
+  buildPedagogyHintClassName,
+  resolveHintPlacementMode,
+} from '../engine/hintPlacementMode';
 
 const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
 const COMBO_POPUP_MARGIN_PX = 92;
@@ -40,6 +45,14 @@ const BAOZI_HINT_MIN_TOP_PX = 72;
 const BAOZI_HINT_BOTTOM_MARGIN_PX = 16;
 const BAOZI_RIGHT_SHIFT_PX = 24;
 const BAOZI_LEFT_OF_MOLE_GAP_PX = 14;
+const INCORRECT_HINT_MIN_WIDTH_PX = 132;
+const INCORRECT_HINT_HEIGHT_PX = 84;
+const INCORRECT_HINT_SAFE_MARGIN_PX = 14;
+const INCORRECT_HINT_SIDE_GAP_PX = 24;
+const RIGHTMOST_MOLE_SLOT_INDEX = 5;
+const RIGHTMOST_HINT_MIN_WIDTH_PX = 240;
+const RIGHTMOST_HINT_MAX_WIDTH_PX = 360;
+const RIGHTMOST_HINT_TOP_GAP_PX = 12;
 
 interface RewardComboPopupState {
   triggerId: number;
@@ -61,10 +74,130 @@ interface BaoziUnitPlacement {
   hintTop: number;
 }
 
+interface LockedIncorrectHintPlacement {
+  key: string;
+  placement: ResolveIncorrectHintPlacementResult;
+}
+
 function clampToRange(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   if (max < min) return (min + max) / 2;
   return Math.min(max, Math.max(min, value));
+}
+
+function estimatePedagogyHintSize(viewportWidth: number): { width: number; height: number } {
+  return {
+    width: clampToRange(
+      viewportWidth * 0.42,
+      220,
+      Math.max(220, viewportWidth - 32),
+    ),
+    height: INCORRECT_HINT_HEIGHT_PX,
+  };
+}
+
+function buildIncorrectHintLockKey(
+  hint: GameState['lastHint'] | null,
+  activeWordId: string | null,
+  activeSlotIndex: number | null,
+): string | null {
+  if (!hint || hint.code === 'heard_correct') return null;
+  const confidence = Number.isFinite(hint.confidence) ? Math.round(hint.confidence * 1000) : -1;
+  return [
+    activeWordId ?? 'none',
+    String(activeSlotIndex ?? -1),
+    hint.code,
+    hint.text,
+    hint.transcriptPinyin ?? '',
+    confidence,
+  ].join('|');
+}
+
+function resolveRightmostIncorrectHintPlacement({
+  viewportWidth,
+  viewportHeight,
+  moleX,
+  moleBottomY,
+}: {
+  viewportWidth: number;
+  viewportHeight: number;
+  moleX: number;
+  moleBottomY: number;
+}): ResolveIncorrectHintPlacementResult {
+  const safeMargin = INCORRECT_HINT_SAFE_MARGIN_PX;
+  const preferredWidth = clampToRange(viewportWidth * 0.34, RIGHTMOST_HINT_MIN_WIDTH_PX, RIGHTMOST_HINT_MAX_WIDTH_PX);
+  const maxWidth = Math.max(0, viewportWidth - safeMargin * 2);
+  const width = clampToRange(preferredWidth, Math.min(RIGHTMOST_HINT_MIN_WIDTH_PX, maxWidth), maxWidth);
+  const targetLeft = moleX - width * 0.42;
+  const left = clampToRange(targetLeft, safeMargin, Math.max(safeMargin, viewportWidth - safeMargin - width));
+  const top = clampToRange(
+    moleBottomY + RIGHTMOST_HINT_TOP_GAP_PX,
+    safeMargin,
+    Math.max(safeMargin, viewportHeight - safeMargin - INCORRECT_HINT_HEIGHT_PX),
+  );
+
+  return {
+    strategy: 'fallback',
+    hintLeft: Math.round(left),
+    hintTop: Math.round(top),
+    hintWidth: Math.round(width),
+  };
+}
+
+function estimateFallbackBoardKeepout({
+  viewportWidth,
+  viewportHeight,
+  moleX,
+  moleY,
+}: {
+  viewportWidth: number;
+  viewportHeight: number;
+  moleX: number;
+  moleY: number;
+}) {
+  const width = clampToRange(viewportWidth * 0.2, 200, 340);
+  const height = clampToRange(viewportHeight * 0.16, 88, 148);
+  const centerX = moleX + clampToRange(viewportWidth * 0.02, 24, 56);
+  const centerY = moleY - clampToRange(viewportHeight * 0.12, 84, 144);
+  const left = centerX - width / 2;
+  const top = centerY - height / 2;
+  return {
+    left,
+    top,
+    right: left + width,
+    bottom: top + height,
+    width,
+    height,
+    centerX,
+    centerY,
+  };
+}
+
+function estimateFallbackMoleBodyRect({
+  viewportWidth,
+  viewportHeight,
+  moleX,
+  moleY,
+}: {
+  viewportWidth: number;
+  viewportHeight: number;
+  moleX: number;
+  moleY: number;
+}) {
+  const width = clampToRange(viewportWidth * 0.11, 112, 220);
+  const height = clampToRange(viewportHeight * 0.2, 126, 248);
+  const left = moleX - width / 2;
+  const top = moleY - height * 0.88;
+  return {
+    left,
+    top,
+    right: left + width,
+    bottom: top + height,
+    width,
+    height,
+    centerX: moleX,
+    centerY: top + height / 2,
+  };
 }
 
 function resolveBaoziUnitPlacement({
@@ -194,6 +327,7 @@ export function GameScreen({
   const previousHitCountRef = useRef(0);
   const previousFoodUnitsRef = useRef(0);
   const activeOverlayLayoutRef = useRef<ActiveMoleOverlayLayout | null>(null);
+  const lockedIncorrectHintPlacementRef = useRef<LockedIncorrectHintPlacement | null>(null);
   const activeWordId = gameState?.activeMole?.word.id ?? null;
   const handleCanvasHostRef = useCallback((node: HTMLDivElement | null) => {
     canvasHostRef.current = node;
@@ -341,13 +475,30 @@ export function GameScreen({
   const timeRemaining = gameState?.timeRemaining ?? 45;
   const collectedWords = gameState?.wordsHit ?? [];
   const isBaoziSelected = selectedFood === 'baozi';
+  const currentPedagogyHint = (
+    !gameState?.isEvaluating &&
+    gameState?.activeMole &&
+    gameState?.lastHint
+  )
+    ? gameState.lastHint
+    : null;
+  const isCorrectPedagogyHint = currentPedagogyHint?.code === 'heard_correct';
+  const isIncorrectPedagogyHint = Boolean(currentPedagogyHint && !isCorrectPedagogyHint);
+  const activeOverlayLayout = activeOverlayLayoutRef.current;
+  const hasMatchingOverlayLayout = Boolean(
+    activeOverlayLayout &&
+    activeWordId &&
+    activeOverlayLayout.wordId === activeWordId,
+  );
+  const activeSlotIndex = activeOverlayLayout?.moleRef.slotIndex ?? gameState?.activeMole?.slotIndex ?? null;
   const isLinkedBaoziHint = (
     comboPopupState?.variant === 'baozi_focus' &&
     Number.isFinite(comboPopupState.linkedHintX) &&
     Number.isFinite(comboPopupState.linkedHintTop)
   );
+  const shouldUseBaoziLinkedHint = isBaoziSelected && isCorrectPedagogyHint;
   const fallbackBaoziHintPlacement = (
-    isBaoziSelected &&
+    shouldUseBaoziLinkedHint &&
     gameState?.activeMole
   )
     ? resolveBaoziUnitPlacement({
@@ -358,30 +509,134 @@ export function GameScreen({
         moleX: gameState.activeMole.x,
         moleY: gameState.activeMole.y,
         activeWordId: gameState.activeMole.word.id,
-        overlayLayout: activeOverlayLayoutRef.current,
+        overlayLayout: activeOverlayLayout,
       })
     : null;
-  const hasBaoziLinkedHintAnchor = isLinkedBaoziHint || Boolean(fallbackBaoziHintPlacement);
+  const hasBaoziLinkedHintPlacement = shouldUseBaoziLinkedHint && (isLinkedBaoziHint || Boolean(fallbackBaoziHintPlacement));
+  const hintViewportWidth = Math.max(1, window.innerWidth);
+  const hintViewportHeight = Math.max(1, window.innerHeight);
+  const estimatedHintSize = estimatePedagogyHintSize(hintViewportWidth);
+  const incorrectHintPlacement = (
+    isIncorrectPedagogyHint &&
+    hasMatchingOverlayLayout &&
+    activeOverlayLayout
+  )
+    ? resolveIncorrectHintPlacement({
+        viewportWidth: hintViewportWidth,
+        viewportHeight: hintViewportHeight,
+        boardKeepoutRect: activeOverlayLayout.boardKeepoutRect,
+        moleBodyRect: activeOverlayLayout.moleBodyRect,
+        hintSize: estimatedHintSize,
+        safeMarginPx: INCORRECT_HINT_SAFE_MARGIN_PX,
+        sideGapPx: INCORRECT_HINT_SIDE_GAP_PX,
+        minHintWidthPx: INCORRECT_HINT_MIN_WIDTH_PX,
+      })
+    : null;
+  const fallbackIncorrectHintPlacement = (
+    isIncorrectPedagogyHint &&
+    !incorrectHintPlacement &&
+    gameState?.activeMole
+  )
+    ? resolveIncorrectHintPlacement({
+        viewportWidth: hintViewportWidth,
+        viewportHeight: hintViewportHeight,
+        boardKeepoutRect: estimateFallbackBoardKeepout({
+          viewportWidth: hintViewportWidth,
+          viewportHeight: hintViewportHeight,
+          moleX: gameState.activeMole.x,
+          moleY: gameState.activeMole.y,
+        }),
+        moleBodyRect: estimateFallbackMoleBodyRect({
+          viewportWidth: hintViewportWidth,
+          viewportHeight: hintViewportHeight,
+          moleX: gameState.activeMole.x,
+          moleY: gameState.activeMole.y,
+        }),
+        hintSize: estimatedHintSize,
+        safeMarginPx: INCORRECT_HINT_SAFE_MARGIN_PX,
+        sideGapPx: INCORRECT_HINT_SIDE_GAP_PX,
+        minHintWidthPx: INCORRECT_HINT_MIN_WIDTH_PX,
+      })
+    : null;
+  const resolvedIncorrectHintPlacementBase = incorrectHintPlacement ?? fallbackIncorrectHintPlacement;
+  const activeMoleForHintPlacement = gameState?.activeMole ?? null;
+  const shouldUseRightmostIncorrectHintOverride = (
+    isIncorrectPedagogyHint &&
+    activeSlotIndex === RIGHTMOST_MOLE_SLOT_INDEX &&
+    activeMoleForHintPlacement
+  );
+  const rightmostIncorrectHintPlacement = shouldUseRightmostIncorrectHintOverride
+    ? resolveRightmostIncorrectHintPlacement({
+        viewportWidth: hintViewportWidth,
+        viewportHeight: hintViewportHeight,
+        moleX: activeOverlayLayout?.moleRef.x ?? activeMoleForHintPlacement.x,
+        moleBottomY: activeOverlayLayout?.moleBodyRect.bottom ?? activeMoleForHintPlacement.y,
+      })
+    : null;
+  const resolvedIncorrectHintPlacement = rightmostIncorrectHintPlacement ?? resolvedIncorrectHintPlacementBase;
+  const incorrectHintLockKey = buildIncorrectHintLockKey(currentPedagogyHint, activeWordId, activeSlotIndex);
+  const currentIncorrectHintLock = lockedIncorrectHintPlacementRef.current;
+  if (!incorrectHintLockKey) {
+    if (currentIncorrectHintLock) {
+      lockedIncorrectHintPlacementRef.current = null;
+    }
+  } else if (resolvedIncorrectHintPlacement) {
+    if (!currentIncorrectHintLock || currentIncorrectHintLock.key !== incorrectHintLockKey) {
+      lockedIncorrectHintPlacementRef.current = {
+        key: incorrectHintLockKey,
+        placement: resolvedIncorrectHintPlacement,
+      };
+    }
+  }
+  const stableIncorrectHintPlacement = (
+    incorrectHintLockKey &&
+    lockedIncorrectHintPlacementRef.current?.key === incorrectHintLockKey
+  )
+    ? lockedIncorrectHintPlacementRef.current.placement
+    : resolvedIncorrectHintPlacement;
+  const hasIncorrectHintPlacement = Boolean(stableIncorrectHintPlacement);
+  const hintPlacementMode = resolveHintPlacementMode({
+    hasIncorrectPlacement: hasIncorrectHintPlacement,
+    hasBaoziLinkedPlacement: hasBaoziLinkedHintPlacement,
+  });
   const rootStyle = {
     '--ui-dock-height': `${dockLayout.dockHeightPx}px`,
     '--ui-dock-safe-bottom': `${dockLayout.safeBottomPx}px`,
   } as CSSProperties;
-  const pedagogyHintStyle = isLinkedBaoziHint
-    ? ({
-        '--hint-anchor-x': `${Math.round(comboPopupState?.linkedHintX ?? 0)}px`,
-        '--hint-anchor-top': `${Math.round(comboPopupState?.linkedHintTop ?? 0)}px`,
-      } as CSSProperties)
-    : fallbackBaoziHintPlacement
-      ? ({
+  const pedagogyHintStyle = (() => {
+    if (hintPlacementMode === 'incorrect_right_lane' && stableIncorrectHintPlacement) {
+      return {
+        '--hint-left': `${Math.round(stableIncorrectHintPlacement.hintLeft)}px`,
+        '--hint-top': `${Math.round(stableIncorrectHintPlacement.hintTop)}px`,
+        '--hint-width': `${Math.max(0, Math.round(stableIncorrectHintPlacement.hintWidth))}px`,
+      } as CSSProperties;
+    }
+
+    if (hintPlacementMode === 'baozi_linked') {
+      if (isLinkedBaoziHint) {
+        return {
+          '--hint-anchor-x': `${Math.round(comboPopupState?.linkedHintX ?? 0)}px`,
+          '--hint-anchor-top': `${Math.round(comboPopupState?.linkedHintTop ?? 0)}px`,
+        } as CSSProperties;
+      }
+      if (fallbackBaoziHintPlacement) {
+        return {
           '--hint-anchor-x': `${Math.round(fallbackBaoziHintPlacement.hintAnchorX)}px`,
           '--hint-anchor-top': `${Math.round(fallbackBaoziHintPlacement.hintTop)}px`,
-        } as CSSProperties)
-    : gameState?.activeMole
-      ? ({
-          '--hint-anchor-x': `${Math.round(gameState.activeMole.x)}px`,
-          '--hint-anchor-y': `${Math.round(gameState.activeMole.y)}px`,
-        } as CSSProperties)
-      : undefined;
+        } as CSSProperties;
+      }
+      return undefined;
+    }
+
+    if (gameState?.activeMole) {
+      return {
+        '--hint-anchor-x': `${Math.round(gameState.activeMole.x)}px`,
+        '--hint-anchor-y': `${Math.round(gameState.activeMole.y)}px`,
+      } as CSSProperties;
+    }
+    return undefined;
+  })();
+  const pedagogyHintClassName = buildPedagogyHintClassName(hintPlacementMode);
   const isMicStartScreen = !hasRoundStarted && micState !== 'listening';
   const showPauseButton = hasRoundStarted && micState === 'listening';
   const isGamePaused = Boolean(gameState?.isPaused);
@@ -602,13 +857,13 @@ export function GameScreen({
         </div>
 
         <div
-          className={`hint-overlay hint-overlay--pedagogy${hasBaoziLinkedHintAnchor ? ' hint-overlay--linked' : ''}`}
+          className={pedagogyHintClassName}
           style={pedagogyHintStyle}
         >
-          {!gameState?.isEvaluating && gameState?.activeMole && gameState?.lastHint ? (
+          {currentPedagogyHint ? (
             <PedagogyHint
-              key={`${gameState.lastHint.code}-${gameState.lastHint.text}-${gameState.lastHint.transcriptPinyin ?? ''}-${Math.round(gameState.lastHint.confidence * 100)}`}
-              hint={gameState.lastHint}
+              key={`${currentPedagogyHint.code}-${currentPedagogyHint.text}-${currentPedagogyHint.transcriptPinyin ?? ''}-${Math.round(currentPedagogyHint.confidence * 100)}`}
+              hint={currentPedagogyHint}
             />
           ) : null}
         </div>

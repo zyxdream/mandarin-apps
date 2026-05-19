@@ -4,6 +4,7 @@ import type { OverlayRect } from '../src/engine/overlayPlacement.js';
 import {
   resolveBaoziLinkedHintTop,
   resolveBaoziRewardX,
+  resolveIncorrectHintPlacement,
   resolveLegacyBaoziAnchorWithBoardGuard,
 } from '../src/engine/overlayPlacement.js';
 
@@ -167,4 +168,75 @@ test('baozi reward x respects viewport bounds when mole is near left edge', () =
   });
 
   assert.equal(resolvedX, 92);
+});
+
+test('incorrect hint prefers right-above when right lane is available', () => {
+  const boardKeepoutRect = makeRect(390, 170, 220, 110);
+  const moleBodyRect = makeRect(430, 250, 150, 140);
+  const sideGapPx = 24;
+  const placement = resolveIncorrectHintPlacement({
+    viewportWidth: 1280,
+    viewportHeight: 720,
+    boardKeepoutRect,
+    moleBodyRect,
+    hintSize: { width: 340, height: 84 },
+    sideGapPx,
+  });
+
+  assert.equal(placement.strategy, 'right_above');
+  assert.ok(placement.hintLeft >= boardKeepoutRect.right + sideGapPx);
+  assert.ok(placement.hintWidth > 0);
+  assert.ok(placement.hintTop < boardKeepoutRect.centerY - 42);
+});
+
+test('incorrect hint near right edge stays right and shrinks width instead of side flipping', () => {
+  const boardKeepoutRect = makeRect(1010, 170, 250, 120);
+  const moleBodyRect = makeRect(1040, 250, 170, 140);
+  const sideGapPx = 24;
+  const placement = resolveIncorrectHintPlacement({
+    viewportWidth: 1280,
+    viewportHeight: 720,
+    boardKeepoutRect,
+    moleBodyRect,
+    hintSize: { width: 360, height: 84 },
+    sideGapPx,
+  });
+
+  assert.ok(placement.strategy.startsWith('right_') || placement.strategy === 'fallback');
+  assert.equal(placement.hintLeft, boardKeepoutRect.right + sideGapPx);
+  assert.ok(placement.hintWidth <= 22);
+});
+
+test('incorrect hint for centered mole chooses right-side lane with non-overlap placement', () => {
+  const boardKeepoutRect = makeRect(470, 190, 220, 120);
+  const moleBodyRect = makeRect(520, 270, 170, 150);
+  const sideGapPx = 24;
+  const placement = resolveIncorrectHintPlacement({
+    viewportWidth: 1366,
+    viewportHeight: 768,
+    boardKeepoutRect,
+    moleBodyRect,
+    hintSize: { width: 380, height: 84 },
+    sideGapPx,
+  });
+
+  assert.ok(placement.strategy.startsWith('right_'));
+  assert.ok(placement.hintLeft >= boardKeepoutRect.right + sideGapPx);
+  assert.ok(placement.hintWidth > 0);
+});
+
+test('incorrect hint left anchor always stays to the right of board keepout', () => {
+  const boardKeepoutRect = makeRect(860, 170, 210, 120);
+  const moleBodyRect = makeRect(900, 252, 170, 140);
+  const sideGapPx = 24;
+  const placement = resolveIncorrectHintPlacement({
+    viewportWidth: 1280,
+    viewportHeight: 720,
+    boardKeepoutRect,
+    moleBodyRect,
+    hintSize: { width: 420, height: 84 },
+    sideGapPx,
+  });
+
+  assert.ok(placement.hintLeft >= boardKeepoutRect.right + sideGapPx);
 });

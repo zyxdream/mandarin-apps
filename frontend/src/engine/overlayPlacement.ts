@@ -83,12 +83,39 @@ export interface ResolveBaoziRewardXInput {
   leftOfMoleGapPx: number;
 }
 
+export type IncorrectHintPlacementStrategy =
+  | 'right_above'
+  | 'right_center'
+  | 'right_below'
+  | 'fallback';
+
+export interface ResolveIncorrectHintPlacementInput {
+  viewportWidth: number;
+  viewportHeight: number;
+  boardKeepoutRect: OverlayRect;
+  moleBodyRect: OverlayRect;
+  hintSize: OverlaySize;
+  safeMarginPx?: number;
+  sideGapPx?: number;
+  verticalStepPx?: number;
+  minHintWidthPx?: number;
+}
+
+export interface ResolveIncorrectHintPlacementResult {
+  strategy: IncorrectHintPlacementStrategy;
+  hintLeft: number;
+  hintTop: number;
+  hintWidth: number;
+}
+
 const DEFAULT_SAFE_MARGIN_PX = 16;
 const DEFAULT_KEEPOUT_GAP_PX = 16;
 const DEFAULT_STACK_GAP_PX = 14;
 const DEFAULT_SIDE_GAP_PX = 24;
 const DEFAULT_BOARD_OVERLAP_GAP_PX = 10;
 const DEFAULT_BAOZI_HINT_MOLE_CLEARANCE_PX = 6;
+const DEFAULT_INCORRECT_HINT_MIN_WIDTH_PX = 132;
+const DEFAULT_INCORRECT_HINT_VERTICAL_STEP_PX = 22;
 
 interface Candidate {
   strategy: 'top_center' | 'side_left' | 'side_right';
@@ -108,6 +135,20 @@ interface CandidateEvaluation {
   candidate: Candidate;
   placement: UnitPlacement;
   valid: boolean;
+  score: number;
+}
+
+interface IncorrectHintCandidate {
+  strategy: Exclude<IncorrectHintPlacementStrategy, 'fallback'>;
+  verticalRank: 0 | 1 | 2;
+}
+
+interface IncorrectHintCandidateEvaluation {
+  candidate: IncorrectHintCandidate;
+  left: number;
+  top: number;
+  width: number;
+  noMoleOverlap: boolean;
   score: number;
 }
 
@@ -295,6 +336,119 @@ export function resolveBaoziRewardX(input: ResolveBaoziRewardXInput): number {
   const baseX = clamp(input.hitX, input.minX, input.maxX);
   const leftOfMoleMaxX = clamp(input.moleX - input.leftOfMoleGapPx, input.minX, input.maxX);
   return clamp(baseX + input.rightShiftPx, input.minX, leftOfMoleMaxX);
+}
+
+function rankForStrategy(strategy: IncorrectHintPlacementStrategy): number {
+  if (strategy.endsWith('_above')) return 0;
+  if (strategy.endsWith('_center')) return 1;
+  return 2;
+}
+
+function placeIncorrectHintCandidate(
+  candidate: IncorrectHintCandidate,
+  input: ResolveIncorrectHintPlacementInput,
+  safeMarginPx: number,
+  sideGapPx: number,
+  verticalStepPx: number,
+  minHintWidthPx: number,
+): IncorrectHintCandidateEvaluation {
+  const safeRight = input.viewportWidth - safeMarginPx;
+  const laneLeft = input.boardKeepoutRect.right + sideGapPx;
+  const availableRightLane = Math.max(0, safeRight - laneLeft);
+  const preferredWidth = Math.max(0, input.hintSize.width);
+  const minReadableWidth = Math.min(minHintWidthPx, availableRightLane);
+  const width = availableRightLane <= 0
+    ? 0
+    : clamp(preferredWidth, minReadableWidth, availableRightLane);
+  const centerTop = input.boardKeepoutRect.centerY - input.hintSize.height / 2;
+  const desiredTop = centerTop + (
+    candidate.verticalRank === 0
+      ? -verticalStepPx
+      : candidate.verticalRank === 2
+        ? verticalStepPx
+        : 0
+  );
+  const top = clamp(
+    desiredTop,
+    safeMarginPx,
+    Math.max(safeMarginPx, input.viewportHeight - safeMarginPx - input.hintSize.height),
+  );
+
+  const left = laneLeft;
+  const right = left + width;
+  const rect = rectFromEdges(left, top, right, top + input.hintSize.height);
+  const moleOverlap = overlapArea(rect, input.moleBodyRect);
+  const noMoleOverlap = moleOverlap === 0;
+  const verticalPenalty = candidate.verticalRank * 8;
+  const shrinkPenalty = Math.max(0, preferredWidth - width) * 0.36;
+  const zeroWidthPenalty = width <= 0 ? 1_000_000 : 0;
+  const molePenalty = moleOverlap * 12;
+  const score = zeroWidthPenalty + molePenalty + verticalPenalty + shrinkPenalty;
+
+  return {
+    candidate,
+    left,
+    top,
+    width,
+    noMoleOverlap,
+    score,
+  };
+}
+
+export function resolveIncorrectHintPlacement(
+  input: ResolveIncorrectHintPlacementInput,
+): ResolveIncorrectHintPlacementResult {
+  const safeMarginPx = input.safeMarginPx ?? DEFAULT_SAFE_MARGIN_PX;
+  const sideGapPx = input.sideGapPx ?? DEFAULT_SIDE_GAP_PX;
+  const verticalStepPx = input.verticalStepPx ?? DEFAULT_INCORRECT_HINT_VERTICAL_STEP_PX;
+  const minHintWidthPx = input.minHintWidthPx ?? DEFAULT_INCORRECT_HINT_MIN_WIDTH_PX;
+
+  const candidates: IncorrectHintCandidate[] = [
+    { strategy: 'right_above', verticalRank: 0 },
+    { strategy: 'right_center', verticalRank: 1 },
+    { strategy: 'right_below', verticalRank: 2 },
+  ];
+
+  const evaluated = candidates.map(candidate => placeIncorrectHintCandidate(
+    candidate,
+    input,
+    safeMarginPx,
+    sideGapPx,
+    verticalStepPx,
+    minHintWidthPx,
+  ));
+
+  const chooseBest = (pool: IncorrectHintCandidateEvaluation[]): IncorrectHintCandidateEvaluation | null => {
+    if (pool.length === 0) return null;
+    return [...pool].sort((a, b) => {
+      if (a.noMoleOverlap !== b.noMoleOverlap) return a.noMoleOverlap ? -1 : 1;
+      if (a.score !== b.score) return a.score - b.score;
+      return rankForStrategy(a.candidate.strategy) - rankForStrategy(b.candidate.strategy);
+    })[0] ?? null;
+  };
+
+  const bestRight = chooseBest(evaluated);
+  if (bestRight) {
+    return {
+      strategy: bestRight.candidate.strategy,
+      hintLeft: Math.round(bestRight.left),
+      hintTop: bestRight.top,
+      hintWidth: Math.round(bestRight.width),
+    };
+  }
+
+  const fallbackLeft = Math.round(input.boardKeepoutRect.right + sideGapPx);
+  const fallbackWidth = Math.max(0, Math.round(input.viewportWidth - safeMarginPx - fallbackLeft));
+  return {
+    strategy: 'fallback',
+    hintLeft: fallbackLeft,
+    hintTop: Math.round(clamp(
+      input.boardKeepoutRect.centerY - input.hintSize.height / 2,
+      safeMarginPx,
+      Math.max(safeMarginPx, input.viewportHeight - safeMarginPx - input.hintSize.height),
+    )),
+    hintWidth: fallbackWidth,
+  };
 }
 
 export function resolveRewardHintPlacement(

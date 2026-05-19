@@ -67,6 +67,28 @@
   transform: translate(-50%, 0);
 }
 
+.hint-overlay--pedagogy.hint-overlay--incorrect {
+  left: var(--hint-left, 1rem);
+  top: clamp(5rem, var(--hint-top, 56vh), calc(100dvh - 5.6rem));
+  transform: translateY(0);
+  width: auto;
+  max-width: min(var(--hint-width, 320px), calc(100vw - 1rem));
+  justify-content: flex-start;
+}
+
+.hint-overlay--pedagogy.hint-overlay--incorrect .pronunciation-hint {
+  width: fit-content;
+  min-width: min(12rem, 100%);
+  max-width: 100%;
+  border-radius: 24px;
+}
+
+.hint-overlay--pedagogy.hint-overlay--incorrect .pronunciation-hint-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .hint-overlay--evaluating {
   left: 50%;
   bottom: calc(var(--ui-dock-height) + 0.35rem + env(safe-area-inset-bottom));
@@ -2497,6 +2519,10 @@
 
   .hint-overlay--pedagogy.hint-overlay--linked {
     top: clamp(5.1rem, var(--hint-anchor-top, 56vh), calc(100dvh - 4.4rem));
+  }
+
+  .hint-overlay--pedagogy.hint-overlay--incorrect {
+    top: clamp(4.9rem, var(--hint-top, 56vh), calc(100dvh - 4.7rem));
   }
 
   .food-picker-options {

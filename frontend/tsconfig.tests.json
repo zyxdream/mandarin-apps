@@ -13,6 +13,8 @@
     "src/engine/sceneProjection.ts",
     "src/engine/moleAttachment.ts",
     "src/engine/molePlacementProfile.ts",
+    "src/engine/hintTextFormat.ts",
+    "src/engine/hintPlacementMode.ts",
     "tests/**/*.test.ts"
   ]
 }
