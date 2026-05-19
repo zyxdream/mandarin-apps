@@ -1,5 +1,5 @@
 import { Application, useApplication, useTick } from '@pixi/react';
-import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { Assets, ColorMatrixFilter, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GameState } from '../types/game';
 import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
@@ -21,10 +21,12 @@ interface CelebrationScreenProps {
 interface CelebrationCanvasProps {
   selectedFood: RewardFood;
   foodUnits: number;
+  accuracyRate: number;
 }
 
 interface FoodDropState {
   sprite: Sprite;
+  isBehind: boolean;
   slotIndex: number;
   startX: number;
   startY: number;
@@ -38,6 +40,8 @@ interface FoodDropState {
   bounce: number;
   flipPhase: number;
   landedRotation: number;
+  depthScale: number;
+  alphaMax: number;
 }
 
 interface SparkleState {
@@ -52,18 +56,41 @@ interface SparkleState {
   spin: number;
 }
 
-const CELEBRATION_MS = 10_000;
+const CELEBRATION_FALLBACK_MS = 7_000;
+const VICTORY_CHIME_AUDIO = '/audio/sound_effects/victory-chime-trimmed.mov';
 const BACKGROUND_TEXTURE = '/assets/backgrounds/grass_world_with_holes_expand.v2.webp';
 const SPARKLE_TEXTURE = '/assets/effects/sparkle.v2.webp';
 const MOLE_SHADOW_ALPHA = 0.18;
 const RIM_SHADOW_ALPHA = 0.46;
 const RIM_HIGHLIGHT_ALPHA = 0.2;
 const GLOBAL_FEASTING_LEFT_NUDGE_PX = 3;
-const MAX_FOOD_DROPS = 150;
-const MAX_SPARKLES = 44;
-const CONFETTI_COUNT = 72;
+const MAX_FOOD_DROPS = 56;
+const MAX_SPARKLES = 32;
+const CONFETTI_COUNT = 140;
 const PARTY_BURST_FRAMES = 210;
-const PARTY_SECOND_BURST_DELAY = 72;
+const PARTY_SECOND_BURST_DELAY = 56;
+const FOOD_DROP_MIN_COUNT = 6;
+const FOOD_DROP_BASE_COUNT = 8;
+const FOOD_DROP_COUNT_PER_UNIT = 0.42;
+const FOOD_DROP_ACCURACY_FACTOR_BASE = 0.55;
+const FOOD_DROP_ACCURACY_FACTOR_GAIN = 0.65;
+const FOOD_BEHIND_RATIO = 0.3;
+const FOOD_DROP_MIN_SIZE_PX = 42;
+const FOOD_DROP_SIZE_BASE_RATIO = 0.98;
+const FOOD_DROP_SIZE_VARIANCE_RATIO = 0.28;
+const FOOD_DROP_SPIN_RANGE = 2.2;
+const FOOD_DROP_LANDED_ROTATION_RANGE = 0.34;
+const FOOD_DROP_FAKE_DEPTH_X_SWAY = 0.09;
+const FOOD_DROP_FAKE_DEPTH_Y_SWAY = 0.05;
+const FOOD_DROP_LANDING_SQUASH = 0.09;
+const FOOD_DROP_LANDED_FLATTEN = 0.94;
+const FOOD_DROP_BACK_DEPTH_MIN_SCALE = 0.78;
+const FOOD_DROP_BACK_DEPTH_MAX_SCALE = 0.88;
+const FOOD_DROP_FRONT_DEPTH_MIN_SCALE = 1.0;
+const FOOD_DROP_FRONT_DEPTH_MAX_SCALE = 1.1;
+const FOOD_DROP_BACK_ALPHA = 0.78;
+const FOOD_DROP_FRONT_ALPHA_MIN = 0.92;
+const FOOD_DROP_FRONT_ALPHA_MAX = 1.0;
 const WIGGLE_FLOWERS = [
   { x: 0.47, y: 0.55, size: 10, petal: 0xffb6d5, center: 0xffe066, phase: 0.2 },
   { x: 0.53, y: 0.52, size: 8, petal: 0xffd2e4, center: 0xffb347, phase: 1.1 },
@@ -80,6 +107,15 @@ function seededValue(seed: number) {
 
 function easeOutCubic(value: number) {
   return 1 - Math.pow(1 - value, 3);
+}
+
+function createFoodJuiceFilter(): ColorMatrixFilter {
+  const filter = new ColorMatrixFilter();
+  // Mild global lift for a richer, juicier look without over-stylizing.
+  filter.saturate(0.12, false);
+  filter.brightness(1.06, true);
+  filter.contrast(0.56, true);
+  return filter;
 }
 
 function drawStar(layer: Graphics, x: number, y: number, outerRadius: number, innerRadius: number, points: number, rotation: number) {
@@ -122,13 +158,13 @@ function drawPartyBurst(
   seedOffset: number,
   strength: number,
 ) {
-  const colors = [0xffe066, 0xff6b6b, 0x68d8ff, 0x9cff6e, 0xff9f1c, 0xffc2e2];
+  const colors = [0xffd400, 0xff2d55, 0x00d46a, 0x00b8ff, 0x8f4bff, 0xff7a00];
   const elapsed = frame - startFrame;
   if (elapsed < 0 || elapsed > PARTY_BURST_FRAMES) return;
 
   const burstProgress = Math.min(1, elapsed / PARTY_BURST_FRAMES);
   const live = Math.max(0, 1 - burstProgress);
-  const pieceCount = Math.round(34 * strength);
+  const pieceCount = Math.round(49 * strength);
 
   for (let i = 0; i < pieceCount; i += 1) {
     const seed = seedOffset + i;
@@ -140,13 +176,13 @@ function drawPartyBurst(
     const gravity = Math.pow(localProgress, 2) * height * 0.16;
     const y = originY + Math.sin(Math.abs(angle)) * distance - localProgress * height * 0.18 + gravity;
     const color = colors[i % colors.length];
-    const alpha = live * (0.54 + seededValue(seed + 31) * 0.4);
+    const alpha = Math.min(1, live * (0.66 + seededValue(seed + 31) * 0.5));
     const rotation = localProgress * (2.2 + seededValue(seed + 41) * 4.8) * direction;
-    const size = 5 + seededValue(seed + 23) * 13;
+    const size = 7 + seededValue(seed + 23) * 17;
 
     switch (i % 5) {
       case 0:
-        layer.rect(x, y, size * 2.1, size * 0.34);
+        layer.rect(x, y, size * 2.85, size * 0.46);
         layer.fill({ color, alpha });
         break;
       case 1:
@@ -164,23 +200,23 @@ function drawPartyBurst(
       default:
         layer.moveTo(x, y);
         layer.quadraticCurveTo(
-          x + direction * size * (1.4 + seededValue(seed + 53)),
-          y - size * (1.8 + seededValue(seed + 59)),
-          x + direction * size * (3 + seededValue(seed + 61)),
-          y + size * (0.2 + seededValue(seed + 67)),
+          x + direction * size * (2.15 + seededValue(seed + 53) * 1.2),
+          y - size * (2.6 + seededValue(seed + 59) * 1.2),
+          x + direction * size * (4.4 + seededValue(seed + 61) * 1.25),
+          y + size * (0.58 + seededValue(seed + 67) * 0.8),
         );
-        layer.stroke({ color, alpha, width: Math.max(1.2, size * 0.22) });
+        layer.stroke({ color, alpha, width: Math.max(2.2, size * 0.32) });
         break;
     }
   }
 
-  layer.circle(originX, originY, 18 + Math.sin(frame * 0.16) * 2);
+  layer.circle(originX, originY, 22 + Math.sin(frame * 0.16) * 2.4);
   layer.fill({ color: 0x6b3415, alpha: 0.78 });
-  layer.circle(originX + direction * 14, originY - 8, 9);
+  layer.circle(originX + direction * 14, originY - 8, 11);
   layer.fill({ color: 0xffe066, alpha: 0.9 });
 }
 
-function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) {
+function CelebrationCanvas({ selectedFood, foodUnits, accuracyRate }: CelebrationCanvasProps) {
   const { app } = useApplication();
   const food = getRewardFoodOption(selectedFood);
   const backgroundRef = useRef<Sprite | null>(null);
@@ -192,7 +228,8 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
   const partyLayerRef = useRef<Graphics | null>(null);
   const confettiLayerRef = useRef<Graphics | null>(null);
   const moleLayerRef = useRef<Container | null>(null);
-  const foodLayerRef = useRef<Container | null>(null);
+  const foodBackLayerRef = useRef<Container | null>(null);
+  const foodFrontLayerRef = useRef<Container | null>(null);
   const sparkleLayerRef = useRef<Container | null>(null);
   const moleSpritesRef = useRef<Sprite[]>([]);
   const foodDropsRef = useRef<FoodDropState[]>([]);
@@ -217,9 +254,10 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       const glowLayer = new Graphics();
       const shadowLayer = new Graphics();
       const rimLayer = new Graphics();
+      const foodBackLayer = new Container();
       const moleLayer = new Container();
       const highlightLayer = new Graphics();
-      const foodLayer = new Container();
+      const foodFrontLayer = new Container();
       const sparkleLayer = new Container();
       const partyLayer = new Graphics();
       const confettiLayer = new Graphics();
@@ -229,14 +267,17 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
         flowerLayer,
         glowLayer,
         shadowLayer,
+        foodBackLayer,
+        sparkleLayer,
         moleLayer,
         highlightLayer,
         rimLayer,
-        foodLayer,
-        sparkleLayer,
+        foodFrontLayer,
         partyLayer,
         confettiLayer,
       );
+      foodBackLayer.filters = [createFoodJuiceFilter()];
+      foodFrontLayer.filters = [createFoodJuiceFilter()];
       backgroundRef.current = background;
       flowerLayerRef.current = flowerLayer;
       glowLayerRef.current = glowLayer;
@@ -244,7 +285,8 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       rimLayerRef.current = rimLayer;
       moleLayerRef.current = moleLayer;
       highlightLayerRef.current = highlightLayer;
-      foodLayerRef.current = foodLayer;
+      foodBackLayerRef.current = foodBackLayer;
+      foodFrontLayerRef.current = foodFrontLayer;
       sparkleLayerRef.current = sparkleLayer;
       partyLayerRef.current = partyLayer;
       confettiLayerRef.current = confettiLayer;
@@ -266,7 +308,8 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       rimLayerRef.current = null;
       highlightLayerRef.current = null;
       moleLayerRef.current = null;
-      foodLayerRef.current = null;
+      foodBackLayerRef.current = null;
+      foodFrontLayerRef.current = null;
       sparkleLayerRef.current = null;
       partyLayerRef.current = null;
       confettiLayerRef.current = null;
@@ -283,7 +326,8 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
     const partyLayer = partyLayerRef.current;
     const confettiLayer = confettiLayerRef.current;
     const moleLayer = moleLayerRef.current;
-    const foodLayer = foodLayerRef.current;
+    const foodBackLayer = foodBackLayerRef.current;
+    const foodFrontLayer = foodFrontLayerRef.current;
     const sparkleLayer = sparkleLayerRef.current;
     if (
       !background ||
@@ -295,7 +339,8 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       !partyLayer ||
       !confettiLayer ||
       !moleLayer ||
-      !foodLayer ||
+      !foodBackLayer ||
+      !foodFrontLayer ||
       !sparkleLayer
     ) return;
 
@@ -311,7 +356,8 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       background.width = renderRect.width;
       background.height = renderRect.height;
       moleLayer.removeChildren().forEach(child => child.destroy());
-      foodLayer.removeChildren().forEach(child => child.destroy());
+      foodBackLayer.removeChildren().forEach(child => child.destroy());
+      foodFrontLayer.removeChildren().forEach(child => child.destroy());
       sparkleLayer.removeChildren().forEach(child => child.destroy());
       moleSpritesRef.current = [];
       foodDropsRef.current = [];
@@ -331,23 +377,48 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
     }
 
     if (foodDropsRef.current.length === 0 && slots.length > 0) {
-      const count = Math.min(MAX_FOOD_DROPS, Math.max(foodUnits > 0 ? 36 : 14, Math.round(foodUnits * 1.7)));
+      const baseCount = FOOD_DROP_BASE_COUNT + foodUnits * FOOD_DROP_COUNT_PER_UNIT;
+      const accuracyFactor = FOOD_DROP_ACCURACY_FACTOR_BASE + accuracyRate * FOOD_DROP_ACCURACY_FACTOR_GAIN;
+      const count = Math.min(
+        MAX_FOOD_DROPS,
+        Math.max(FOOD_DROP_MIN_COUNT, Math.round(baseCount * accuracyFactor)),
+      );
       foodDropsRef.current = Array.from({ length: count }, (_, index) => {
         const slot = slots[index % slots.length];
+        const behindSeed = seededValue(index + 29);
+        const isBehind = behindSeed < FOOD_BEHIND_RATIO;
+        const depthScale = isBehind
+          ? FOOD_DROP_BACK_DEPTH_MIN_SCALE + seededValue(index + 157) * (FOOD_DROP_BACK_DEPTH_MAX_SCALE - FOOD_DROP_BACK_DEPTH_MIN_SCALE)
+          : FOOD_DROP_FRONT_DEPTH_MIN_SCALE + seededValue(index + 163) * (FOOD_DROP_FRONT_DEPTH_MAX_SCALE - FOOD_DROP_FRONT_DEPTH_MIN_SCALE);
+        const alphaMax = isBehind
+          ? FOOD_DROP_BACK_ALPHA
+          : FOOD_DROP_FRONT_ALPHA_MIN + seededValue(index + 167) * (FOOD_DROP_FRONT_ALPHA_MAX - FOOD_DROP_FRONT_ALPHA_MIN);
         const sprite = new Sprite(Texture.from(food.baseImage));
         const openingWidth = Math.max(1, slot.darkRightX - slot.darkLeftX);
+        const openingHeight = Math.max(1, slot.darkFrontY - slot.darkBackY);
         const startX = width * (0.08 + seededValue(index + 31) * 0.84);
         const startY = -openingWidth * (1.6 + seededValue(index + 39) * 2.2);
         const endX = slot.darkCenterX + (seededValue(index + 47) - 0.5) * openingWidth * 1.95;
-        const endY = slot.darkFrontY + openingWidth * (0.52 + seededValue(index + 53) * 1.1);
-        const maxSize = openingWidth * (0.78 + seededValue(index + 67) * 0.3);
+        const endY = isBehind
+          ? slot.darkBackY + openingHeight * (0.62 + seededValue(index + 53) * 0.8)
+          : slot.darkFrontY + openingWidth * (0.52 + seededValue(index + 53) * 1.1);
+        const maxSize = Math.max(
+          FOOD_DROP_MIN_SIZE_PX,
+          openingWidth * (FOOD_DROP_SIZE_BASE_RATIO + seededValue(index + 67) * FOOD_DROP_SIZE_VARIANCE_RATIO),
+        ) * depthScale;
         const textureMax = Math.max(sprite.texture.width || 1, sprite.texture.height || 1);
         sprite.anchor.set(0.5);
+        sprite.roundPixels = true;
         sprite.scale.set(maxSize / textureMax);
         sprite.alpha = 0;
-        foodLayer.addChild(sprite);
+        if (isBehind) {
+          foodBackLayer.addChild(sprite);
+        } else {
+          foodFrontLayer.addChild(sprite);
+        }
         return {
           sprite,
+          isBehind,
           slotIndex: index % slots.length,
           startX,
           startY,
@@ -356,22 +427,25 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
           delay: index * 3.2 + seededValue(index + 73) * 165,
           duration: 215 + seededValue(index + 89) * 165,
           baseScale: maxSize / textureMax,
-          settleScale: 0.92 + seededValue(index + 97) * 0.24,
-          spin: (seededValue(index + 107) - 0.5) * 3.6,
+          settleScale: 0.98 + seededValue(index + 97) * 0.2,
+          spin: (seededValue(index + 107) - 0.5) * FOOD_DROP_SPIN_RANGE,
           bounce: 6 + seededValue(index + 113) * 13,
           flipPhase: seededValue(index + 127) * Math.PI * 2,
-          landedRotation: (seededValue(index + 131) - 0.5) * 0.45,
+          landedRotation: (seededValue(index + 131) - 0.5) * FOOD_DROP_LANDED_ROTATION_RANGE,
+          depthScale,
+          alphaMax,
         };
       });
     }
 
     if (sparklesRef.current.length === 0 && slots.length > 0) {
-      const count = Math.min(MAX_SPARKLES, Math.max(18, Math.round(foodUnits * 0.5)));
+      const count = Math.min(MAX_SPARKLES, Math.max(10, Math.round(foodUnits * 0.3)));
       sparklesRef.current = Array.from({ length: count }, (_, index) => {
         const slot = slots[index % slots.length];
         const sprite = new Sprite(Texture.from(SPARKLE_TEXTURE));
         const openingWidth = Math.max(1, slot.darkRightX - slot.darkLeftX);
-        const maxSize = openingWidth * (0.28 + seededValue(index + 211) * 0.18);
+        const openingHeight = Math.max(1, slot.darkFrontY - slot.darkBackY);
+        const maxSize = openingWidth * (0.18 + seededValue(index + 211) * 0.12);
         const textureMax = Math.max(sprite.texture.width || 1, sprite.texture.height || 1);
         sprite.anchor.set(0.5);
         sprite.alpha = 0;
@@ -380,12 +454,12 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
         return {
           sprite,
           slotIndex: index % slots.length,
-          offsetX: (seededValue(index + 223) - 0.5) * openingWidth * 2.15,
-          offsetY: -openingWidth * (0.45 + seededValue(index + 229) * 0.7),
+          offsetX: (seededValue(index + 223) - 0.5) * openingWidth * 1.4,
+          offsetY: -openingHeight * (0.18 + seededValue(index + 229) * 0.28),
           delay: 38 + seededValue(index + 233) * 420,
           duration: 55 + seededValue(index + 239) * 42,
           baseScale: maxSize / textureMax,
-          pulseScale: 0.7 + seededValue(index + 241) * 0.55,
+          pulseScale: 0.66 + seededValue(index + 241) * 0.36,
           spin: (seededValue(index + 251) - 0.5) * 1.8,
         };
       });
@@ -543,7 +617,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       const direction = side === 0 ? 1 : -1;
       const originX = side === 0 ? width * 0.08 : width * 0.92;
       const originY = height * 0.86;
-      drawPartyBurst(partyLayer, originX, originY, direction, frame, 0, height, side * 200, 1);
+      drawPartyBurst(partyLayer, originX, originY, direction, frame, 0, height, side * 200, 1.36);
       drawPartyBurst(
         partyLayer,
         originX + direction * width * 0.035,
@@ -553,53 +627,56 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
         PARTY_SECOND_BURST_DELAY,
         height,
         side * 200 + 100,
-        0.68,
+        0.96,
       );
     }
 
     for (let i = 0; i < CONFETTI_COUNT; i += 1) {
       const seed = i + 311;
       const drift = (frame * (0.35 + seededValue(seed) * 0.65) + seededValue(seed + 7) * height) % (height + 70);
-      const x = width * (0.08 + seededValue(seed + 11) * 0.84) + Math.sin(frame * 0.025 + i) * 18;
+      const x = width * (0.08 + seededValue(seed + 11) * 0.84) + Math.sin(frame * 0.025 + i) * 24;
       const y = drift - 35;
-      const size = 4 + seededValue(seed + 19) * 8;
+      const size = 5 + seededValue(seed + 19) * 12;
       const color = [0xffe066, 0xff8a5b, 0x78e08f, 0x8ec5ff, 0xffc2e2][i % 5];
       confettiLayer.rect(x, y, size, size * 0.42);
-      confettiLayer.fill({ color, alpha: 0.34 + seededValue(seed + 23) * 0.34 });
+      confettiLayer.fill({ color, alpha: 0.5 + seededValue(seed + 23) * 0.38 });
     }
 
     foodDropsRef.current.forEach((drop, index) => {
       const age = frame - drop.delay;
       const progress = Math.max(0, Math.min(1, age / drop.duration));
       const eased = easeOutCubic(progress);
-      const arc = Math.sin(progress * Math.PI) * -34;
+      const arc = Math.sin(progress * Math.PI) * -(drop.isBehind ? 24 : 34);
       const landing = progress >= 1 ? Math.min(1, (age - drop.duration) / 20) : 0;
       const groundProgress = Math.max(0, Math.min(1, (progress - 0.72) / 0.28));
       const flip = Math.cos(progress * Math.PI * 3.2 + drop.flipPhase);
-      const fakeDepthX = 1 + Math.abs(flip) * 0.16;
-      const fakeDepthY = 1 - Math.abs(flip) * 0.09;
+      const fakeDepthX = 1 + Math.abs(flip) * FOOD_DROP_FAKE_DEPTH_X_SWAY;
+      const fakeDepthY = 1 - Math.abs(flip) * FOOD_DROP_FAKE_DEPTH_Y_SWAY;
       drop.sprite.visible = age >= 0;
-      drop.sprite.alpha = progress <= 0 ? 0 : Math.min(1, progress * 4);
+      drop.sprite.alpha = progress <= 0 ? 0 : Math.min(drop.alphaMax, progress * 4 * drop.alphaMax);
       drop.sprite.x = drop.startX + (drop.endX - drop.startX) * eased;
       drop.sprite.y = drop.startY + (drop.endY - drop.startY) * eased + arc;
       if (progress >= 1) {
-        drop.sprite.y = drop.endY - Math.sin((age - drop.duration) * 0.16) * drop.bounce * Math.exp(-(age - drop.duration) * 0.045);
+        const bounceStrength = drop.isBehind ? drop.bounce * 0.56 : drop.bounce;
+        drop.sprite.y = drop.endY - Math.sin((age - drop.duration) * 0.16) * bounceStrength * Math.exp(-(age - drop.duration) * 0.045);
       }
       drop.sprite.rotation = progress >= 1
         ? drop.landedRotation
         : drop.spin * eased + index * 0.03;
-      const squash = 1 - Math.sin(landing * Math.PI) * 0.16;
-      const groundFlatten = progress >= 1 ? 0.88 : 1;
+      const squash = 1 - Math.sin(landing * Math.PI) * FOOD_DROP_LANDING_SQUASH;
+      const groundFlatten = progress >= 1
+        ? (drop.isBehind ? Math.max(FOOD_DROP_LANDED_FLATTEN, 0.97) : FOOD_DROP_LANDED_FLATTEN)
+        : 1;
       drop.sprite.scale.set(
         drop.baseScale * drop.settleScale * fakeDepthX / squash,
         drop.baseScale * drop.settleScale * fakeDepthY * squash * groundFlatten,
       );
 
       if (age >= 0 && progress > 0.62) {
-        const shadowWidth = 18 + drop.sprite.texture.width * drop.baseScale * drop.settleScale * (0.3 + groundProgress * 0.52);
-        const shadowHeight = 6 + drop.sprite.texture.height * drop.baseScale * drop.settleScale * (0.045 + groundProgress * 0.08);
+        const shadowWidth = 18 + drop.sprite.texture.width * drop.baseScale * drop.settleScale * (0.26 + groundProgress * 0.46);
+        const shadowHeight = 6 + drop.sprite.texture.height * drop.baseScale * drop.settleScale * (0.04 + groundProgress * 0.07);
         shadowLayer.ellipse(drop.endX, drop.endY + shadowHeight * 0.5, shadowWidth, shadowHeight);
-        shadowLayer.fill({ color: 0x120804, alpha: 0.06 + groundProgress * 0.16 });
+        shadowLayer.fill({ color: 0x120804, alpha: (drop.isBehind ? 0.03 : 0.06) + groundProgress * (drop.isBehind ? 0.08 : 0.16) });
       }
 
       if (landing > 0 && landing < 1) {
@@ -616,9 +693,12 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       const progress = loopAge / sparkle.duration;
       const pulse = Math.sin(progress * Math.PI);
       sparkle.sprite.visible = age >= 0;
-      sparkle.sprite.alpha = age < 0 ? 0 : pulse * 0.72;
+      sparkle.sprite.alpha = age < 0 ? 0 : Math.min(0.45, 0.05 + pulse * 0.38);
       sparkle.sprite.x = slot.darkCenterX + sparkle.offsetX + Math.sin(frame * 0.032 + index) * slot.openingWidth * 0.08;
-      sparkle.sprite.y = slot.darkBackY + sparkle.offsetY + Math.cos(frame * 0.04 + index) * slot.openingHeight * 0.32;
+      const sparkleY = slot.darkBackY + sparkle.offsetY + Math.cos(frame * 0.04 + index) * slot.openingHeight * 0.18;
+      const minSparkleY = slot.darkBackY - slot.openingHeight * 0.12;
+      const maxSparkleY = slot.darkFrontY + slot.openingHeight * 0.22;
+      sparkle.sprite.y = Math.max(minSparkleY, Math.min(maxSparkleY, sparkleY));
       sparkle.sprite.rotation += sparkle.spin * 0.035;
       const sparkleScale = sparkle.baseScale * sparkle.pulseScale * (0.75 + pulse * 0.42);
       sparkle.sprite.scale.set(sparkleScale);
@@ -631,17 +711,31 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
 export function CelebrationScreen({ finalState, selectedFood, onComplete }: CelebrationScreenProps) {
   const food = getRewardFoodOption(selectedFood);
   const foodUnits = foodUnitsForCorrectWords(finalState.wordsHit.length);
+  const attemptCount = finalState.wordsHit.length + finalState.wordsMissed.length;
+  const accuracyRate = attemptCount > 0 ? finalState.wordsHit.length / attemptCount : 0.5;
   const [resizeTarget, setResizeTarget] = useState<HTMLDivElement | null>(null);
   const handleCanvasRef = useCallback((node: HTMLDivElement | null) => {
     setResizeTarget(node);
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(onComplete, CELEBRATION_MS);
-    const chime = new Audio('/audio/sound_effects/victory-chime.mp3');
+    let hasCompleted = false;
+    const completeOnce = () => {
+      if (hasCompleted) return;
+      hasCompleted = true;
+      onComplete();
+    };
+
+    const timer = window.setTimeout(completeOnce, CELEBRATION_FALLBACK_MS);
+    const chime = new Audio(VICTORY_CHIME_AUDIO);
     chime.volume = 0.45;
     const laugh = new Audio('/audio/sound_effects/children-laughing-377305.mp3');
     laugh.volume = 0.28;
+    const handleChimeEnded = () => {
+      window.clearTimeout(timer);
+      completeOnce();
+    };
+    chime.addEventListener('ended', handleChimeEnded);
 
     const play = (element: HTMLAudioElement, label: string) => {
       void element.play().catch(error => {
@@ -659,6 +753,7 @@ export function CelebrationScreen({ finalState, selectedFood, onComplete }: Cele
 
     return () => {
       window.clearTimeout(timer);
+      chime.removeEventListener('ended', handleChimeEnded);
       stop(chime);
       stop(laugh);
     };
@@ -669,7 +764,7 @@ export function CelebrationScreen({ finalState, selectedFood, onComplete }: Cele
       <div className="celebration-canvas-host" ref={handleCanvasRef}>
         {resizeTarget && (
           <Application resizeTo={resizeTarget} backgroundAlpha={0} antialias>
-            <CelebrationCanvas selectedFood={selectedFood} foodUnits={foodUnits} />
+            <CelebrationCanvas selectedFood={selectedFood} foodUnits={foodUnits} accuracyRate={accuracyRate} />
           </Application>
         )}
       </div>

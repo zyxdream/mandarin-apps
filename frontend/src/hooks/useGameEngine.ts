@@ -10,6 +10,7 @@ interface LogicalSnapshot {
   screen: string;
   score: number;
   combo: number;
+  maxCombo: number;
   timeRemaining: number;
   isPaused: boolean;
   isEvaluating: boolean;
@@ -29,6 +30,7 @@ function extractLogical(state: GameState): LogicalSnapshot {
     screen: state.screen,
     score: state.score,
     combo: state.combo,
+    maxCombo: state.maxCombo,
     timeRemaining: state.timeRemaining,
     isPaused: state.isPaused,
     isEvaluating: state.isEvaluating,
@@ -50,6 +52,7 @@ function logicalChanged(a: LogicalSnapshot | null, b: LogicalSnapshot): boolean 
     a.screen !== b.screen ||
     a.score !== b.score ||
     a.combo !== b.combo ||
+    a.maxCombo !== b.maxCombo ||
     a.timeRemaining !== b.timeRemaining ||
     a.isPaused !== b.isPaused ||
     a.isEvaluating !== b.isEvaluating ||

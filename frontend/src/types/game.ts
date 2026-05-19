@@ -31,6 +31,7 @@ export interface GameState {
   activeMole: MoleState | null;
   score: number;
   combo: number;
+  maxCombo: number;
   timeRemaining: number;
   isPaused: boolean;
   wordsHit: Word[];

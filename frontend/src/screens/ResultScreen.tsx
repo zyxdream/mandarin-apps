@@ -28,11 +28,14 @@ export function ResultScreen({
   onNextGame,
   onBackToSessionSelect,
 }: ResultScreenProps) {
-  const { wordsHit, wordsMissed, combo } = finalState;
-  const total = wordsHit.length + wordsMissed.length;
-  const accuracy = total > 0 ? Math.round((wordsHit.length / total) * 100) : 0;
+  const { wordsHit, wordsMissed, maxCombo } = finalState;
+  const totalWords = wordsHit.length + wordsMissed.length;
+  const accuracyRate = totalWords > 0 ? wordsHit.length / totalWords : 0;
+  const earnedStars = totalWords > 0 && wordsHit.length === totalWords ? 3 : accuracyRate >= 0.3 ? 2 : 1;
   const food = getRewardFoodOption(selectedFood);
   const foodUnits = foodUnitsForCorrectWords(wordsHit.length);
+  const maxFoodUnits = foodUnitsForCorrectWords(totalWords);
+  const SCORE_STAR = '/assets/ui/score_star.v2.webp';
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playingWordId, setPlayingWordId] = useState<string | null>(null);
@@ -93,8 +96,24 @@ export function ResultScreen({
     <div className="result-screen">
       <div className="result-stack">
         <div className="result-content">
-          <h1 className="result-title">Round Over!</h1>
-          <div className="result-round-label">Finished: {scriptSession.title}</div>
+          <div className="result-star-header" aria-label={`${earnedStars} of 3 stars earned`}>
+            <div className="result-star-crown" aria-hidden="true">
+              {[0, 1, 2].map(index => {
+                const starNumber = index + 1;
+                const isEarned = starNumber <= earnedStars;
+                return (
+                  <img
+                    key={starNumber}
+                    className={`result-star${isEarned ? ' result-star--earned' : ' result-star--muted'}`}
+                    src={SCORE_STAR}
+                    alt=""
+                    style={isEarned ? { animationDelay: `${index * 0.22}s` } : undefined}
+                  />
+                );
+              })}
+            </div>
+            <div className="result-round-label">{scriptSession.title}</div>
+          </div>
 
           <div className="result-food-score">
             <img src={food.baseImage} alt="" />
@@ -108,18 +127,18 @@ export function ResultScreen({
               <span className="result-stat-label">Whacked</span>
             </div>
             <div className="result-stat">
-              <span className="result-stat-value">{accuracy}%</span>
-              <span className="result-stat-label">Accuracy</span>
+              <span className="result-stat-value result-stat-value--food">{`${foodUnits}/${maxFoodUnits}`}</span>
+              <span className="result-stat-label">Food earned</span>
             </div>
             <div className="result-stat">
-              <span className="result-stat-value result-stat-value--combo">{combo > 0 ? `x${combo}` : '—'}</span>
-              <span className="result-stat-label">Last Combo</span>
+              <span className="result-stat-value result-stat-value--combo">{maxCombo}</span>
+              <span className="result-stat-label">Best Streak</span>
             </div>
           </div>
 
           {wordsMissed.length > 0 && (
             <div className="result-missed">
-              <h3 className="result-missed-title">Words to practice:</h3>
+              <h3 className="result-missed-title">Words missed:</h3>
               <div className="result-missed-list">
                 {wordsMissed.map((word, index) => {
                   const isPlaying = playingWordId === word.id;
@@ -147,9 +166,12 @@ export function ResultScreen({
           )}
 
           <div className="result-navigation">
-            <button className="result-nav-button" onClick={() => handleNavigate(onPreviousGame)}>
+            <button
+              className="result-nav-button result-nav-button--previous"
+              onClick={() => handleNavigate(onPreviousGame)}
+            >
               <span>Previous Game</span>
-              <small>Previous: {previousScriptSession.title}</small>
+              <small>Previous game: {previousScriptSession.title}</small>
             </button>
             <button className="result-nav-button result-nav-button--primary" onClick={() => handleNavigate(onReplay)}>
               <span>Replay</span>

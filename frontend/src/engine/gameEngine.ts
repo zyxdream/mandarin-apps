@@ -334,6 +334,7 @@ export class GameEngine {
       activeMole: { ...this.state.activeMole, animState: 'hit', reaction: 'dizzy', strikeId: ++this.strikeId },
       score: this.state.score + earned,
       combo: newCombo,
+      maxCombo: Math.max(this.state.maxCombo, newCombo),
       wordsHit: [...this.state.wordsHit, word],
       consecutiveMissCount: 0,
     });
@@ -486,6 +487,7 @@ export class GameEngine {
       activeMole: null,
       score: 0,
       combo: 0,
+      maxCombo: 0,
       timeRemaining: initialRoundSeconds,
       isPaused: false,
       wordsHit: [],
