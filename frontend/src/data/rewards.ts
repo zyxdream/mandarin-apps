@@ -14,7 +14,7 @@ export interface RewardFoodOption {
   stackPopupImage: string;
 }
 
-export const FOOD_UNITS_PER_WORD = 5;
+export const FOOD_UNITS_PER_WORD = 10;
 
 export const REWARD_FOODS: RewardFoodOption[] = [
   {
@@ -50,7 +50,7 @@ export const REWARD_FOODS: RewardFoodOption[] = [
     label: 'Baozi',
     shortLabel: 'Baozi',
     baseImage: '/assets/rewards/baozi.v2.webp',
-    stackPopupImage: '/assets/rewards/baozi_x5.v2.webp',
+    stackPopupImage: '/assets/rewards/baozi_x10.v2.webp',
   },
   {
     id: 'mooncake',
