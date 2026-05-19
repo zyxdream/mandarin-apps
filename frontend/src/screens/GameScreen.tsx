@@ -53,6 +53,16 @@ const RIGHTMOST_MOLE_SLOT_INDEX = 5;
 const RIGHTMOST_HINT_MIN_WIDTH_PX = 240;
 const RIGHTMOST_HINT_MAX_WIDTH_PX = 360;
 const RIGHTMOST_HINT_TOP_GAP_PX = 12;
+const STACK_REWARD_SOURCE_WIDTH_PX = 1536;
+const STACK_REWARD_FOODS: RewardFood[] = ['apple', 'berry', 'tree_nut', 'strawberry', 'baozi', 'mooncake'];
+const STACK_REWARD_FOOD_SET = new Set<RewardFood>(STACK_REWARD_FOODS);
+const STACK_REWARD_X_OFFSET_RATIO_BY_FOOD: Partial<Record<RewardFood, number>> = {
+  apple: 89 / STACK_REWARD_SOURCE_WIDTH_PX,
+  berry: 89 / STACK_REWARD_SOURCE_WIDTH_PX,
+  tree_nut: 123 / STACK_REWARD_SOURCE_WIDTH_PX,
+  strawberry: 125 / STACK_REWARD_SOURCE_WIDTH_PX,
+  mooncake: 124.5 / STACK_REWARD_SOURCE_WIDTH_PX,
+};
 
 interface RewardComboPopupState {
   triggerId: number;
@@ -83,6 +93,10 @@ function clampToRange(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   if (max < min) return (min + max) / 2;
   return Math.min(max, Math.max(min, value));
+}
+
+function isStackRewardFood(food: RewardFood): boolean {
+  return STACK_REWARD_FOOD_SET.has(food);
 }
 
 function estimatePedagogyHintSize(viewportWidth: number): { width: number; height: number } {
@@ -208,6 +222,7 @@ function resolveBaoziUnitPlacement({
   moleX,
   moleY,
   activeWordId,
+  stackFood,
   overlayLayout,
 }: {
   viewportWidth: number;
@@ -217,6 +232,7 @@ function resolveBaoziUnitPlacement({
   moleX: number;
   moleY: number;
   activeWordId: string | null;
+  stackFood: RewardFood;
   overlayLayout: ActiveMoleOverlayLayout | null;
 }): BaoziUnitPlacement {
   const marginX = Math.min(COMBO_POPUP_MARGIN_PX, Math.max(28, viewportWidth * 0.18));
@@ -259,6 +275,33 @@ function resolveBaoziUnitPlacement({
     });
     rewardAnchorX = resolvedAnchor.x;
     rewardAnchorY = resolvedAnchor.y;
+  }
+
+  const stackXOffsetRatio = STACK_REWARD_X_OFFSET_RATIO_BY_FOOD[stackFood] ?? 0;
+  if (stackXOffsetRatio > 0) {
+    const leftShiftPx = rewardSize.width * stackXOffsetRatio;
+    rewardAnchorX = clampToRange(rewardAnchorX - leftShiftPx, marginX, maxX);
+
+    if (hasMatchingOverlay && overlayLayout) {
+      const leftOfMoleMaxX = clampToRange(
+        moleX - BAOZI_LEFT_OF_MOLE_GAP_PX,
+        marginX,
+        maxX,
+      );
+      const resolvedAnchor = resolveLegacyBaoziAnchorWithBoardGuard({
+        baseAnchor: { x: rewardAnchorX, y: rewardAnchorY },
+        rewardSize,
+        boardKeepoutRect: overlayLayout.boardKeepoutRect,
+        anchorBounds: {
+          minX: marginX,
+          maxX: leftOfMoleMaxX,
+          minY: COMBO_POPUP_MIN_Y_PX,
+          maxY: maxRewardY,
+        },
+      });
+      rewardAnchorX = resolvedAnchor.x;
+      rewardAnchorY = resolvedAnchor.y;
+    }
   }
 
   const maxHintTop = Math.max(
@@ -421,13 +464,13 @@ export function GameScreen({
       const activeMole = gameState.activeMole;
       const hitX = activeMole?.x ?? viewportWidth * 0.5;
       const hitY = activeMole?.y ?? viewportHeight * 0.62;
-      const isBaozi = selectedFood === 'baozi';
+      const usesStackStylePopup = isStackRewardFood(selectedFood);
       let anchorX = clampToRange(hitX, marginX, maxX);
       let anchorY = clampToRange(hitY - COMBO_POPUP_VERTICAL_LIFT_PX, COMBO_POPUP_MIN_Y_PX, maxY);
       let linkedHintX: number | undefined;
       let linkedHintTop: number | undefined;
 
-      if (isBaozi) {
+      if (usesStackStylePopup) {
         const placement = resolveBaoziUnitPlacement({
           viewportWidth,
           viewportHeight,
@@ -436,6 +479,7 @@ export function GameScreen({
           moleX: activeMole?.x ?? hitX,
           moleY: activeMole?.y ?? hitY,
           activeWordId: activeMole?.word.id ?? null,
+          stackFood: selectedFood,
           overlayLayout: activeOverlayLayoutRef.current,
         });
         anchorX = placement.rewardAnchorX;
@@ -445,21 +489,20 @@ export function GameScreen({
       }
 
       comboPopupTriggerRef.current += 1;
-      const variant: RewardComboPopupVariant = isBaozi ? 'baozi_focus' : 'default';
+      const variant: RewardComboPopupVariant = usesStackStylePopup ? 'baozi_focus' : 'default';
+      const stackStyleFoodImage = food.stackPopupImage;
 
       setComboPopupState({
         triggerId: comboPopupTriggerRef.current,
         x: anchorX,
         y: anchorY,
         foodLabel: food.label.toLowerCase(),
-        foodImage: isBaozi
-          ? '/assets/rewards/baozi_x5.v2.webp'
-          : selectedFood === 'strawberry'
-            ? '/assets/rewards/strawberry.png'
-            : food.image,
+        foodImage: usesStackStylePopup
+          ? stackStyleFoodImage
+          : food.baseImage,
         amount,
         variant,
-        showFoodLabel: !isBaozi,
+        showFoodLabel: !usesStackStylePopup,
         linkedHintX,
         linkedHintTop,
       });
@@ -496,7 +539,7 @@ export function GameScreen({
     Number.isFinite(comboPopupState.linkedHintX) &&
     Number.isFinite(comboPopupState.linkedHintTop)
   );
-  const shouldUseBaoziLinkedHint = isBaoziSelected && isCorrectPedagogyHint;
+  const shouldUseBaoziLinkedHint = isStackRewardFood(selectedFood) && isCorrectPedagogyHint;
   const fallbackBaoziHintPlacement = (
     shouldUseBaoziLinkedHint &&
     gameState?.activeMole
@@ -509,6 +552,7 @@ export function GameScreen({
         moleX: gameState.activeMole.x,
         moleY: gameState.activeMole.y,
         activeWordId: gameState.activeMole.word.id,
+        stackFood: selectedFood,
         overlayLayout: activeOverlayLayout,
       })
     : null;

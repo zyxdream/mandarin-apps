@@ -58,6 +58,7 @@ export function RewardComboPopup({
   const isBaoziFocus = variant === 'baozi_focus';
   const popupLifetimeMs = isBaoziFocus ? BAOZI_POPUP_LIFETIME_MS : DEFAULT_POPUP_LIFETIME_MS;
   const baoziTilt = stableBaoziTilt(triggerId);
+  const srBonusText = `${foodLabel} bonus`;
 
   useEffect(() => {
     if (!onDone) return;
@@ -81,7 +82,7 @@ export function RewardComboPopup({
       <div key={triggerId} className={popupClassName} aria-live="polite" aria-atomic="true">
         {isBaoziFocus ? (
           <>
-            <span className="combo-reward-sr-only">Baozi bonus</span>
+            <span className="combo-reward-sr-only">{srBonusText}</span>
             <div className="combo-reward-baozi-group" style={baoziStyle} aria-hidden="true">
               <div className="combo-reward-baozi-stack">
                 <img className="combo-reward-baozi-image combo-reward-baozi-image--base" src={foodImage} alt="" />

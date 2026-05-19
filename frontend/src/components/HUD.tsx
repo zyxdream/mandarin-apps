@@ -36,7 +36,7 @@ export function HUD({ combo, timeRemaining, collectedWords, selectedFood }: HUDP
 
           <div className="hud-food-panel">
             <div className="hud-food">
-              <img className="hud-food-icon" src={food.image} alt="" />
+              <img className="hud-food-icon" src={food.baseImage} alt="" />
               <span className="hud-food-count">{foodUnits}</span>
             </div>
             <div className="hud-label">{food.shortLabel}</div>

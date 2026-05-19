@@ -97,7 +97,7 @@ export function ResultScreen({
           <div className="result-round-label">Finished: {scriptSession.title}</div>
 
           <div className="result-food-score">
-            <img src={food.image} alt="" />
+            <img src={food.baseImage} alt="" />
             <span>{foodUnits}</span>
           </div>
           <div className="result-score-label">{food.shortLabel} earned</div>

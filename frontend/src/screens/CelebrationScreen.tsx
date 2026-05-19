@@ -207,7 +207,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       await Assets.load([
         BACKGROUND_TEXTURE,
         SPARKLE_TEXTURE,
-        food.image,
+        food.baseImage,
         ...CELEBRATION_MOLE_STYLES.map(style => style.texture),
       ]);
       if (disposed) return;
@@ -271,7 +271,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       partyLayerRef.current = null;
       confettiLayerRef.current = null;
     };
-  }, [app, food.image]);
+  }, [app, food.baseImage]);
 
   useTick(() => {
     const background = backgroundRef.current;
@@ -334,7 +334,7 @@ function CelebrationCanvas({ selectedFood, foodUnits }: CelebrationCanvasProps) 
       const count = Math.min(MAX_FOOD_DROPS, Math.max(foodUnits > 0 ? 36 : 14, Math.round(foodUnits * 1.7)));
       foodDropsRef.current = Array.from({ length: count }, (_, index) => {
         const slot = slots[index % slots.length];
-        const sprite = new Sprite(Texture.from(food.image));
+        const sprite = new Sprite(Texture.from(food.baseImage));
         const openingWidth = Math.max(1, slot.darkRightX - slot.darkLeftX);
         const startX = width * (0.08 + seededValue(index + 31) * 0.84);
         const startY = -openingWidth * (1.6 + seededValue(index + 39) * 2.2);
@@ -677,7 +677,7 @@ export function CelebrationScreen({ finalState, selectedFood, onComplete }: Cele
       <div className="celebration-copy celebration-copy--compact">
         <div className="celebration-kicker">Snack Time!</div>
         <div className="celebration-food-total">
-          <img src={food.image} alt="" />
+          <img src={food.baseImage} alt="" />
           <span>{foodUnits}</span>
         </div>
         <div className="celebration-subtitle">Happy moles are feasting!</div>

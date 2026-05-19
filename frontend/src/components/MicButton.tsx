@@ -647,7 +647,7 @@ export function VoiceMeter({
                     aria-pressed={isSelected}
                     aria-label={`Choose ${food.label}`}
                   >
-                    <img className="food-option-image" src={food.image} alt="" />
+                    <img className="food-option-image" src={food.baseImage} alt="" />
                     <span>{food.label}</span>
                   </button>
                 );
