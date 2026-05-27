@@ -10,7 +10,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-天地、你、我、他、一二三、上下、日月
+我、你、他、一二三、上下、日月、天地、一天、两天、中间
 
 ## wm-02
 
@@ -20,7 +20,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-找、朋友、手、你、好、一个、我的、是、好朋友
+你好、一个、我的、找到、朋友、握手、敬礼、是、好、朋友
 
 ## wm-03
 
@@ -30,7 +30,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-四、五、六、七、八、九、十、飞入、水中、不见
+四五、六、七八、九、十、飞入、水中、不见、一片、无数
 
 ## wm-04
 
@@ -40,7 +40,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-大小、多少、黄牛、小猫、一群、鸭子、一只、小鸟
+大小、多少、黄牛、小猫、一群、鸭子、一只、小鸟、一边、一头
 
 ## wm-05
 
@@ -50,7 +50,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-秋天、树叶、蓝、高、飞、人、会、一个、字
+秋天、树叶、蓝色、黄色、很高、飞、人、一会儿、一群、字
 
 ## wm-06
 
@@ -60,7 +60,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-月儿、小船、两头、尖尖、坐下、看见、星星、蓝天
+月儿、弯弯的、小船、两头、尖尖的、坐下、看见、星星、蓝天、像
 
 ## wm-07
 
@@ -70,7 +70,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-闪亮、亮晶晶、满天、都是、星星、光明、好像、许多、眼睛
+闪亮、满天、都是、小星星、光明、好像、许多、眼睛、亮晶晶、天上
 
 ## wm-08
 
@@ -80,7 +80,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-江南、莲叶、小鱼、下面、东边、西边、南边、北边
+江南、莲叶、一条、小鱼、下面、东边、西边、南边、北边、游来游去
 
 ## wm-09
 
@@ -90,7 +90,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-一二三、四五、上山、打、老虎、松鼠、五只、数一数
+一二三、四五、上山、老虎、松鼠、打老虎、有几只、数一数、五只、看见
 
 ## wm-10
 
@@ -100,7 +100,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-远看、山色、近听、水声、花在、春去、人来、不惊
+远看、近听、山色、水声、花、春、还在、来、惊、有无
 
 ## wm-11
 
@@ -110,7 +110,7 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 **Game words / phrases:**
 
-口耳目、手足、站如松、坐如钟、行如风、卧如弓
+口、耳、目、手足、站如松、坐如钟、行如风、卧如弓
 
 ## wm-12
 

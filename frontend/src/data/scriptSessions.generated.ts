@@ -13,13 +13,13 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "天",
         "pinyin": "tiān",
         "startSec": 0.0,
-        "endSec": 0.4,
+        "endSec": 0.38,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 0.4,
+        "startSec": 0.38,
         "endSec": 0.7,
         "timingSource": "aligned"
       },
@@ -27,258 +27,247 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "上",
         "pinyin": "shàng",
         "startSec": 0.7,
-        "endSec": 1.04,
+        "endSec": 1.0,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.04,
-        "endSec": 1.7,
+        "startSec": 1.0,
+        "endSec": 1.56,
         "timingSource": "estimated"
       },
       {
         "text": "地",
         "pinyin": "dì",
-        "startSec": 1.7,
-        "endSec": 1.74,
+        "startSec": 1.56,
+        "endSec": 1.6,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 1.7,
-        "endSec": 2.08,
+        "startSec": 1.6,
+        "endSec": 1.96,
         "timingSource": "aligned"
       },
       {
         "text": "下",
         "pinyin": "xià",
-        "startSec": 2.08,
-        "endSec": 2.44,
+        "startSec": 1.96,
+        "endSec": 2.24,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 2.44,
-        "endSec": 3.42,
+        "startSec": 2.24,
+        "endSec": 3.24,
         "timingSource": "estimated"
       },
       {
         "text": "太",
         "pinyin": "tài",
-        "startSec": 3.42,
-        "endSec": 3.46,
+        "startSec": 3.24,
+        "endSec": 3.28,
         "timingSource": "aligned"
       },
       {
         "text": "阳",
         "pinyin": "yáng",
-        "startSec": 3.44,
-        "endSec": 3.62,
+        "startSec": 3.26,
+        "endSec": 3.46,
         "timingSource": "aligned"
       },
       {
         "text": "升",
         "pinyin": "shēng",
-        "startSec": 3.62,
-        "endSec": 3.96,
+        "startSec": 3.46,
+        "endSec": 3.82,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 3.96,
-        "endSec": 4.6,
+        "startSec": 3.82,
+        "endSec": 4.5,
         "timingSource": "estimated"
       },
       {
         "text": "月",
         "pinyin": "yuè",
-        "startSec": 4.6,
-        "endSec": 4.64,
+        "startSec": 4.5,
+        "endSec": 4.54,
         "timingSource": "aligned"
       },
       {
         "text": "亮",
         "pinyin": "liàng",
-        "startSec": 4.6,
-        "endSec": 4.82,
+        "startSec": 4.52,
+        "endSec": 4.74,
         "timingSource": "aligned"
       },
       {
         "text": "落",
         "pinyin": "luò",
-        "startSec": 4.82,
-        "endSec": 5.14,
+        "startSec": 4.74,
+        "endSec": 5.04,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 5.14,
-        "endSec": 6.0,
+        "startSec": 5.04,
+        "endSec": 6.1,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 6.0,
-        "endSec": 6.24,
+        "startSec": 6.1,
+        "endSec": 6.2,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 6.24,
-        "endSec": 6.46,
+        "startSec": 6.2,
+        "endSec": 6.42,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 6.46,
-        "endSec": 7.0,
+        "startSec": 6.42,
+        "endSec": 7.08,
         "timingSource": "estimated"
       },
       {
         "text": "两",
         "pinyin": "liǎng",
-        "startSec": 7.0,
-        "endSec": 7.18,
+        "startSec": 7.08,
+        "endSec": 7.24,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 7.18,
-        "endSec": 7.54,
+        "startSec": 7.24,
+        "endSec": 7.62,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 7.54,
-        "endSec": 7.88,
+        "startSec": 7.62,
+        "endSec": 8.08,
         "timingSource": "estimated"
       },
       {
         "text": "三",
         "pinyin": "sān",
-        "startSec": 7.88,
-        "endSec": 8.16,
+        "startSec": 8.08,
+        "endSec": 8.34,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 8.16,
-        "endSec": 8.44,
+        "startSec": 8.34,
+        "endSec": 8.66,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 8.44,
-        "endSec": 9.38,
+        "startSec": 8.66,
+        "endSec": 9.74,
         "timingSource": "estimated"
       },
       {
         "text": "你",
         "pinyin": "nǐ",
-        "startSec": 9.38,
-        "endSec": 9.64,
+        "startSec": 9.74,
+        "endSec": 10.0,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.64,
-        "endSec": 9.9,
+        "startSec": 10.0,
+        "endSec": 10.5,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 9.9,
-        "endSec": 9.94,
+        "startSec": 10.5,
+        "endSec": 10.58,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.94,
-        "endSec": 10.1,
+        "startSec": 10.58,
+        "endSec": 10.78,
         "timingSource": "estimated"
       },
       {
         "text": "他",
         "pinyin": "tā",
-        "startSec": 10.1,
-        "endSec": 10.22,
+        "startSec": 10.78,
+        "endSec": 10.94,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 10.22,
-        "endSec": 10.86,
+        "startSec": 10.94,
+        "endSec": 11.66,
         "timingSource": "estimated"
       },
       {
         "text": "站",
         "pinyin": "zhàn",
-        "startSec": 10.86,
-        "endSec": 10.9,
+        "startSec": 11.66,
+        "endSec": 11.7,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 10.88,
-        "endSec": 11.24,
+        "startSec": 11.66,
+        "endSec": 12.0,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 11.24,
-        "endSec": 11.56,
+        "startSec": 12.0,
+        "endSec": 12.34,
         "timingSource": "aligned"
       },
       {
         "text": "地",
         "pinyin": "dì",
-        "startSec": 11.56,
-        "endSec": 11.78,
+        "startSec": 12.34,
+        "endSec": 12.54,
         "timingSource": "aligned"
       },
       {
         "text": "中",
         "pinyin": "zhōng",
-        "startSec": 11.78,
-        "endSec": 12.1,
+        "startSec": 12.54,
+        "endSec": 12.86,
         "timingSource": "aligned"
       },
       {
         "text": "间",
         "pinyin": "jiān",
-        "startSec": 12.1,
-        "endSec": 12.38,
+        "startSec": 12.86,
+        "endSec": 13.1,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 12.38,
-        "endSec": 12.5,
+        "startSec": 13.1,
+        "endSec": 13.22,
         "timingSource": "estimated"
       }
     ],
     "words": [
       {
-        "id": "wm-01-01-tian1di4",
-        "hanzi": "天地",
-        "pinyin": "tiān dì",
-        "pinyinRaw": "tian1 di4",
-        "tone": 1,
-        "difficulty": "easy",
-        "creatureName": "天地 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-01-tian1di4.mp3"
-      },
-      {
-        "id": "wm-01-02-ni3",
+        "id": "wm-01-01-ni3",
         "hanzi": "你",
         "pinyin": "nǐ",
         "pinyinRaw": "ni3",
@@ -286,10 +275,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "你 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-02-ni3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-01-01-ni3.mp3"
       },
       {
-        "id": "wm-01-03-wo3",
+        "id": "wm-01-02-wo3",
         "hanzi": "我",
         "pinyin": "wǒ",
         "pinyinRaw": "wo3",
@@ -297,10 +286,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "我 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-03-wo3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-01-02-wo3.mp3"
       },
       {
-        "id": "wm-01-04-ta1",
+        "id": "wm-01-03-ta1",
         "hanzi": "他",
         "pinyin": "tā",
         "pinyinRaw": "ta1",
@@ -308,21 +297,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "他 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-04-ta1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-01-03-ta1.mp3"
       },
       {
-        "id": "wm-01-05-zai4",
-        "hanzi": "在",
-        "pinyin": "zài",
-        "pinyinRaw": "zai4",
-        "tone": 4,
-        "difficulty": "easy",
-        "creatureName": "在 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-05-zai4.mp3"
-      },
-      {
-        "id": "wm-01-06-yi1er4san1",
+        "id": "wm-01-04-yi1er4san1",
         "hanzi": "一二三",
         "pinyin": "yī èr sān",
         "pinyinRaw": "yi1 er4 san1",
@@ -330,10 +308,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "一二三 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-06-yi1er4san1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-01-04-yi1er4san1.mp3"
       },
       {
-        "id": "wm-01-07-shang4xia4",
+        "id": "wm-01-05-shang4xia4",
         "hanzi": "上下",
         "pinyin": "shàng xià",
         "pinyinRaw": "shang4 xia4",
@@ -341,10 +319,21 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "上下 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-07-shang4xia4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-01-05-shang4xia4.mp3"
       },
       {
-        "id": "wm-01-08-ri4yue4",
+        "id": "wm-01-06-tian1di4",
+        "hanzi": "天地",
+        "pinyin": "tiān dì",
+        "pinyinRaw": "tian1 di4",
+        "tone": 1,
+        "difficulty": "easy",
+        "creatureName": "天地 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-01-06-tian1di4.mp3"
+      },
+      {
+        "id": "wm-01-07-ri4yue4",
         "hanzi": "日月",
         "pinyin": "rì yuè",
         "pinyinRaw": "ri4 yue4",
@@ -352,7 +341,40 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "日月 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-01-08-ri4yue4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-01-07-ri4yue4.mp3"
+      },
+      {
+        "id": "wm-01-08-zhong1jian1",
+        "hanzi": "中间",
+        "pinyin": "zhōng jiān",
+        "pinyinRaw": "zhong1 jian1",
+        "tone": 1,
+        "difficulty": "easy",
+        "creatureName": "中间 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-01-08-zhong1jian1.mp3"
+      },
+      {
+        "id": "wm-01-09-yi4tian1",
+        "hanzi": "一天",
+        "pinyin": "yì tiān",
+        "pinyinRaw": "yi4 tian1",
+        "tone": 4,
+        "difficulty": "easy",
+        "creatureName": "一天 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-01-09-yi4tian1.mp3"
+      },
+      {
+        "id": "wm-01-10-liang3tian1",
+        "hanzi": "两天",
+        "pinyin": "liǎng tiān",
+        "pinyinRaw": "liang3 tian1",
+        "tone": 3,
+        "difficulty": "easy",
+        "creatureName": "两天 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-01-10-liang3tian1.mp3"
       }
     ]
   },
@@ -367,269 +389,225 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "找",
         "pinyin": "zhǎo",
         "startSec": 0.0,
-        "endSec": 0.54,
+        "endSec": 0.52,
         "timingSource": "aligned"
       },
       {
         "text": "呀",
         "pinyin": "ya",
-        "startSec": 0.54,
-        "endSec": 0.76,
+        "startSec": 0.52,
+        "endSec": 0.72,
         "timingSource": "aligned"
       },
       {
         "text": "找",
         "pinyin": "zhǎo",
-        "startSec": 0.76,
-        "endSec": 1.16,
+        "startSec": 0.72,
+        "endSec": 1.1,
         "timingSource": "aligned"
       },
       {
         "text": "呀",
         "pinyin": "ya",
-        "startSec": 1.16,
-        "endSec": 1.54,
+        "startSec": 1.1,
+        "endSec": 1.48,
         "timingSource": "aligned"
       },
       {
         "text": "找",
         "pinyin": "zhǎo",
-        "startSec": 1.54,
-        "endSec": 1.82,
+        "startSec": 1.48,
+        "endSec": 1.76,
         "timingSource": "aligned"
       },
       {
         "text": "朋",
         "pinyin": "péng",
-        "startSec": 1.82,
-        "endSec": 2.1,
+        "startSec": 1.76,
+        "endSec": 2.08,
         "timingSource": "aligned"
       },
       {
         "text": "友",
         "pinyin": "yǒu",
-        "startSec": 2.1,
-        "endSec": 2.38,
+        "startSec": 2.08,
+        "endSec": 2.4,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 2.38,
-        "endSec": 2.54,
+        "startSec": 2.4,
+        "endSec": 2.46,
         "timingSource": "estimated"
       },
       {
         "text": "找",
         "pinyin": "zhǎo",
-        "startSec": 2.54,
-        "endSec": 3.12,
+        "startSec": 2.46,
+        "endSec": 3.32,
         "timingSource": "aligned"
       },
       {
         "text": "到",
         "pinyin": "dào",
-        "startSec": 3.12,
-        "endSec": 3.36,
+        "startSec": 3.32,
+        "endSec": 3.58,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yí",
-        "startSec": 3.36,
-        "endSec": 3.5,
+        "startSec": 3.58,
+        "endSec": 3.73,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 3.5,
-        "endSec": 3.64,
+        "startSec": 3.73,
+        "endSec": 3.88,
         "timingSource": "aligned"
       },
       {
         "text": "好",
         "pinyin": "hǎo",
-        "startSec": 3.64,
-        "endSec": 4.06,
+        "startSec": 3.88,
+        "endSec": 4.34,
         "timingSource": "aligned"
       },
       {
         "text": "朋",
         "pinyin": "péng",
-        "startSec": 4.06,
-        "endSec": 4.24,
+        "startSec": 4.34,
+        "endSec": 4.53,
         "timingSource": "aligned"
       },
       {
         "text": "友",
         "pinyin": "yǒu",
-        "startSec": 4.24,
-        "endSec": 4.42,
+        "startSec": 4.53,
+        "endSec": 4.72,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 4.42,
-        "endSec": 5.44,
+        "startSec": 4.72,
+        "endSec": 5.8,
         "timingSource": "estimated"
       },
       {
         "text": "敬",
         "pinyin": "jìng",
-        "startSec": 5.44,
-        "endSec": 5.48,
+        "startSec": 5.8,
+        "endSec": 5.9,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 5.48,
-        "endSec": 5.7,
+        "startSec": 5.9,
+        "endSec": 6.12,
         "timingSource": "aligned"
       },
       {
         "text": "礼",
         "pinyin": "lǐ",
-        "startSec": 5.7,
-        "endSec": 5.94,
+        "startSec": 6.12,
+        "endSec": 6.34,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 5.94,
-        "endSec": 6.64,
+        "startSec": 6.34,
+        "endSec": 7.14,
         "timingSource": "estimated"
       },
       {
         "text": "握",
         "pinyin": "wò",
-        "startSec": 6.64,
-        "endSec": 6.68,
+        "startSec": 7.14,
+        "endSec": 7.18,
         "timingSource": "aligned"
       },
       {
         "text": "握",
         "pinyin": "wò",
-        "startSec": 6.64,
-        "endSec": 6.94,
+        "startSec": 7.14,
+        "endSec": 7.5,
         "timingSource": "aligned"
       },
       {
         "text": "手",
         "pinyin": "shǒu",
-        "startSec": 6.94,
-        "endSec": 7.24,
+        "startSec": 7.5,
+        "endSec": 7.74,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 7.24,
-        "endSec": 7.92,
+        "startSec": 7.74,
+        "endSec": 8.52,
         "timingSource": "estimated"
       },
       {
         "text": "你",
         "pinyin": "nǐ",
-        "startSec": 7.92,
-        "endSec": 8.08,
+        "startSec": 8.52,
+        "endSec": 8.72,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 8.08,
-        "endSec": 8.24,
+        "startSec": 8.72,
+        "endSec": 8.92,
         "timingSource": "aligned"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 8.24,
-        "endSec": 8.44,
+        "startSec": 8.92,
+        "endSec": 9.17,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 8.44,
-        "endSec": 8.64,
+        "startSec": 9.17,
+        "endSec": 9.42,
         "timingSource": "aligned"
       },
       {
         "text": "好",
         "pinyin": "hǎo",
-        "startSec": 8.64,
-        "endSec": 9.04,
+        "startSec": 9.42,
+        "endSec": 9.86,
         "timingSource": "aligned"
       },
       {
         "text": "朋",
         "pinyin": "péng",
-        "startSec": 9.04,
-        "endSec": 9.21,
+        "startSec": 9.86,
+        "endSec": 10.04,
         "timingSource": "aligned"
       },
       {
         "text": "友",
         "pinyin": "yǒu",
-        "startSec": 9.21,
-        "endSec": 9.38,
+        "startSec": 10.04,
+        "endSec": 10.22,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 9.38,
-        "endSec": 9.5,
+        "startSec": 10.22,
+        "endSec": 10.34,
         "timingSource": "estimated"
       }
     ],
     "words": [
       {
-        "id": "wm-02-01-zhao3",
-        "hanzi": "找",
-        "pinyin": "zhǎo",
-        "pinyinRaw": "zhao3",
-        "tone": 3,
-        "difficulty": "easy",
-        "creatureName": "找 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-01-zhao3.mp3"
-      },
-      {
-        "id": "wm-02-02-peng2you3",
-        "hanzi": "朋友",
-        "pinyin": "péng yǒu",
-        "pinyinRaw": "peng2 you3",
-        "tone": 2,
-        "difficulty": "easy",
-        "creatureName": "朋友 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-02-peng2you3.mp3"
-      },
-      {
-        "id": "wm-02-03-yi2ge4",
-        "hanzi": "一个",
-        "pinyin": "yí gè",
-        "pinyinRaw": "yi2 ge4",
-        "tone": 2,
-        "difficulty": "easy",
-        "creatureName": "一个 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-03-yi2ge4.mp3"
-      },
-      {
-        "id": "wm-02-04-shou3",
-        "hanzi": "手",
-        "pinyin": "shǒu",
-        "pinyinRaw": "shou3",
-        "tone": 3,
-        "difficulty": "easy",
-        "creatureName": "手 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-04-shou3.mp3"
-      },
-      {
-        "id": "wm-02-05-ni2hao3",
+        "id": "wm-02-01-ni2hao3",
         "hanzi": "你好",
         "pinyin": "ní hǎo",
         "pinyinRaw": "ni2 hao3",
@@ -637,10 +615,21 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "你好 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-05-ni2hao3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-02-01-ni2hao3.mp3"
       },
       {
-        "id": "wm-02-06-wo3de5",
+        "id": "wm-02-02-yi2ge4",
+        "hanzi": "一个",
+        "pinyin": "yí gè",
+        "pinyinRaw": "yi2 ge4",
+        "tone": 2,
+        "difficulty": "easy",
+        "creatureName": "一个 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-02-02-yi2ge4.mp3"
+      },
+      {
+        "id": "wm-02-03-wo3de5",
         "hanzi": "我的",
         "pinyin": "wǒ de",
         "pinyinRaw": "wo3 de5",
@@ -648,10 +637,32 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "我的 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-06-wo3de5.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-02-03-wo3de5.mp3"
       },
       {
-        "id": "wm-02-07-shi4",
+        "id": "wm-02-04-zhao3dao4",
+        "hanzi": "找到",
+        "pinyin": "zhǎo dào",
+        "pinyinRaw": "zhao3 dao4",
+        "tone": 3,
+        "difficulty": "easy",
+        "creatureName": "找到 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-02-04-zhao3dao4.mp3"
+      },
+      {
+        "id": "wm-02-05-peng2you3",
+        "hanzi": "朋友",
+        "pinyin": "péng yǒu",
+        "pinyinRaw": "peng2 you3",
+        "tone": 2,
+        "difficulty": "easy",
+        "creatureName": "朋友 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-02-05-peng2you3.mp3"
+      },
+      {
+        "id": "wm-02-06-shi4",
         "hanzi": "是",
         "pinyin": "shì",
         "pinyinRaw": "shi4",
@@ -659,10 +670,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "是 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-07-shi4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-02-06-shi4.mp3"
       },
       {
-        "id": "wm-02-08-hao3peng2you3",
+        "id": "wm-02-07-hao3peng2you3",
         "hanzi": "好朋友",
         "pinyin": "hǎo péng yǒu",
         "pinyinRaw": "hao3 peng2 you3",
@@ -670,7 +681,29 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "好朋友 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-02-08-hao3peng2you3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-02-07-hao3peng2you3.mp3"
+      },
+      {
+        "id": "wm-02-08-wo4shou3",
+        "hanzi": "握手",
+        "pinyin": "wò shǒu",
+        "pinyinRaw": "wo4 shou3",
+        "tone": 4,
+        "difficulty": "easy",
+        "creatureName": "握手 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-02-08-wo4shou3.mp3"
+      },
+      {
+        "id": "wm-02-09-jing4li3",
+        "hanzi": "敬礼",
+        "pinyin": "jìng lǐ",
+        "pinyinRaw": "jing4 li3",
+        "tone": 4,
+        "difficulty": "easy",
+        "creatureName": "敬礼 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-02-09-jing4li3.mp3"
       }
     ]
   },
@@ -685,248 +718,237 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "一",
         "pinyin": "yī",
         "startSec": 0.0,
-        "endSec": 0.9,
+        "endSec": 0.4,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 0.9,
-        "endSec": 1.08,
+        "startSec": 0.4,
+        "endSec": 0.58,
         "timingSource": "aligned"
       },
       {
         "text": "两",
         "pinyin": "liǎng",
-        "startSec": 1.08,
-        "endSec": 1.84,
+        "startSec": 0.58,
+        "endSec": 1.52,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 1.84,
-        "endSec": 2.16,
+        "startSec": 1.52,
+        "endSec": 1.86,
         "timingSource": "aligned"
       },
       {
         "text": "三",
         "pinyin": "sān",
-        "startSec": 2.16,
-        "endSec": 2.92,
+        "startSec": 1.86,
+        "endSec": 2.7,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 2.92,
-        "endSec": 3.18,
+        "startSec": 2.7,
+        "endSec": 2.98,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 3.18,
-        "endSec": 3.42,
+        "startSec": 2.98,
+        "endSec": 3.24,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 3.42,
-        "endSec": 4.2,
+        "startSec": 3.24,
+        "endSec": 4.1,
         "timingSource": "estimated"
       },
       {
         "text": "五",
         "pinyin": "wǔ",
-        "startSec": 4.2,
-        "endSec": 4.46,
+        "startSec": 4.1,
+        "endSec": 4.26,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 4.46,
-        "endSec": 4.64,
+        "startSec": 4.26,
+        "endSec": 4.38,
         "timingSource": "aligned"
       },
       {
         "text": "六",
         "pinyin": "liù",
-        "startSec": 4.64,
-        "endSec": 5.02,
+        "startSec": 4.38,
+        "endSec": 4.76,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 5.02,
-        "endSec": 5.3,
+        "startSec": 4.76,
+        "endSec": 5.02,
         "timingSource": "aligned"
       },
       {
         "text": "七",
         "pinyin": "qī",
-        "startSec": 5.3,
-        "endSec": 5.7,
+        "startSec": 5.02,
+        "endSec": 5.44,
         "timingSource": "aligned"
       },
       {
         "text": "八",
         "pinyin": "bā",
-        "startSec": 5.7,
-        "endSec": 5.94,
+        "startSec": 5.44,
+        "endSec": 5.68,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 5.94,
-        "endSec": 6.24,
+        "startSec": 5.68,
+        "endSec": 5.98,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 6.24,
-        "endSec": 7.14,
+        "startSec": 5.98,
+        "endSec": 6.8,
         "timingSource": "estimated"
       },
       {
         "text": "九",
         "pinyin": "jiǔ",
-        "startSec": 7.14,
-        "endSec": 7.38,
+        "startSec": 6.8,
+        "endSec": 7.06,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 7.38,
-        "endSec": 7.62,
+        "startSec": 7.06,
+        "endSec": 7.28,
         "timingSource": "aligned"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 7.62,
-        "endSec": 8.08,
+        "startSec": 7.28,
+        "endSec": 7.72,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 8.08,
-        "endSec": 8.34,
+        "startSec": 7.72,
+        "endSec": 8.32,
         "timingSource": "aligned"
       },
       {
         "text": "无",
         "pinyin": "wú",
-        "startSec": 8.34,
-        "endSec": 8.68,
+        "startSec": 8.32,
+        "endSec": 8.76,
         "timingSource": "aligned"
       },
       {
         "text": "数",
         "pinyin": "shù",
-        "startSec": 8.68,
-        "endSec": 8.92,
+        "startSec": 8.76,
+        "endSec": 9.02,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 8.92,
-        "endSec": 9.24,
+        "startSec": 9.02,
+        "endSec": 9.36,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.24,
-        "endSec": 10.14,
+        "startSec": 9.36,
+        "endSec": 10.04,
         "timingSource": "estimated"
       },
       {
         "text": "飞",
         "pinyin": "fēi",
-        "startSec": 10.14,
-        "endSec": 10.18,
+        "startSec": 10.04,
+        "endSec": 10.08,
         "timingSource": "aligned"
       },
       {
         "text": "入",
         "pinyin": "rù",
-        "startSec": 10.16,
-        "endSec": 10.42,
+        "startSec": 10.04,
+        "endSec": 10.3,
         "timingSource": "aligned"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 10.42,
-        "endSec": 10.68,
+        "startSec": 10.3,
+        "endSec": 10.54,
         "timingSource": "aligned"
       },
       {
         "text": "中",
         "pinyin": "zhōng",
-        "startSec": 10.68,
-        "endSec": 11.02,
+        "startSec": 10.54,
+        "endSec": 10.88,
         "timingSource": "aligned"
       },
       {
         "text": "都",
         "pinyin": "dū",
-        "startSec": 11.02,
-        "endSec": 11.58,
+        "startSec": 10.88,
+        "endSec": 11.48,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bú",
-        "startSec": 11.58,
-        "endSec": 11.82,
+        "startSec": 11.48,
+        "endSec": 11.78,
         "timingSource": "aligned"
       },
       {
         "text": "见",
         "pinyin": "jiàn",
-        "startSec": 11.82,
-        "endSec": 11.92,
+        "startSec": 11.78,
+        "endSec": 11.9,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 11.92,
-        "endSec": 12.04,
+        "startSec": 11.9,
+        "endSec": 12.02,
         "timingSource": "estimated"
       }
     ],
     "words": [
       {
-        "id": "wm-03-01-si4",
-        "hanzi": "四",
-        "pinyin": "sì",
-        "pinyinRaw": "si4",
+        "id": "wm-03-01-si4wu3",
+        "hanzi": "四五",
+        "pinyin": "sì wǔ",
+        "pinyinRaw": "si4 wu3",
         "tone": 4,
         "difficulty": "easy",
-        "creatureName": "四 Mole",
+        "creatureName": "四五 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-01-si4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-01-si4wu3.mp3"
       },
       {
-        "id": "wm-03-02-wu3",
-        "hanzi": "五",
-        "pinyin": "wǔ",
-        "pinyinRaw": "wu3",
-        "tone": 3,
-        "difficulty": "easy",
-        "creatureName": "五 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-02-wu3.mp3"
-      },
-      {
-        "id": "wm-03-03-liu4",
+        "id": "wm-03-02-liu4",
         "hanzi": "六",
         "pinyin": "liù",
         "pinyinRaw": "liu4",
@@ -934,10 +956,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "六 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-03-liu4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-02-liu4.mp3"
       },
       {
-        "id": "wm-03-04-qi1",
+        "id": "wm-03-03-qi1",
         "hanzi": "七",
         "pinyin": "qī",
         "pinyinRaw": "qi1",
@@ -945,10 +967,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "七 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-04-qi1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-03-qi1.mp3"
       },
       {
-        "id": "wm-03-05-ba1",
+        "id": "wm-03-04-ba1",
         "hanzi": "八",
         "pinyin": "bā",
         "pinyinRaw": "ba1",
@@ -956,10 +978,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "八 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-05-ba1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-04-ba1.mp3"
       },
       {
-        "id": "wm-03-06-jiu3",
+        "id": "wm-03-05-jiu3",
         "hanzi": "九",
         "pinyin": "jiǔ",
         "pinyinRaw": "jiu3",
@@ -967,10 +989,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "九 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-06-jiu3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-05-jiu3.mp3"
       },
       {
-        "id": "wm-03-07-shi2",
+        "id": "wm-03-06-shi2",
         "hanzi": "十",
         "pinyin": "shí",
         "pinyinRaw": "shi2",
@@ -978,10 +1000,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "十 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-07-shi2.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-06-shi2.mp3"
       },
       {
-        "id": "wm-03-08-fei1ru4",
+        "id": "wm-03-07-fei1ru4",
         "hanzi": "飞入",
         "pinyin": "fēi rù",
         "pinyinRaw": "fei1 ru4",
@@ -989,10 +1011,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "飞入 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-08-fei1ru4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-07-fei1ru4.mp3"
       },
       {
-        "id": "wm-03-09-shui3zhong1",
+        "id": "wm-03-08-shui3zhong1",
         "hanzi": "水中",
         "pinyin": "shuǐ zhōng",
         "pinyinRaw": "shui3 zhong1",
@@ -1000,10 +1022,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "水中 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-09-shui3zhong1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-08-shui3zhong1.mp3"
       },
       {
-        "id": "wm-03-10-bu2jian4",
+        "id": "wm-03-09-bu2jian4",
         "hanzi": "不见",
         "pinyin": "bú jiàn",
         "pinyinRaw": "bu2 jian4",
@@ -1011,7 +1033,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "不见 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-03-10-bu2jian4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-03-09-bu2jian4.mp3"
+      },
+      {
+        "id": "wm-03-10-wu2shu4",
+        "hanzi": "无数",
+        "pinyin": "wú shù",
+        "pinyinRaw": "wu2 shu4",
+        "tone": 2,
+        "difficulty": "easy",
+        "creatureName": "无数 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-03-10-wu2shu4.mp3"
       }
     ]
   },
@@ -1026,314 +1059,314 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "一",
         "pinyin": "yì",
         "startSec": 0.0,
-        "endSec": 0.52,
+        "endSec": 0.36,
         "timingSource": "aligned"
       },
       {
         "text": "头",
         "pinyin": "tóu",
-        "startSec": 0.52,
-        "endSec": 0.82,
+        "startSec": 0.36,
+        "endSec": 0.64,
         "timingSource": "aligned"
       },
       {
         "text": "大",
         "pinyin": "dà",
-        "startSec": 0.82,
-        "endSec": 1.28,
+        "startSec": 0.64,
+        "endSec": 1.08,
         "timingSource": "aligned"
       },
       {
         "text": "黄",
         "pinyin": "huáng",
-        "startSec": 1.28,
-        "endSec": 1.56,
+        "startSec": 1.08,
+        "endSec": 1.34,
         "timingSource": "aligned"
       },
       {
         "text": "牛",
         "pinyin": "niú",
-        "startSec": 1.56,
-        "endSec": 1.78,
+        "startSec": 1.34,
+        "endSec": 1.6,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.78,
-        "endSec": 2.58,
+        "startSec": 1.6,
+        "endSec": 2.44,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 2.58,
-        "endSec": 2.66,
+        "startSec": 2.44,
+        "endSec": 2.48,
         "timingSource": "aligned"
       },
       {
         "text": "只",
         "pinyin": "zhī",
-        "startSec": 2.66,
-        "endSec": 2.82,
+        "startSec": 2.48,
+        "endSec": 2.64,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 2.82,
-        "endSec": 3.36,
+        "startSec": 2.64,
+        "endSec": 3.14,
         "timingSource": "aligned"
       },
       {
         "text": "花",
         "pinyin": "huā",
-        "startSec": 3.36,
-        "endSec": 3.66,
+        "startSec": 3.14,
+        "endSec": 3.48,
         "timingSource": "aligned"
       },
       {
         "text": "猫",
         "pinyin": "māo",
-        "startSec": 3.66,
-        "endSec": 3.86,
+        "startSec": 3.48,
+        "endSec": 3.62,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.86,
-        "endSec": 4.84,
+        "startSec": 3.62,
+        "endSec": 4.56,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yí",
-        "startSec": 4.84,
-        "endSec": 4.93,
+        "startSec": 4.56,
+        "endSec": 4.64,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 4.93,
-        "endSec": 5.02,
+        "startSec": 4.64,
+        "endSec": 4.72,
         "timingSource": "aligned"
       },
       {
         "text": "很",
         "pinyin": "hěn",
-        "startSec": 5.02,
-        "endSec": 5.12,
+        "startSec": 4.72,
+        "endSec": 4.94,
         "timingSource": "aligned"
       },
       {
         "text": "大",
         "pinyin": "dà",
-        "startSec": 5.12,
-        "endSec": 5.66,
+        "startSec": 4.94,
+        "endSec": 5.44,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 5.66,
-        "endSec": 6.36,
+        "startSec": 5.44,
+        "endSec": 5.98,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yí",
-        "startSec": 6.36,
-        "endSec": 6.4,
+        "startSec": 5.98,
+        "endSec": 6.01,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 6.4,
-        "endSec": 6.44,
+        "startSec": 6.01,
+        "endSec": 6.04,
         "timingSource": "aligned"
       },
       {
         "text": "很",
         "pinyin": "hěn",
-        "startSec": 6.44,
-        "endSec": 6.98,
+        "startSec": 6.04,
+        "endSec": 6.66,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 6.98,
-        "endSec": 7.22,
+        "startSec": 6.66,
+        "endSec": 6.78,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 7.22,
-        "endSec": 8.3,
+        "startSec": 6.78,
+        "endSec": 7.64,
         "timingSource": "estimated"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 8.3,
-        "endSec": 8.34,
+        "startSec": 7.64,
+        "endSec": 7.68,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 8.3,
-        "endSec": 8.58,
+        "startSec": 7.64,
+        "endSec": 7.86,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 8.58,
-        "endSec": 8.86,
+        "startSec": 7.86,
+        "endSec": 8.12,
         "timingSource": "aligned"
       },
       {
         "text": "群",
         "pinyin": "qún",
-        "startSec": 8.86,
-        "endSec": 9.04,
+        "startSec": 8.12,
+        "endSec": 8.32,
         "timingSource": "aligned"
       },
       {
         "text": "鸭",
         "pinyin": "yā",
-        "startSec": 9.04,
-        "endSec": 9.36,
+        "startSec": 8.32,
+        "endSec": 8.64,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 9.36,
-        "endSec": 9.62,
+        "startSec": 8.64,
+        "endSec": 8.88,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.62,
-        "endSec": 10.52,
+        "startSec": 8.88,
+        "endSec": 9.58,
         "timingSource": "estimated"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 10.52,
-        "endSec": 10.56,
+        "startSec": 9.58,
+        "endSec": 9.66,
         "timingSource": "aligned"
       },
       {
         "text": "上",
         "pinyin": "shàng",
-        "startSec": 10.52,
-        "endSec": 10.82,
+        "startSec": 9.66,
+        "endSec": 9.88,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 10.82,
-        "endSec": 11.08,
+        "startSec": 9.88,
+        "endSec": 10.12,
         "timingSource": "aligned"
       },
       {
         "text": "只",
         "pinyin": "zhī",
-        "startSec": 11.08,
-        "endSec": 11.24,
+        "startSec": 10.12,
+        "endSec": 10.3,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 11.24,
-        "endSec": 11.68,
+        "startSec": 10.3,
+        "endSec": 10.72,
         "timingSource": "aligned"
       },
       {
         "text": "鸟",
         "pinyin": "niǎo",
-        "startSec": 11.68,
-        "endSec": 11.84,
+        "startSec": 10.72,
+        "endSec": 10.86,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 11.84,
-        "endSec": 12.74,
+        "startSec": 10.86,
+        "endSec": 11.56,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 12.74,
-        "endSec": 12.98,
+        "startSec": 11.56,
+        "endSec": 11.76,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 12.98,
-        "endSec": 13.1,
+        "startSec": 11.76,
+        "endSec": 11.88,
         "timingSource": "aligned"
       },
       {
         "text": "很",
         "pinyin": "hěn",
-        "startSec": 13.1,
-        "endSec": 13.44,
+        "startSec": 11.88,
+        "endSec": 12.23,
         "timingSource": "aligned"
       },
       {
         "text": "多",
         "pinyin": "duō",
-        "startSec": 13.44,
-        "endSec": 13.78,
+        "startSec": 12.23,
+        "endSec": 12.58,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 13.78,
-        "endSec": 14.4,
+        "startSec": 12.58,
+        "endSec": 13.02,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 14.4,
-        "endSec": 14.72,
+        "startSec": 13.02,
+        "endSec": 13.3,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 14.72,
-        "endSec": 14.84,
+        "startSec": 13.3,
+        "endSec": 13.4,
         "timingSource": "aligned"
       },
       {
         "text": "很",
         "pinyin": "hěn",
-        "startSec": 14.84,
-        "endSec": 15.36,
+        "startSec": 13.4,
+        "endSec": 13.9,
         "timingSource": "aligned"
       },
       {
         "text": "少",
         "pinyin": "shǎo",
-        "startSec": 15.36,
-        "endSec": 15.56,
+        "startSec": 13.9,
+        "endSec": 14.08,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 15.56,
-        "endSec": 15.68,
+        "startSec": 14.08,
+        "endSec": 14.2,
         "timingSource": "estimated"
       }
     ],
@@ -1436,6 +1469,17 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "creatureName": "水里 Mole",
         "scoreValue": 10,
         "audioUrl": "/audio/script_content/generated/words/wm-04-09-shui3li3.mp3"
+      },
+      {
+        "id": "wm-04-10-yi1bian1",
+        "hanzi": "一边",
+        "pinyin": "yī biān",
+        "pinyinRaw": "yi1 bian1",
+        "tone": 1,
+        "difficulty": "easy",
+        "creatureName": "一边 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-04-10-yi1bian1.mp3"
       }
     ]
   },
@@ -1450,325 +1494,325 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "秋",
         "pinyin": "qiū",
         "startSec": 0.0,
-        "endSec": 0.58,
+        "endSec": 0.42,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 0.58,
-        "endSec": 0.82,
+        "startSec": 0.42,
+        "endSec": 0.6,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 0.82,
-        "endSec": 1.1,
+        "startSec": 0.6,
+        "endSec": 0.88,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 1.1,
-        "endSec": 1.38,
+        "startSec": 0.88,
+        "endSec": 1.16,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.38,
-        "endSec": 2.18,
+        "startSec": 1.16,
+        "endSec": 1.54,
         "timingSource": "estimated"
       },
       {
         "text": "树",
         "pinyin": "shù",
-        "startSec": 2.18,
-        "endSec": 2.44,
+        "startSec": 1.54,
+        "endSec": 1.86,
         "timingSource": "aligned"
       },
       {
         "text": "叶",
         "pinyin": "yè",
-        "startSec": 2.44,
-        "endSec": 2.54,
+        "startSec": 1.86,
+        "endSec": 1.98,
         "timingSource": "aligned"
       },
       {
         "text": "黄",
         "pinyin": "huáng",
-        "startSec": 2.54,
-        "endSec": 2.9,
+        "startSec": 1.98,
+        "endSec": 2.36,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 2.9,
-        "endSec": 3.28,
+        "startSec": 2.36,
+        "endSec": 3.02,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.28,
-        "endSec": 4.38,
+        "startSec": 3.02,
+        "endSec": 3.56,
         "timingSource": "estimated"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 4.38,
-        "endSec": 4.42,
+        "startSec": 3.56,
+        "endSec": 3.6,
         "timingSource": "aligned"
       },
       {
         "text": "空",
         "pinyin": "kōng",
-        "startSec": 4.4,
-        "endSec": 4.6,
+        "startSec": 3.58,
+        "endSec": 3.8,
         "timingSource": "aligned"
       },
       {
         "text": "很",
         "pinyin": "hěn",
-        "startSec": 4.6,
-        "endSec": 5.26,
+        "startSec": 3.8,
+        "endSec": 4.4,
         "timingSource": "aligned"
       },
       {
         "text": "蓝",
         "pinyin": "lán",
-        "startSec": 5.26,
-        "endSec": 5.3,
+        "startSec": 4.4,
+        "endSec": 4.44,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 5.3,
-        "endSec": 5.58,
+        "startSec": 4.44,
+        "endSec": 4.76,
         "timingSource": "estimated"
       },
       {
         "text": "很",
         "pinyin": "hěn",
-        "startSec": 5.58,
-        "endSec": 6.08,
+        "startSec": 4.76,
+        "endSec": 5.02,
         "timingSource": "aligned"
       },
       {
         "text": "高",
         "pinyin": "gāo",
-        "startSec": 6.08,
-        "endSec": 6.32,
+        "startSec": 5.02,
+        "endSec": 5.28,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 6.32,
-        "endSec": 7.34,
+        "startSec": 5.28,
+        "endSec": 6.02,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 7.34,
-        "endSec": 7.58,
+        "startSec": 6.02,
+        "endSec": 6.26,
         "timingSource": "aligned"
       },
       {
         "text": "群",
         "pinyin": "qún",
-        "startSec": 7.58,
-        "endSec": 7.8,
+        "startSec": 6.26,
+        "endSec": 6.44,
         "timingSource": "aligned"
       },
       {
         "text": "大",
         "pinyin": "dà",
-        "startSec": 7.8,
-        "endSec": 8.34,
+        "startSec": 6.44,
+        "endSec": 6.84,
         "timingSource": "aligned"
       },
       {
         "text": "雁",
         "pinyin": "yàn",
-        "startSec": 8.34,
-        "endSec": 8.38,
+        "startSec": 6.84,
+        "endSec": 6.98,
         "timingSource": "aligned"
       },
       {
         "text": "往",
         "pinyin": "wǎng",
-        "startSec": 8.38,
-        "endSec": 8.92,
+        "startSec": 6.98,
+        "endSec": 7.4,
         "timingSource": "aligned"
       },
       {
         "text": "南",
         "pinyin": "nán",
-        "startSec": 8.92,
-        "endSec": 9.26,
+        "startSec": 7.4,
+        "endSec": 7.7,
         "timingSource": "aligned"
       },
       {
         "text": "飞",
         "pinyin": "fēi",
-        "startSec": 9.26,
-        "endSec": 9.48,
+        "startSec": 7.7,
+        "endSec": 8.2,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 9.48,
-        "endSec": 10.72,
+        "startSec": 8.2,
+        "endSec": 8.9,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 10.72,
-        "endSec": 10.88,
+        "startSec": 8.9,
+        "endSec": 9.14,
         "timingSource": "aligned"
       },
       {
         "text": "会",
         "pinyin": "huì",
-        "startSec": 10.88,
-        "endSec": 11.0,
+        "startSec": 9.14,
+        "endSec": 9.18,
         "timingSource": "aligned"
       },
       {
         "text": "儿",
         "pinyin": "er",
-        "startSec": 11.0,
-        "endSec": 11.34,
+        "startSec": 9.14,
+        "endSec": 9.5,
         "timingSource": "aligned"
       },
       {
         "text": "排",
         "pinyin": "pái",
-        "startSec": 11.34,
-        "endSec": 11.4,
+        "startSec": 9.5,
+        "endSec": 9.56,
         "timingSource": "aligned"
       },
       {
         "text": "成",
         "pinyin": "chéng",
-        "startSec": 11.4,
-        "endSec": 11.64,
+        "startSec": 9.56,
+        "endSec": 9.76,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 11.64,
-        "endSec": 12.0,
+        "startSec": 9.76,
+        "endSec": 10.04,
         "timingSource": "aligned"
       },
       {
         "text": "“",
-        "startSec": 12.0,
-        "endSec": 12.2,
+        "startSec": 10.04,
+        "endSec": 10.16,
         "timingSource": "estimated"
       },
       {
         "text": "人",
         "pinyin": "rén",
-        "startSec": 12.2,
-        "endSec": 12.64,
+        "startSec": 10.04,
+        "endSec": 10.42,
         "timingSource": "aligned"
       },
       {
         "text": "”",
-        "startSec": 12.64,
-        "endSec": 12.76,
+        "startSec": 10.42,
+        "endSec": 10.54,
         "timingSource": "estimated"
       },
       {
         "text": "字",
         "pinyin": "zì",
-        "startSec": 12.64,
-        "endSec": 12.76,
+        "startSec": 10.42,
+        "endSec": 10.58,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 12.76,
-        "endSec": 13.58,
+        "startSec": 10.58,
+        "endSec": 11.16,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 13.58,
-        "endSec": 13.86,
+        "startSec": 11.16,
+        "endSec": 11.42,
         "timingSource": "aligned"
       },
       {
         "text": "会",
         "pinyin": "huì",
-        "startSec": 13.86,
-        "endSec": 14.0,
+        "startSec": 11.42,
+        "endSec": 11.56,
         "timingSource": "aligned"
       },
       {
         "text": "儿",
         "pinyin": "er",
-        "startSec": 14.0,
-        "endSec": 14.32,
+        "startSec": 11.56,
+        "endSec": 11.88,
         "timingSource": "aligned"
       },
       {
         "text": "排",
         "pinyin": "pái",
-        "startSec": 14.32,
-        "endSec": 14.38,
+        "startSec": 11.88,
+        "endSec": 11.94,
         "timingSource": "aligned"
       },
       {
         "text": "成",
         "pinyin": "chéng",
-        "startSec": 14.38,
-        "endSec": 14.66,
+        "startSec": 11.94,
+        "endSec": 12.24,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 14.66,
-        "endSec": 15.12,
+        "startSec": 12.24,
+        "endSec": 12.72,
         "timingSource": "aligned"
       },
       {
         "text": "“",
-        "startSec": 15.12,
-        "endSec": 15.26,
+        "startSec": 12.72,
+        "endSec": 12.76,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 15.26,
-        "endSec": 15.56,
+        "startSec": 12.76,
+        "endSec": 13.06,
         "timingSource": "aligned"
       },
       {
         "text": "”",
-        "startSec": 15.56,
-        "endSec": 15.7,
+        "startSec": 13.06,
+        "endSec": 13.12,
         "timingSource": "estimated"
       },
       {
         "text": "字",
         "pinyin": "zì",
-        "startSec": 15.7,
-        "endSec": 15.74,
+        "startSec": 13.12,
+        "endSec": 13.18,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 15.74,
-        "endSec": 15.86,
+        "startSec": 13.18,
+        "endSec": 13.3,
         "timingSource": "estimated"
       }
     ],
@@ -1807,7 +1851,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-05-03-lan2.mp3"
       },
       {
-        "id": "wm-05-04-gao1",
+        "id": "wm-05-04-huang2",
+        "hanzi": "黄",
+        "pinyin": "huáng",
+        "pinyinRaw": "huang2",
+        "tone": 2,
+        "difficulty": "easy",
+        "creatureName": "黄 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-05-04-huang2.mp3"
+      },
+      {
+        "id": "wm-05-05-gao1",
         "hanzi": "高",
         "pinyin": "gāo",
         "pinyinRaw": "gao1",
@@ -1815,10 +1870,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "高 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-05-04-gao1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-05-05-gao1.mp3"
       },
       {
-        "id": "wm-05-05-fei1",
+        "id": "wm-05-06-fei1",
         "hanzi": "飞",
         "pinyin": "fēi",
         "pinyinRaw": "fei1",
@@ -1826,10 +1881,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "飞 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-05-05-fei1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-05-06-fei1.mp3"
       },
       {
-        "id": "wm-05-06-ren2",
+        "id": "wm-05-07-ren2",
         "hanzi": "人",
         "pinyin": "rén",
         "pinyinRaw": "ren2",
@@ -1837,32 +1892,32 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "人 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-05-06-ren2.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-05-07-ren2.mp3"
       },
       {
-        "id": "wm-05-07-hui4",
-        "hanzi": "会",
-        "pinyin": "huì",
-        "pinyinRaw": "hui4",
-        "tone": 4,
+        "id": "wm-05-08-yi1hui4er5",
+        "hanzi": "一会儿",
+        "pinyin": "yī huì er",
+        "pinyinRaw": "yi1 hui4 er5",
+        "tone": 1,
         "difficulty": "easy",
-        "creatureName": "会 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-05-07-hui4.mp3"
+        "creatureName": "一会儿 Mole",
+        "scoreValue": 15,
+        "audioUrl": "/audio/script_content/generated/words/wm-05-08-yi1hui4er5.mp3"
       },
       {
-        "id": "wm-05-08-yi2ge4",
-        "hanzi": "一个",
-        "pinyin": "yí gè",
-        "pinyinRaw": "yi2 ge4",
-        "tone": 2,
+        "id": "wm-05-09-yi1qun2",
+        "hanzi": "一群",
+        "pinyin": "yī qún",
+        "pinyinRaw": "yi1 qun2",
+        "tone": 1,
         "difficulty": "easy",
-        "creatureName": "一个 Mole",
+        "creatureName": "一群 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-05-08-yi2ge4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-05-09-yi1qun2.mp3"
       },
       {
-        "id": "wm-05-09-zi4",
+        "id": "wm-05-10-zi4",
         "hanzi": "字",
         "pinyin": "zì",
         "pinyinRaw": "zi4",
@@ -1870,7 +1925,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "字 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-05-09-zi4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-05-10-zi4.mp3"
       }
     ]
   },
@@ -1885,197 +1940,197 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "月",
         "pinyin": "yuè",
         "startSec": 0.0,
-        "endSec": 0.92,
+        "endSec": 1.04,
         "timingSource": "aligned"
       },
       {
         "text": "儿",
         "pinyin": "ér",
-        "startSec": 0.92,
-        "endSec": 1.28,
+        "startSec": 1.04,
+        "endSec": 1.26,
         "timingSource": "aligned"
       },
       {
         "text": "弯",
         "pinyin": "wān",
-        "startSec": 1.28,
-        "endSec": 1.56,
+        "startSec": 1.26,
+        "endSec": 1.48,
         "timingSource": "aligned"
       },
       {
         "text": "弯",
         "pinyin": "wān",
-        "startSec": 1.56,
-        "endSec": 1.9,
+        "startSec": 1.48,
+        "endSec": 1.78,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.9,
-        "endSec": 2.32,
+        "startSec": 1.78,
+        "endSec": 2.22,
         "timingSource": "estimated"
       },
       {
         "text": "像",
         "pinyin": "xiàng",
-        "startSec": 2.32,
-        "endSec": 2.54,
+        "startSec": 2.22,
+        "endSec": 2.42,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 2.54,
-        "endSec": 2.78,
+        "startSec": 2.42,
+        "endSec": 2.66,
         "timingSource": "aligned"
       },
       {
         "text": "只",
         "pinyin": "zhī",
-        "startSec": 2.78,
-        "endSec": 2.88,
+        "startSec": 2.66,
+        "endSec": 2.74,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 2.88,
-        "endSec": 3.32,
+        "startSec": 2.74,
+        "endSec": 3.16,
         "timingSource": "aligned"
       },
       {
         "text": "船",
         "pinyin": "chuán",
-        "startSec": 3.32,
-        "endSec": 3.58,
+        "startSec": 3.16,
+        "endSec": 3.42,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.58,
-        "endSec": 4.56,
+        "startSec": 3.42,
+        "endSec": 4.44,
         "timingSource": "estimated"
       },
       {
         "text": "船",
         "pinyin": "chuán",
-        "startSec": 4.56,
-        "endSec": 4.6,
+        "startSec": 4.44,
+        "endSec": 4.48,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 4.56,
-        "endSec": 4.74,
+        "startSec": 4.44,
+        "endSec": 4.6,
         "timingSource": "aligned"
       },
       {
         "text": "两",
         "pinyin": "liǎng",
-        "startSec": 4.74,
-        "endSec": 5.02,
+        "startSec": 4.6,
+        "endSec": 4.86,
         "timingSource": "aligned"
       },
       {
         "text": "头",
         "pinyin": "tóu",
-        "startSec": 5.02,
-        "endSec": 5.44,
+        "startSec": 4.86,
+        "endSec": 5.28,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 5.44,
-        "endSec": 5.7,
+        "startSec": 5.28,
+        "endSec": 5.58,
         "timingSource": "estimated"
       },
       {
         "text": "尖",
         "pinyin": "jiān",
-        "startSec": 5.7,
-        "endSec": 6.12,
+        "startSec": 5.58,
+        "endSec": 6.0,
         "timingSource": "aligned"
       },
       {
         "text": "尖",
         "pinyin": "jiān",
-        "startSec": 6.12,
-        "endSec": 6.34,
+        "startSec": 6.0,
+        "endSec": 6.16,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 6.34,
-        "endSec": 6.62,
+        "startSec": 6.16,
+        "endSec": 6.76,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 6.62,
-        "endSec": 7.16,
+        "startSec": 6.76,
+        "endSec": 7.06,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 7.16,
-        "endSec": 7.38,
+        "startSec": 7.06,
+        "endSec": 7.26,
         "timingSource": "aligned"
       },
       {
         "text": "坐",
         "pinyin": "zuò",
-        "startSec": 7.38,
-        "endSec": 7.52,
+        "startSec": 7.26,
+        "endSec": 7.4,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 7.52,
-        "endSec": 8.04,
+        "startSec": 7.4,
+        "endSec": 7.9,
         "timingSource": "aligned"
       },
       {
         "text": "船",
         "pinyin": "chuán",
-        "startSec": 8.04,
-        "endSec": 8.08,
+        "startSec": 7.9,
+        "endSec": 7.94,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 8.04,
-        "endSec": 8.36,
+        "startSec": 7.9,
+        "endSec": 8.22,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 8.36,
-        "endSec": 8.88,
+        "startSec": 8.22,
+        "endSec": 8.96,
         "timingSource": "estimated"
       },
       {
         "text": "看",
         "pinyin": "kàn",
-        "startSec": 8.88,
-        "endSec": 9.12,
+        "startSec": 8.96,
+        "endSec": 9.16,
         "timingSource": "aligned"
       },
       {
         "text": "见",
         "pinyin": "jiàn",
-        "startSec": 9.12,
-        "endSec": 9.34,
+        "startSec": 9.16,
+        "endSec": 9.4,
         "timingSource": "aligned"
       },
       {
         "text": "闪",
         "pinyin": "shǎn",
-        "startSec": 9.34,
+        "startSec": 9.4,
         "endSec": 9.78,
         "timingSource": "aligned"
       },
@@ -2090,89 +2145,89 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "的",
         "pinyin": "de",
         "startSec": 9.9,
-        "endSec": 10.22,
+        "endSec": 10.18,
         "timingSource": "aligned"
       },
       {
         "text": "星",
         "pinyin": "xīng",
-        "startSec": 10.22,
-        "endSec": 10.42,
+        "startSec": 10.18,
+        "endSec": 10.4,
         "timingSource": "aligned"
       },
       {
         "text": "星",
         "pinyin": "xīng",
-        "startSec": 10.42,
-        "endSec": 10.6,
+        "startSec": 10.4,
+        "endSec": 10.58,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 10.6,
-        "endSec": 11.44,
+        "startSec": 10.58,
+        "endSec": 10.7,
         "timingSource": "estimated"
       },
       {
         "text": "看",
         "pinyin": "kàn",
-        "startSec": 11.44,
-        "endSec": 11.52,
-        "timingSource": "aligned"
+        "startSec": 10.7,
+        "endSec": 10.82,
+        "timingSource": "estimated"
       },
       {
         "text": "见",
         "pinyin": "jiàn",
-        "startSec": 11.52,
-        "endSec": 11.78,
-        "timingSource": "aligned"
+        "startSec": 10.82,
+        "endSec": 10.94,
+        "timingSource": "estimated"
       },
       {
         "text": "蓝",
         "pinyin": "lán",
-        "startSec": 11.78,
-        "endSec": 12.14,
-        "timingSource": "aligned"
+        "startSec": 10.94,
+        "endSec": 11.06,
+        "timingSource": "estimated"
       },
       {
         "text": "蓝",
         "pinyin": "lán",
-        "startSec": 12.14,
-        "endSec": 12.32,
-        "timingSource": "aligned"
+        "startSec": 11.06,
+        "endSec": 11.18,
+        "timingSource": "estimated"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 12.32,
-        "endSec": 12.58,
-        "timingSource": "aligned"
+        "startSec": 11.18,
+        "endSec": 11.3,
+        "timingSource": "estimated"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 12.58,
-        "endSec": 12.76,
-        "timingSource": "aligned"
+        "startSec": 11.3,
+        "endSec": 11.42,
+        "timingSource": "estimated"
       },
       {
         "text": "。",
-        "startSec": 12.76,
-        "endSec": 12.88,
+        "startSec": 11.42,
+        "endSec": 11.54,
         "timingSource": "estimated"
       }
     ],
     "words": [
       {
-        "id": "wm-06-01-wan1",
-        "hanzi": "弯",
-        "pinyin": "wān",
-        "pinyinRaw": "wan1",
-        "tone": 1,
+        "id": "wm-06-01-yue4er2",
+        "hanzi": "月儿",
+        "pinyin": "yuè ér",
+        "pinyinRaw": "yue4 er2",
+        "tone": 4,
         "difficulty": "easy",
-        "creatureName": "弯 Mole",
+        "creatureName": "月儿 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-06-01-wan1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-06-01-yue4er2.mp3"
       },
       {
         "id": "wm-06-02-xiao3chuan2",
@@ -2197,18 +2252,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-06-03-liang3tou2.mp3"
       },
       {
-        "id": "wm-06-04-jian1jian1",
-        "hanzi": "尖尖",
-        "pinyin": "jiān jiān",
-        "pinyinRaw": "jian1 jian1",
-        "tone": 1,
-        "difficulty": "easy",
-        "creatureName": "尖尖 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-06-04-jian1jian1.mp3"
-      },
-      {
-        "id": "wm-06-05-zuo4",
+        "id": "wm-06-04-zuo4",
         "hanzi": "坐",
         "pinyin": "zuò",
         "pinyinRaw": "zuo4",
@@ -2216,10 +2260,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "坐 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-06-05-zuo4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-06-04-zuo4.mp3"
       },
       {
-        "id": "wm-06-06-kan4jian4",
+        "id": "wm-06-05-kan4jian4",
         "hanzi": "看见",
         "pinyin": "kàn jiàn",
         "pinyinRaw": "kan4 jian4",
@@ -2227,10 +2271,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "看见 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-06-06-kan4jian4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-06-05-kan4jian4.mp3"
       },
       {
-        "id": "wm-06-07-xing1xing1",
+        "id": "wm-06-06-xing1xing1",
         "hanzi": "星星",
         "pinyin": "xīng xīng",
         "pinyinRaw": "xing1 xing1",
@@ -2238,10 +2282,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "星星 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-06-07-xing1xing1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-06-06-xing1xing1.mp3"
       },
       {
-        "id": "wm-06-08-lan2tian1",
+        "id": "wm-06-07-lan2tian1",
         "hanzi": "蓝天",
         "pinyin": "lán tiān",
         "pinyinRaw": "lan2 tian1",
@@ -2249,7 +2293,40 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "蓝天 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-06-08-lan2tian1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-06-07-lan2tian1.mp3"
+      },
+      {
+        "id": "wm-06-08-wan1wan1de5",
+        "hanzi": "弯弯的",
+        "pinyin": "wān wān de",
+        "pinyinRaw": "wan1 wan1 de5",
+        "tone": 1,
+        "difficulty": "easy",
+        "creatureName": "弯弯的 Mole",
+        "scoreValue": 15,
+        "audioUrl": "/audio/script_content/generated/words/wm-06-08-wan1wan1de5.mp3"
+      },
+      {
+        "id": "wm-06-09-jian1jian1de5",
+        "hanzi": "尖尖的",
+        "pinyin": "jiān jiān de",
+        "pinyinRaw": "jian1 jian1 de5",
+        "tone": 1,
+        "difficulty": "easy",
+        "creatureName": "尖尖的 Mole",
+        "scoreValue": 15,
+        "audioUrl": "/audio/script_content/generated/words/wm-06-09-jian1jian1de5.mp3"
+      },
+      {
+        "id": "wm-06-10-xiang4",
+        "hanzi": "像",
+        "pinyin": "xiàng",
+        "pinyinRaw": "xiang4",
+        "tone": 4,
+        "difficulty": "easy",
+        "creatureName": "像 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-06-10-xiang4.mp3"
       }
     ]
   },
@@ -2264,220 +2341,220 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "一",
         "pinyin": "yī",
         "startSec": 0.0,
-        "endSec": 0.54,
+        "endSec": 0.72,
         "timingSource": "aligned"
       },
       {
         "text": "闪",
         "pinyin": "shǎn",
-        "startSec": 0.54,
-        "endSec": 0.74,
+        "startSec": 0.72,
+        "endSec": 0.76,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 0.74,
-        "endSec": 1.22,
+        "startSec": 0.72,
+        "endSec": 1.16,
         "timingSource": "aligned"
       },
       {
         "text": "闪",
         "pinyin": "shǎn",
-        "startSec": 1.22,
-        "endSec": 1.62,
+        "startSec": 1.16,
+        "endSec": 1.48,
         "timingSource": "aligned"
       },
       {
         "text": "亮",
         "pinyin": "liàng",
-        "startSec": 1.62,
-        "endSec": 2.26,
+        "startSec": 1.48,
+        "endSec": 2.0,
         "timingSource": "aligned"
       },
       {
         "text": "晶",
         "pinyin": "jīng",
-        "startSec": 2.26,
-        "endSec": 2.76,
+        "startSec": 2.0,
+        "endSec": 2.42,
         "timingSource": "aligned"
       },
       {
         "text": "晶",
         "pinyin": "jīng",
-        "startSec": 2.76,
-        "endSec": 3.14,
+        "startSec": 2.42,
+        "endSec": 2.7,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 3.14,
-        "endSec": 3.78,
+        "startSec": 2.7,
+        "endSec": 3.7,
         "timingSource": "estimated"
       },
       {
         "text": "满",
         "pinyin": "mǎn",
-        "startSec": 3.78,
-        "endSec": 4.12,
+        "startSec": 3.7,
+        "endSec": 3.74,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 4.12,
-        "endSec": 4.48,
+        "startSec": 3.7,
+        "endSec": 4.0,
         "timingSource": "aligned"
       },
       {
         "text": "都",
         "pinyin": "dōu",
-        "startSec": 4.48,
-        "endSec": 4.76,
+        "startSec": 4.0,
+        "endSec": 4.24,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 4.76,
-        "endSec": 5.04,
+        "startSec": 4.24,
+        "endSec": 4.48,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 5.04,
-        "endSec": 5.56,
+        "startSec": 4.48,
+        "endSec": 4.9,
         "timingSource": "aligned"
       },
       {
         "text": "星",
         "pinyin": "xīng",
-        "startSec": 5.56,
-        "endSec": 5.82,
+        "startSec": 4.9,
+        "endSec": 5.12,
         "timingSource": "aligned"
       },
       {
         "text": "星",
         "pinyin": "xīng",
-        "startSec": 5.82,
-        "endSec": 6.44,
+        "startSec": 5.12,
+        "endSec": 5.72,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 6.44,
-        "endSec": 7.02,
+        "startSec": 5.72,
+        "endSec": 6.38,
         "timingSource": "estimated"
       },
       {
         "text": "挂",
         "pinyin": "guà",
-        "startSec": 7.02,
-        "endSec": 7.06,
+        "startSec": 6.38,
+        "endSec": 6.42,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 7.04,
-        "endSec": 7.34,
+        "startSec": 6.4,
+        "endSec": 6.66,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 7.34,
-        "endSec": 7.6,
+        "startSec": 6.66,
+        "endSec": 6.9,
         "timingSource": "aligned"
       },
       {
         "text": "上",
         "pinyin": "shàng",
-        "startSec": 7.6,
-        "endSec": 7.94,
+        "startSec": 6.9,
+        "endSec": 7.36,
         "timingSource": "aligned"
       },
       {
         "text": "放",
         "pinyin": "fàng",
-        "startSec": 7.94,
-        "endSec": 8.24,
+        "startSec": 7.36,
+        "endSec": 7.7,
         "timingSource": "aligned"
       },
       {
         "text": "光",
         "pinyin": "guāng",
-        "startSec": 8.24,
-        "endSec": 8.54,
+        "startSec": 7.7,
+        "endSec": 7.96,
         "timingSource": "aligned"
       },
       {
         "text": "明",
         "pinyin": "míng",
-        "startSec": 8.54,
-        "endSec": 8.82,
+        "startSec": 7.96,
+        "endSec": 8.24,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 8.82,
-        "endSec": 9.36,
+        "startSec": 8.24,
+        "endSec": 9.0,
         "timingSource": "estimated"
       },
       {
         "text": "好",
         "pinyin": "hǎo",
-        "startSec": 9.36,
-        "endSec": 9.55,
+        "startSec": 9.0,
+        "endSec": 9.19,
         "timingSource": "aligned"
       },
       {
         "text": "像",
         "pinyin": "xiàng",
-        "startSec": 9.55,
-        "endSec": 9.74,
+        "startSec": 9.19,
+        "endSec": 9.38,
         "timingSource": "aligned"
       },
       {
         "text": "许",
         "pinyin": "xǔ",
-        "startSec": 9.74,
-        "endSec": 10.26,
+        "startSec": 9.38,
+        "endSec": 9.86,
         "timingSource": "aligned"
       },
       {
         "text": "多",
         "pinyin": "duō",
-        "startSec": 10.26,
-        "endSec": 10.54,
+        "startSec": 9.86,
+        "endSec": 10.12,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 10.54,
-        "endSec": 10.92,
+        "startSec": 10.12,
+        "endSec": 10.48,
         "timingSource": "aligned"
       },
       {
         "text": "眼",
         "pinyin": "yǎn",
-        "startSec": 10.92,
-        "endSec": 11.26,
+        "startSec": 10.48,
+        "endSec": 10.8,
         "timingSource": "aligned"
       },
       {
         "text": "睛",
         "pinyin": "jīng",
-        "startSec": 11.26,
-        "endSec": 11.44,
+        "startSec": 10.8,
+        "endSec": 10.9,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 11.44,
-        "endSec": 11.56,
+        "startSec": 10.9,
+        "endSec": 11.02,
         "timingSource": "estimated"
       }
     ],
@@ -2494,18 +2571,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-07-01-shan3liang4.mp3"
       },
       {
-        "id": "wm-07-02-liang4jing1jing1",
-        "hanzi": "亮晶晶",
-        "pinyin": "liàng jīng jīng",
-        "pinyinRaw": "liang4 jing1 jing1",
-        "tone": 4,
-        "difficulty": "easy",
-        "creatureName": "亮晶晶 Mole",
-        "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-07-02-liang4jing1jing1.mp3"
-      },
-      {
-        "id": "wm-07-03-zai4",
+        "id": "wm-07-02-zai4",
         "hanzi": "在",
         "pinyin": "zài",
         "pinyinRaw": "zai4",
@@ -2513,7 +2579,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "在 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-07-03-zai4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-07-02-zai4.mp3"
+      },
+      {
+        "id": "wm-07-03-tian1shang4",
+        "hanzi": "天上",
+        "pinyin": "tiān shàng",
+        "pinyinRaw": "tian1 shang4",
+        "tone": 1,
+        "difficulty": "easy",
+        "creatureName": "天上 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-07-03-tian1shang4.mp3"
       },
       {
         "id": "wm-07-04-dou1shi4",
@@ -2569,6 +2646,17 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "creatureName": "眼睛 Mole",
         "scoreValue": 10,
         "audioUrl": "/audio/script_content/generated/words/wm-07-08-yan3jing1.mp3"
+      },
+      {
+        "id": "wm-07-09-liang4jing1jing1",
+        "hanzi": "亮晶晶",
+        "pinyin": "liàng jīng jīng",
+        "pinyinRaw": "liang4 jing1 jing1",
+        "tone": 4,
+        "difficulty": "easy",
+        "creatureName": "亮晶晶 Mole",
+        "scoreValue": 15,
+        "audioUrl": "/audio/script_content/generated/words/wm-07-09-liang4jing1jing1.mp3"
       }
     ]
   },
@@ -2583,417 +2671,417 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "江",
         "pinyin": "jiāng",
         "startSec": 0.0,
-        "endSec": 0.42,
+        "endSec": 0.38,
         "timingSource": "aligned"
       },
       {
         "text": "南",
         "pinyin": "nán",
-        "startSec": 0.42,
-        "endSec": 0.62,
+        "startSec": 0.38,
+        "endSec": 0.58,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 0.62,
-        "endSec": 0.92,
+        "startSec": 0.58,
+        "endSec": 0.82,
         "timingSource": "aligned"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 0.92,
-        "endSec": 1.16,
+        "startSec": 0.82,
+        "endSec": 1.04,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 1.16,
-        "endSec": 1.62,
+        "startSec": 1.04,
+        "endSec": 1.46,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.62,
-        "endSec": 1.74,
+        "startSec": 1.46,
+        "endSec": 1.58,
         "timingSource": "estimated"
       },
       {
         "text": "长",
         "pinyin": "zhǎng",
-        "startSec": 1.74,
-        "endSec": 2.16,
+        "startSec": 1.46,
+        "endSec": 1.88,
         "timingSource": "aligned"
       },
       {
         "text": "满",
         "pinyin": "mǎn",
-        "startSec": 2.16,
-        "endSec": 2.4,
+        "startSec": 1.88,
+        "endSec": 2.1,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 2.4,
-        "endSec": 2.98,
+        "startSec": 2.1,
+        "endSec": 2.6,
         "timingSource": "aligned"
       },
       {
         "text": "莲",
         "pinyin": "lián",
-        "startSec": 2.98,
-        "endSec": 3.02,
+        "startSec": 2.6,
+        "endSec": 2.64,
         "timingSource": "aligned"
       },
       {
         "text": "叶",
         "pinyin": "yè",
-        "startSec": 2.98,
-        "endSec": 3.16,
+        "startSec": 2.6,
+        "endSec": 2.96,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.16,
-        "endSec": 3.9,
+        "startSec": 2.96,
+        "endSec": 3.32,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 3.9,
-        "endSec": 4.14,
+        "startSec": 3.32,
+        "endSec": 3.52,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 4.14,
-        "endSec": 4.32,
+        "startSec": 3.52,
+        "endSec": 3.64,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 4.32,
-        "endSec": 4.68,
+        "startSec": 3.64,
+        "endSec": 4.0,
         "timingSource": "aligned"
       },
       {
         "text": "片",
         "pinyin": "piàn",
-        "startSec": 4.68,
+        "startSec": 4.0,
+        "endSec": 4.2,
+        "timingSource": "aligned"
+      },
+      {
+        "text": "，",
+        "startSec": 4.2,
         "endSec": 4.84,
-        "timingSource": "aligned"
+        "timingSource": "estimated"
       },
       {
-        "text": "，",
+        "text": "高",
+        "pinyin": "gāo",
         "startSec": 4.84,
-        "endSec": 5.6,
-        "timingSource": "estimated"
-      },
-      {
-        "text": "高",
-        "pinyin": "gāo",
-        "startSec": 5.6,
-        "endSec": 5.72,
+        "endSec": 4.94,
         "timingSource": "aligned"
       },
       {
         "text": "高",
         "pinyin": "gāo",
-        "startSec": 5.72,
-        "endSec": 5.88,
+        "startSec": 4.94,
+        "endSec": 5.14,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 5.88,
-        "endSec": 6.62,
+        "startSec": 5.14,
+        "endSec": 5.68,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 6.62,
-        "endSec": 7.02,
+        "startSec": 5.68,
+        "endSec": 5.98,
         "timingSource": "estimated"
       },
       {
         "text": "圆",
         "pinyin": "yuán",
-        "startSec": 7.02,
-        "endSec": 7.06,
+        "startSec": 5.98,
+        "endSec": 6.02,
         "timingSource": "aligned"
       },
       {
         "text": "圆",
         "pinyin": "yuán",
-        "startSec": 7.04,
-        "endSec": 7.26,
+        "startSec": 5.98,
+        "endSec": 6.2,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 7.26,
-        "endSec": 8.06,
+        "startSec": 6.2,
+        "endSec": 6.64,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 8.06,
-        "endSec": 8.68,
+        "startSec": 6.64,
+        "endSec": 7.3,
         "timingSource": "estimated"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 8.68,
-        "endSec": 8.76,
+        "startSec": 7.3,
+        "endSec": 7.38,
         "timingSource": "aligned"
       },
       {
         "text": "鱼",
         "pinyin": "yú",
-        "startSec": 8.76,
-        "endSec": 8.84,
+        "startSec": 7.38,
+        "endSec": 7.44,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 8.84,
-        "endSec": 9.44,
+        "startSec": 7.44,
+        "endSec": 7.76,
         "timingSource": "aligned"
       },
       {
         "text": "叶",
         "pinyin": "yè",
-        "startSec": 9.44,
-        "endSec": 9.72,
+        "startSec": 7.76,
+        "endSec": 7.94,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 9.72,
-        "endSec": 9.86,
+        "startSec": 7.94,
+        "endSec": 8.08,
         "timingSource": "aligned"
       },
       {
         "text": "下",
         "pinyin": "xià",
-        "startSec": 9.86,
-        "endSec": 10.1,
+        "startSec": 8.08,
+        "endSec": 8.34,
         "timingSource": "aligned"
       },
       {
         "text": "面",
         "pinyin": "miàn",
-        "startSec": 10.1,
-        "endSec": 10.34,
+        "startSec": 8.34,
+        "endSec": 8.6,
         "timingSource": "aligned"
       },
       {
         "text": "游",
         "pinyin": "yóu",
-        "startSec": 10.34,
-        "endSec": 10.86,
+        "startSec": 8.6,
+        "endSec": 8.88,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 10.86,
-        "endSec": 11.14,
+        "startSec": 8.88,
+        "endSec": 9.08,
         "timingSource": "aligned"
       },
       {
         "text": "游",
         "pinyin": "yóu",
-        "startSec": 11.14,
-        "endSec": 11.44,
+        "startSec": 9.08,
+        "endSec": 9.4,
         "timingSource": "aligned"
       },
       {
         "text": "去",
         "pinyin": "qù",
-        "startSec": 11.44,
-        "endSec": 11.68,
+        "startSec": 9.4,
+        "endSec": 9.6,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 11.68,
-        "endSec": 12.62,
+        "startSec": 9.6,
+        "endSec": 10.26,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 12.62,
-        "endSec": 12.68,
+        "startSec": 10.26,
+        "endSec": 10.34,
         "timingSource": "aligned"
       },
       {
         "text": "条",
         "pinyin": "tiáo",
-        "startSec": 12.68,
-        "endSec": 12.88,
+        "startSec": 10.34,
+        "endSec": 10.44,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 12.88,
-        "endSec": 13.42,
+        "startSec": 10.44,
+        "endSec": 10.74,
         "timingSource": "aligned"
       },
       {
         "text": "东",
         "pinyin": "dōng",
-        "startSec": 13.42,
-        "endSec": 13.74,
+        "startSec": 10.74,
+        "endSec": 11.04,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 13.74,
-        "endSec": 13.96,
+        "startSec": 11.04,
+        "endSec": 11.24,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 13.96,
-        "endSec": 14.64,
+        "startSec": 11.24,
+        "endSec": 11.66,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 14.64,
-        "endSec": 15.14,
+        "startSec": 11.66,
+        "endSec": 12.04,
         "timingSource": "aligned"
       },
       {
         "text": "条",
         "pinyin": "tiáo",
-        "startSec": 15.14,
-        "endSec": 15.18,
+        "startSec": 12.04,
+        "endSec": 12.08,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 15.14,
-        "endSec": 15.62,
+        "startSec": 12.04,
+        "endSec": 12.4,
         "timingSource": "aligned"
       },
       {
         "text": "西",
         "pinyin": "xī",
-        "startSec": 15.62,
-        "endSec": 15.84,
+        "startSec": 12.4,
+        "endSec": 12.58,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 15.84,
-        "endSec": 16.12,
+        "startSec": 12.58,
+        "endSec": 12.8,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 16.12,
-        "endSec": 16.86,
+        "startSec": 12.8,
+        "endSec": 13.26,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 16.86,
-        "endSec": 17.46,
+        "startSec": 13.26,
+        "endSec": 13.66,
         "timingSource": "aligned"
       },
       {
         "text": "条",
         "pinyin": "tiáo",
-        "startSec": 17.46,
-        "endSec": 17.5,
+        "startSec": 13.66,
+        "endSec": 13.7,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 17.46,
-        "endSec": 18.0,
+        "startSec": 13.66,
+        "endSec": 14.0,
         "timingSource": "aligned"
       },
       {
         "text": "南",
         "pinyin": "nán",
-        "startSec": 18.0,
-        "endSec": 18.32,
+        "startSec": 14.0,
+        "endSec": 14.24,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 18.32,
-        "endSec": 18.6,
+        "startSec": 14.24,
+        "endSec": 14.5,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 18.6,
-        "endSec": 19.16,
+        "startSec": 14.5,
+        "endSec": 14.9,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 19.16,
-        "endSec": 19.8,
+        "startSec": 14.9,
+        "endSec": 15.26,
         "timingSource": "aligned"
       },
       {
         "text": "条",
         "pinyin": "tiáo",
-        "startSec": 19.8,
-        "endSec": 19.84,
+        "startSec": 15.26,
+        "endSec": 15.3,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 19.8,
-        "endSec": 20.42,
+        "startSec": 15.26,
+        "endSec": 15.64,
         "timingSource": "aligned"
       },
       {
         "text": "北",
         "pinyin": "běi",
-        "startSec": 20.42,
-        "endSec": 20.72,
+        "startSec": 15.64,
+        "endSec": 15.86,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 20.72,
-        "endSec": 20.98,
+        "startSec": 15.86,
+        "endSec": 16.08,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 20.98,
-        "endSec": 21.1,
+        "startSec": 16.08,
+        "endSec": 16.2,
         "timingSource": "estimated"
       }
     ],
@@ -3043,7 +3131,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-08-04-xia4mian4.mp3"
       },
       {
-        "id": "wm-08-05-dong1bian1",
+        "id": "wm-08-05-you2",
+        "hanzi": "游",
+        "pinyin": "yóu",
+        "pinyinRaw": "you2",
+        "tone": 2,
+        "difficulty": "easy",
+        "creatureName": "游 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-08-05-you2.mp3"
+      },
+      {
+        "id": "wm-08-06-dong1bian1",
         "hanzi": "东边",
         "pinyin": "dōng biān",
         "pinyinRaw": "dong1 bian1",
@@ -3051,10 +3150,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "东边 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-08-05-dong1bian1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-08-06-dong1bian1.mp3"
       },
       {
-        "id": "wm-08-06-xi1bian1",
+        "id": "wm-08-07-xi1bian1",
         "hanzi": "西边",
         "pinyin": "xī biān",
         "pinyinRaw": "xi1 bian1",
@@ -3062,10 +3161,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "西边 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-08-06-xi1bian1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-08-07-xi1bian1.mp3"
       },
       {
-        "id": "wm-08-07-nan2bian1",
+        "id": "wm-08-08-nan2bian1",
         "hanzi": "南边",
         "pinyin": "nán biān",
         "pinyinRaw": "nan2 bian1",
@@ -3073,10 +3172,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "南边 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-08-07-nan2bian1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-08-08-nan2bian1.mp3"
       },
       {
-        "id": "wm-08-08-bei3bian1",
+        "id": "wm-08-09-bei3bian1",
         "hanzi": "北边",
         "pinyin": "běi biān",
         "pinyinRaw": "bei3 bian1",
@@ -3084,7 +3183,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "北边 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-08-08-bei3bian1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-08-09-bei3bian1.mp3"
       }
     ]
   },
@@ -3099,143 +3198,143 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "一",
         "pinyin": "yī",
         "startSec": 0.0,
-        "endSec": 0.54,
+        "endSec": 1.12,
         "timingSource": "aligned"
       },
       {
         "text": "二",
         "pinyin": "èr",
-        "startSec": 0.54,
-        "endSec": 0.82,
+        "startSec": 1.12,
+        "endSec": 1.42,
         "timingSource": "aligned"
       },
       {
         "text": "三",
         "pinyin": "sān",
-        "startSec": 0.82,
-        "endSec": 1.3,
+        "startSec": 1.42,
+        "endSec": 1.84,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 1.3,
-        "endSec": 1.6,
+        "startSec": 1.84,
+        "endSec": 2.14,
         "timingSource": "aligned"
       },
       {
         "text": "五",
         "pinyin": "wǔ",
-        "startSec": 1.6,
-        "endSec": 1.94,
+        "startSec": 2.14,
+        "endSec": 2.56,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.94,
-        "endSec": 2.46,
+        "startSec": 2.56,
+        "endSec": 2.62,
         "timingSource": "estimated"
       },
       {
         "text": "上",
         "pinyin": "shàng",
-        "startSec": 2.46,
-        "endSec": 2.82,
+        "startSec": 2.62,
+        "endSec": 3.4,
         "timingSource": "aligned"
       },
       {
         "text": "山",
         "pinyin": "shān",
-        "startSec": 2.82,
-        "endSec": 3.06,
+        "startSec": 3.4,
+        "endSec": 3.7,
         "timingSource": "aligned"
       },
       {
         "text": "打",
         "pinyin": "dá",
-        "startSec": 3.06,
-        "endSec": 3.4,
+        "startSec": 3.7,
+        "endSec": 4.0,
         "timingSource": "aligned"
       },
       {
         "text": "老",
         "pinyin": "láo",
-        "startSec": 3.4,
-        "endSec": 3.76,
+        "startSec": 4.0,
+        "endSec": 4.3,
         "timingSource": "aligned"
       },
       {
         "text": "虎",
         "pinyin": "hǔ",
-        "startSec": 3.76,
-        "endSec": 4.02,
+        "startSec": 4.3,
+        "endSec": 4.48,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 4.02,
-        "endSec": 5.1,
+        "startSec": 4.48,
+        "endSec": 5.4,
         "timingSource": "estimated"
       },
       {
         "text": "老",
         "pinyin": "lǎo",
-        "startSec": 5.1,
-        "endSec": 5.28,
+        "startSec": 5.4,
+        "endSec": 5.52,
         "timingSource": "aligned"
       },
       {
         "text": "虎",
         "pinyin": "hǔ",
-        "startSec": 5.28,
-        "endSec": 5.32,
+        "startSec": 5.52,
+        "endSec": 5.64,
         "timingSource": "aligned"
       },
       {
         "text": "没",
         "pinyin": "méi",
-        "startSec": 5.28,
-        "endSec": 5.66,
+        "startSec": 5.64,
+        "endSec": 5.96,
         "timingSource": "aligned"
       },
       {
         "text": "打",
         "pinyin": "dǎ",
-        "startSec": 5.66,
-        "endSec": 5.94,
+        "startSec": 5.96,
+        "endSec": 6.24,
         "timingSource": "aligned"
       },
       {
         "text": "着",
         "pinyin": "zhe",
-        "startSec": 5.94,
-        "endSec": 6.2,
+        "startSec": 6.24,
+        "endSec": 6.5,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 6.2,
-        "endSec": 6.82,
+        "startSec": 6.5,
+        "endSec": 7.16,
         "timingSource": "estimated"
       },
       {
         "text": "看",
         "pinyin": "kàn",
-        "startSec": 6.82,
-        "endSec": 7.06,
+        "startSec": 7.16,
+        "endSec": 7.22,
         "timingSource": "aligned"
       },
       {
         "text": "见",
         "pinyin": "jiàn",
-        "startSec": 7.06,
-        "endSec": 7.26,
+        "startSec": 7.22,
+        "endSec": 7.42,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 7.26,
+        "startSec": 7.42,
         "endSec": 7.92,
         "timingSource": "aligned"
       },
@@ -3243,19 +3342,19 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "松",
         "pinyin": "sōng",
         "startSec": 7.92,
-        "endSec": 7.96,
+        "endSec": 7.98,
         "timingSource": "aligned"
       },
       {
         "text": "鼠",
         "pinyin": "shǔ",
-        "startSec": 7.96,
-        "endSec": 8.1,
+        "startSec": 7.98,
+        "endSec": 8.14,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 8.1,
+        "startSec": 8.14,
         "endSec": 9.22,
         "timingSource": "estimated"
       },
@@ -3269,7 +3368,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
       {
         "text": "鼠",
         "pinyin": "shǔ",
-        "startSec": 9.24,
+        "startSec": 9.22,
         "endSec": 9.36,
         "timingSource": "aligned"
       },
@@ -3277,150 +3376,150 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "有",
         "pinyin": "yǒu",
         "startSec": 9.36,
-        "endSec": 9.78,
+        "endSec": 9.76,
         "timingSource": "aligned"
       },
       {
         "text": "几",
         "pinyin": "jǐ",
-        "startSec": 9.78,
-        "endSec": 10.06,
+        "startSec": 9.76,
+        "endSec": 10.0,
         "timingSource": "aligned"
       },
       {
         "text": "只",
         "pinyin": "zhī",
-        "startSec": 10.06,
-        "endSec": 10.16,
+        "startSec": 10.0,
+        "endSec": 10.12,
         "timingSource": "aligned"
       },
       {
         "text": "？",
-        "startSec": 10.16,
-        "endSec": 10.72,
+        "startSec": 10.12,
+        "endSec": 10.86,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 10.72,
-        "endSec": 10.94,
+        "startSec": 10.86,
+        "endSec": 11.08,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 10.94,
-        "endSec": 11.28,
+        "startSec": 11.08,
+        "endSec": 11.42,
         "timingSource": "aligned"
       },
       {
         "text": "数",
         "pinyin": "shù",
-        "startSec": 11.28,
-        "endSec": 11.36,
+        "startSec": 11.42,
+        "endSec": 11.56,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 11.36,
-        "endSec": 11.74,
+        "startSec": 11.56,
+        "endSec": 11.86,
         "timingSource": "aligned"
       },
       {
         "text": "数",
         "pinyin": "shù",
-        "startSec": 11.74,
-        "endSec": 11.96,
+        "startSec": 11.86,
+        "endSec": 12.12,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 11.96,
-        "endSec": 12.72,
+        "startSec": 12.12,
+        "endSec": 12.82,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 12.72,
-        "endSec": 13.1,
+        "startSec": 12.82,
+        "endSec": 13.2,
         "timingSource": "aligned"
       },
       {
         "text": "二",
         "pinyin": "èr",
-        "startSec": 13.1,
-        "endSec": 13.38,
+        "startSec": 13.2,
+        "endSec": 13.4,
         "timingSource": "aligned"
       },
       {
         "text": "三",
         "pinyin": "sān",
-        "startSec": 13.38,
-        "endSec": 13.84,
+        "startSec": 13.4,
+        "endSec": 13.76,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 13.84,
-        "endSec": 14.06,
+        "startSec": 13.76,
+        "endSec": 13.96,
         "timingSource": "aligned"
       },
       {
         "text": "五",
         "pinyin": "wǔ",
-        "startSec": 14.06,
-        "endSec": 14.4,
+        "startSec": 13.96,
+        "endSec": 14.28,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 14.4,
-        "endSec": 14.94,
+        "startSec": 14.28,
+        "endSec": 14.8,
         "timingSource": "estimated"
       },
       {
         "text": "五",
         "pinyin": "wǔ",
-        "startSec": 14.94,
-        "endSec": 15.28,
+        "startSec": 14.8,
+        "endSec": 15.06,
         "timingSource": "aligned"
       },
       {
         "text": "只",
         "pinyin": "zhǐ",
-        "startSec": 15.28,
-        "endSec": 15.5,
+        "startSec": 15.06,
+        "endSec": 15.3,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 15.5,
-        "endSec": 15.94,
+        "startSec": 15.3,
+        "endSec": 15.68,
         "timingSource": "aligned"
       },
       {
         "text": "松",
         "pinyin": "sōng",
-        "startSec": 15.94,
-        "endSec": 16.28,
+        "startSec": 15.68,
+        "endSec": 15.9,
         "timingSource": "aligned"
       },
       {
         "text": "鼠",
         "pinyin": "shǔ",
-        "startSec": 16.28,
-        "endSec": 16.42,
+        "startSec": 15.9,
+        "endSec": 16.08,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 16.42,
-        "endSec": 16.54,
+        "startSec": 16.08,
+        "endSec": 16.2,
         "timingSource": "estimated"
       }
     ],
@@ -3481,7 +3580,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-09-05-lao3hu3.mp3"
       },
       {
-        "id": "wm-09-06-song1shu3",
+        "id": "wm-09-06-kan4jian4",
+        "hanzi": "看见",
+        "pinyin": "kàn jiàn",
+        "pinyinRaw": "kan4 jian4",
+        "tone": 4,
+        "difficulty": "easy",
+        "creatureName": "看见 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-09-06-kan4jian4.mp3"
+      },
+      {
+        "id": "wm-09-07-song1shu3",
         "hanzi": "松鼠",
         "pinyin": "sōng shǔ",
         "pinyinRaw": "song1 shu3",
@@ -3489,10 +3599,21 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "松鼠 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-09-06-song1shu3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-09-07-song1shu3.mp3"
       },
       {
-        "id": "wm-09-07-wu3zhi3",
+        "id": "wm-09-08-you3",
+        "hanzi": "有",
+        "pinyin": "yǒu",
+        "pinyinRaw": "you3",
+        "tone": 3,
+        "difficulty": "easy",
+        "creatureName": "有 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-09-08-you3.mp3"
+      },
+      {
+        "id": "wm-09-09-wu3zhi3",
         "hanzi": "五只",
         "pinyin": "wǔ zhǐ",
         "pinyinRaw": "wu3 zhi3",
@@ -3500,10 +3621,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "五只 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-09-07-wu3zhi3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-09-09-wu3zhi3.mp3"
       },
       {
-        "id": "wm-09-08-shu4yi1shu4",
+        "id": "wm-09-10-shu4yi1shu4",
         "hanzi": "数一数",
         "pinyin": "shù yī shù",
         "pinyinRaw": "shu4 yi1 shu4",
@@ -3511,7 +3632,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "数一数 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-09-08-shu4yi1shu4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-09-10-shu4yi1shu4.mp3"
       }
     ]
   },
@@ -3526,164 +3647,164 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "远",
         "pinyin": "yuǎn",
         "startSec": 0.0,
-        "endSec": 0.54,
+        "endSec": 0.42,
         "timingSource": "aligned"
       },
       {
         "text": "看",
         "pinyin": "kàn",
-        "startSec": 0.54,
-        "endSec": 0.86,
+        "startSec": 0.42,
+        "endSec": 0.88,
         "timingSource": "aligned"
       },
       {
         "text": "山",
         "pinyin": "shān",
-        "startSec": 0.86,
-        "endSec": 1.28,
+        "startSec": 0.88,
+        "endSec": 1.24,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 1.28,
-        "endSec": 1.64,
+        "startSec": 1.24,
+        "endSec": 1.66,
         "timingSource": "aligned"
       },
       {
         "text": "色",
         "pinyin": "sè",
-        "startSec": 1.64,
-        "endSec": 2.16,
+        "startSec": 1.66,
+        "endSec": 1.88,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 2.16,
-        "endSec": 2.88,
+        "startSec": 1.88,
+        "endSec": 2.76,
         "timingSource": "estimated"
       },
       {
         "text": "近",
         "pinyin": "jìn",
-        "startSec": 2.88,
-        "endSec": 2.92,
+        "startSec": 2.76,
+        "endSec": 2.82,
         "timingSource": "aligned"
       },
       {
         "text": "听",
         "pinyin": "tīng",
-        "startSec": 2.9,
-        "endSec": 3.16,
+        "startSec": 2.82,
+        "endSec": 3.12,
         "timingSource": "aligned"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 3.16,
-        "endSec": 3.62,
+        "startSec": 3.12,
+        "endSec": 3.52,
         "timingSource": "aligned"
       },
       {
         "text": "无",
         "pinyin": "wú",
-        "startSec": 3.62,
-        "endSec": 3.96,
+        "startSec": 3.52,
+        "endSec": 3.84,
         "timingSource": "aligned"
       },
       {
         "text": "声",
         "pinyin": "shēng",
-        "startSec": 3.96,
-        "endSec": 4.2,
+        "startSec": 3.84,
+        "endSec": 4.06,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 4.2,
-        "endSec": 5.3,
+        "startSec": 4.06,
+        "endSec": 5.08,
         "timingSource": "estimated"
       },
       {
         "text": "春",
         "pinyin": "chūn",
-        "startSec": 5.3,
-        "endSec": 5.38,
+        "startSec": 5.08,
+        "endSec": 5.12,
         "timingSource": "aligned"
       },
       {
         "text": "去",
         "pinyin": "qù",
-        "startSec": 5.38,
-        "endSec": 5.62,
+        "startSec": 5.12,
+        "endSec": 5.42,
         "timingSource": "aligned"
       },
       {
         "text": "花",
         "pinyin": "huā",
-        "startSec": 5.62,
-        "endSec": 5.96,
+        "startSec": 5.42,
+        "endSec": 5.7,
         "timingSource": "aligned"
       },
       {
         "text": "还",
         "pinyin": "hái",
-        "startSec": 5.96,
-        "endSec": 6.32,
+        "startSec": 5.7,
+        "endSec": 6.08,
         "timingSource": "aligned"
       },
       {
         "text": "在",
         "pinyin": "zài",
-        "startSec": 6.32,
-        "endSec": 6.8,
+        "startSec": 6.08,
+        "endSec": 6.32,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 6.8,
-        "endSec": 7.28,
+        "startSec": 6.32,
+        "endSec": 7.08,
         "timingSource": "estimated"
       },
       {
         "text": "人",
         "pinyin": "rén",
-        "startSec": 7.28,
-        "endSec": 7.56,
+        "startSec": 7.08,
+        "endSec": 7.3,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 7.56,
-        "endSec": 7.86,
+        "startSec": 7.3,
+        "endSec": 7.66,
         "timingSource": "aligned"
       },
       {
         "text": "鸟",
         "pinyin": "niǎo",
-        "startSec": 7.86,
-        "endSec": 8.34,
+        "startSec": 7.66,
+        "endSec": 7.92,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 8.34,
-        "endSec": 8.72,
+        "startSec": 7.92,
+        "endSec": 8.3,
         "timingSource": "aligned"
       },
       {
         "text": "惊",
         "pinyin": "jīng",
-        "startSec": 8.72,
-        "endSec": 8.84,
+        "startSec": 8.3,
+        "endSec": 8.4,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 8.84,
-        "endSec": 8.96,
+        "startSec": 8.4,
+        "endSec": 8.52,
         "timingSource": "estimated"
       }
     ],
@@ -3700,18 +3821,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-10-01-yuan3kan4.mp3"
       },
       {
-        "id": "wm-10-02-shan1se4",
-        "hanzi": "山色",
-        "pinyin": "shān sè",
-        "pinyinRaw": "shan1 se4",
-        "tone": 1,
-        "difficulty": "easy",
-        "creatureName": "山色 Mole",
-        "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-10-02-shan1se4.mp3"
-      },
-      {
-        "id": "wm-10-03-jin4ting1",
+        "id": "wm-10-02-jin4ting1",
         "hanzi": "近听",
         "pinyin": "jìn tīng",
         "pinyinRaw": "jin4 ting1",
@@ -3719,7 +3829,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "近听 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-10-03-jin4ting1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-10-02-jin4ting1.mp3"
+      },
+      {
+        "id": "wm-10-03-shan1se4",
+        "hanzi": "山色",
+        "pinyin": "shān sè",
+        "pinyinRaw": "shan1 se4",
+        "tone": 1,
+        "difficulty": "easy",
+        "creatureName": "山色 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-10-03-shan1se4.mp3"
       },
       {
         "id": "wm-10-04-shui3sheng1",
@@ -3733,40 +3854,51 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-10-04-shui3sheng1.mp3"
       },
       {
-        "id": "wm-10-05-hua1zai4",
-        "hanzi": "花在",
-        "pinyin": "huā zài",
-        "pinyinRaw": "hua1 zai4",
+        "id": "wm-10-05-hua1",
+        "hanzi": "花",
+        "pinyin": "huā",
+        "pinyinRaw": "hua1",
         "tone": 1,
         "difficulty": "easy",
-        "creatureName": "花在 Mole",
+        "creatureName": "花 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-10-05-hua1zai4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-10-05-hua1.mp3"
       },
       {
-        "id": "wm-10-06-chun1qu4",
-        "hanzi": "春去",
-        "pinyin": "chūn qù",
-        "pinyinRaw": "chun1 qu4",
+        "id": "wm-10-06-chun1",
+        "hanzi": "春",
+        "pinyin": "chūn",
+        "pinyinRaw": "chun1",
         "tone": 1,
         "difficulty": "easy",
-        "creatureName": "春去 Mole",
+        "creatureName": "春 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-10-06-chun1qu4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-10-06-chun1.mp3"
       },
       {
-        "id": "wm-10-07-ren2lai2",
-        "hanzi": "人来",
-        "pinyin": "rén lái",
-        "pinyinRaw": "ren2 lai2",
+        "id": "wm-10-07-lai2",
+        "hanzi": "来",
+        "pinyin": "lái",
+        "pinyinRaw": "lai2",
         "tone": 2,
         "difficulty": "easy",
-        "creatureName": "人来 Mole",
+        "creatureName": "来 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-10-07-ren2lai2.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-10-07-lai2.mp3"
       },
       {
-        "id": "wm-10-08-bu4jing1",
+        "id": "wm-10-08-qu4",
+        "hanzi": "去",
+        "pinyin": "qù",
+        "pinyinRaw": "qu4",
+        "tone": 4,
+        "difficulty": "easy",
+        "creatureName": "去 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-10-08-qu4.mp3"
+      },
+      {
+        "id": "wm-10-09-bu4jing1",
         "hanzi": "不惊",
         "pinyin": "bù jīng",
         "pinyinRaw": "bu4 jing1",
@@ -3774,7 +3906,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "easy",
         "creatureName": "不惊 Mole",
         "scoreValue": 10,
-        "audioUrl": "/audio/script_content/generated/words/wm-10-08-bu4jing1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-10-09-bu4jing1.mp3"
+      },
+      {
+        "id": "wm-10-10-hai2zai4",
+        "hanzi": "还在",
+        "pinyin": "hái zài",
+        "pinyinRaw": "hai2 zai4",
+        "tone": 2,
+        "difficulty": "easy",
+        "creatureName": "还在 Mole",
+        "scoreValue": 10,
+        "audioUrl": "/audio/script_content/generated/words/wm-10-10-hai2zai4.mp3"
       }
     ]
   },
@@ -3789,67 +3932,67 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "口",
         "pinyin": "kǒu",
         "startSec": 0.0,
-        "endSec": 0.7,
+        "endSec": 0.54,
         "timingSource": "aligned"
       },
       {
         "text": "耳",
         "pinyin": "ěr",
-        "startSec": 0.7,
-        "endSec": 1.18,
+        "startSec": 0.54,
+        "endSec": 1.38,
         "timingSource": "aligned"
       },
       {
         "text": "目",
         "pinyin": "mù",
-        "startSec": 1.18,
-        "endSec": 1.7,
+        "startSec": 1.38,
+        "endSec": 1.9,
         "timingSource": "aligned"
       },
       {
         "text": "手",
         "pinyin": "shǒu",
-        "startSec": 1.7,
-        "endSec": 2.6,
+        "startSec": 1.9,
+        "endSec": 2.58,
         "timingSource": "aligned"
       },
       {
         "text": "足",
         "pinyin": "zú",
-        "startSec": 2.6,
-        "endSec": 3.12,
+        "startSec": 2.58,
+        "endSec": 3.02,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.12,
-        "endSec": 3.7,
+        "startSec": 3.02,
+        "endSec": 3.62,
         "timingSource": "estimated"
       },
       {
         "text": "站",
         "pinyin": "zhàn",
-        "startSec": 3.7,
-        "endSec": 3.82,
+        "startSec": 3.62,
+        "endSec": 3.76,
         "timingSource": "aligned"
       },
       {
         "text": "如",
         "pinyin": "rú",
-        "startSec": 3.82,
-        "endSec": 4.16,
+        "startSec": 3.76,
+        "endSec": 4.1,
         "timingSource": "aligned"
       },
       {
         "text": "松",
         "pinyin": "sōng",
-        "startSec": 4.16,
-        "endSec": 4.44,
+        "startSec": 4.1,
+        "endSec": 4.38,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 4.44,
+        "startSec": 4.38,
         "endSec": 4.98,
         "timingSource": "estimated"
       },
@@ -3857,81 +4000,81 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "坐",
         "pinyin": "zuò",
         "startSec": 4.98,
-        "endSec": 5.44,
+        "endSec": 5.32,
         "timingSource": "aligned"
       },
       {
         "text": "如",
         "pinyin": "rú",
-        "startSec": 5.44,
-        "endSec": 5.82,
+        "startSec": 5.32,
+        "endSec": 5.7,
         "timingSource": "aligned"
       },
       {
         "text": "钟",
         "pinyin": "zhōng",
-        "startSec": 5.82,
-        "endSec": 6.1,
+        "startSec": 5.7,
+        "endSec": 5.96,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 6.1,
-        "endSec": 6.96,
+        "startSec": 5.96,
+        "endSec": 6.84,
         "timingSource": "estimated"
       },
       {
         "text": "行",
         "pinyin": "xíng",
-        "startSec": 6.96,
-        "endSec": 7.08,
+        "startSec": 6.84,
+        "endSec": 6.96,
         "timingSource": "aligned"
       },
       {
         "text": "如",
         "pinyin": "rú",
-        "startSec": 7.08,
-        "endSec": 7.4,
+        "startSec": 6.96,
+        "endSec": 7.3,
         "timingSource": "aligned"
       },
       {
         "text": "风",
         "pinyin": "fēng",
-        "startSec": 7.4,
-        "endSec": 7.98,
+        "startSec": 7.3,
+        "endSec": 7.62,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 7.98,
-        "endSec": 8.56,
+        "startSec": 7.62,
+        "endSec": 8.4,
         "timingSource": "estimated"
       },
       {
         "text": "卧",
         "pinyin": "wò",
-        "startSec": 8.56,
-        "endSec": 8.6,
+        "startSec": 8.4,
+        "endSec": 8.44,
         "timingSource": "aligned"
       },
       {
         "text": "如",
         "pinyin": "rú",
-        "startSec": 8.56,
-        "endSec": 8.92,
+        "startSec": 8.42,
+        "endSec": 8.84,
         "timingSource": "aligned"
       },
       {
         "text": "弓",
         "pinyin": "gōng",
-        "startSec": 8.92,
-        "endSec": 9.18,
+        "startSec": 8.84,
+        "endSec": 9.1,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 9.18,
-        "endSec": 9.3,
+        "startSec": 9.1,
+        "endSec": 9.22,
         "timingSource": "estimated"
       }
     ],
@@ -3970,29 +4113,18 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "audioUrl": "/audio/script_content/generated/words/wm-11-03-mu4.mp3"
       },
       {
-        "id": "wm-11-04-shou3",
-        "hanzi": "手",
-        "pinyin": "shǒu",
-        "pinyinRaw": "shou3",
+        "id": "wm-11-04-shou3zu2",
+        "hanzi": "手足",
+        "pinyin": "shǒu zú",
+        "pinyinRaw": "shou3 zu2",
         "tone": 3,
         "difficulty": "medium",
-        "creatureName": "手 Mole",
+        "creatureName": "手足 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-11-04-shou3.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-11-04-shou3zu2.mp3"
       },
       {
-        "id": "wm-11-05-zu2",
-        "hanzi": "足",
-        "pinyin": "zú",
-        "pinyinRaw": "zu2",
-        "tone": 2,
-        "difficulty": "medium",
-        "creatureName": "足 Mole",
-        "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-11-05-zu2.mp3"
-      },
-      {
-        "id": "wm-11-06-zhan4",
+        "id": "wm-11-05-zhan4",
         "hanzi": "站",
         "pinyin": "zhàn",
         "pinyinRaw": "zhan4",
@@ -4000,10 +4132,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "medium",
         "creatureName": "站 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-11-06-zhan4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-11-05-zhan4.mp3"
       },
       {
-        "id": "wm-11-07-zuo4",
+        "id": "wm-11-06-zuo4",
         "hanzi": "坐",
         "pinyin": "zuò",
         "pinyinRaw": "zuo4",
@@ -4011,10 +4143,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "medium",
         "creatureName": "坐 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-11-07-zuo4.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-11-06-zuo4.mp3"
       },
       {
-        "id": "wm-11-08-xing2",
+        "id": "wm-11-07-xing2",
         "hanzi": "行",
         "pinyin": "xíng",
         "pinyinRaw": "xing2",
@@ -4022,21 +4154,10 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "medium",
         "creatureName": "行 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-11-08-xing2.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-11-07-xing2.mp3"
       },
       {
-        "id": "wm-11-09-wo4",
-        "hanzi": "卧",
-        "pinyin": "wò",
-        "pinyinRaw": "wo4",
-        "tone": 4,
-        "difficulty": "medium",
-        "creatureName": "卧 Mole",
-        "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-11-09-wo4.mp3"
-      },
-      {
-        "id": "wm-11-10-feng1",
+        "id": "wm-11-08-feng1",
         "hanzi": "风",
         "pinyin": "fēng",
         "pinyinRaw": "feng1",
@@ -4044,7 +4165,29 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "difficulty": "medium",
         "creatureName": "风 Mole",
         "scoreValue": 15,
-        "audioUrl": "/audio/script_content/generated/words/wm-11-10-feng1.mp3"
+        "audioUrl": "/audio/script_content/generated/words/wm-11-08-feng1.mp3"
+      },
+      {
+        "id": "wm-11-09-zhan4ru2song1",
+        "hanzi": "站如松",
+        "pinyin": "zhàn rú sōng",
+        "pinyinRaw": "zhan4 ru2 song1",
+        "tone": 4,
+        "difficulty": "medium",
+        "creatureName": "站如松 Mole",
+        "scoreValue": 15,
+        "audioUrl": "/audio/script_content/generated/words/wm-11-09-zhan4ru2song1.mp3"
+      },
+      {
+        "id": "wm-11-10-xing2ru2feng1",
+        "hanzi": "行如风",
+        "pinyin": "xíng rú fēng",
+        "pinyinRaw": "xing2 ru2 feng1",
+        "tone": 2,
+        "difficulty": "medium",
+        "creatureName": "行如风 Mole",
+        "scoreValue": 15,
+        "audioUrl": "/audio/script_content/generated/words/wm-11-10-xing2ru2feng1.mp3"
       }
     ]
   },
@@ -4058,220 +4201,220 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 0.86,
-        "endSec": 1.46,
+        "startSec": 0.0,
+        "endSec": 0.5,
         "timingSource": "aligned"
       },
       {
         "text": "白",
         "pinyin": "bái",
-        "startSec": 1.46,
-        "endSec": 1.76,
+        "startSec": 0.5,
+        "endSec": 0.82,
         "timingSource": "aligned"
       },
       {
         "text": "兔",
         "pinyin": "tù",
-        "startSec": 1.76,
-        "endSec": 2.04,
+        "startSec": 0.82,
+        "endSec": 1.1,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 2.04,
-        "endSec": 2.54,
+        "startSec": 1.1,
+        "endSec": 1.68,
         "timingSource": "estimated"
       },
       {
         "text": "白",
         "pinyin": "bái",
-        "startSec": 2.54,
-        "endSec": 2.82,
+        "startSec": 1.68,
+        "endSec": 2.0,
         "timingSource": "aligned"
       },
       {
         "text": "又",
         "pinyin": "yòu",
-        "startSec": 2.82,
-        "endSec": 3.08,
+        "startSec": 2.0,
+        "endSec": 2.28,
         "timingSource": "aligned"
       },
       {
         "text": "白",
         "pinyin": "bái",
-        "startSec": 3.08,
-        "endSec": 3.42,
+        "startSec": 2.28,
+        "endSec": 2.68,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 3.42,
-        "endSec": 4.42,
+        "startSec": 2.68,
+        "endSec": 3.5,
         "timingSource": "estimated"
       },
       {
         "text": "两",
         "pinyin": "liǎng",
-        "startSec": 4.42,
-        "endSec": 4.56,
+        "startSec": 3.5,
+        "endSec": 3.62,
         "timingSource": "aligned"
       },
       {
         "text": "只",
         "pinyin": "zhǐ",
-        "startSec": 4.56,
-        "endSec": 4.84,
+        "startSec": 3.62,
+        "endSec": 3.92,
         "timingSource": "aligned"
       },
       {
         "text": "耳",
         "pinyin": "ěr",
-        "startSec": 4.84,
-        "endSec": 5.12,
+        "startSec": 3.92,
+        "endSec": 4.22,
         "timingSource": "aligned"
       },
       {
         "text": "朵",
         "pinyin": "duǒ",
-        "startSec": 5.12,
-        "endSec": 5.44,
+        "startSec": 4.22,
+        "endSec": 4.62,
         "timingSource": "aligned"
       },
       {
         "text": "竖",
         "pinyin": "shù",
-        "startSec": 5.44,
-        "endSec": 5.66,
+        "startSec": 4.62,
+        "endSec": 4.88,
         "timingSource": "aligned"
       },
       {
         "text": "起",
         "pinyin": "qǐ",
-        "startSec": 5.66,
-        "endSec": 5.96,
+        "startSec": 4.88,
+        "endSec": 5.22,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 5.96,
-        "endSec": 6.26,
+        "startSec": 5.22,
+        "endSec": 5.53,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 6.26,
-        "endSec": 7.36,
+        "startSec": 5.53,
+        "endSec": 6.58,
         "timingSource": "estimated"
       },
       {
         "text": "爱",
         "pinyin": "ài",
-        "startSec": 7.36,
-        "endSec": 7.4,
+        "startSec": 6.58,
+        "endSec": 6.62,
         "timingSource": "aligned"
       },
       {
         "text": "吃",
         "pinyin": "chī",
-        "startSec": 7.36,
-        "endSec": 7.7,
+        "startSec": 6.6,
+        "endSec": 6.96,
         "timingSource": "aligned"
       },
       {
         "text": "萝",
         "pinyin": "luó",
-        "startSec": 7.7,
-        "endSec": 7.96,
+        "startSec": 6.96,
+        "endSec": 7.24,
         "timingSource": "aligned"
       },
       {
         "text": "卜",
         "pinyin": "bo",
-        "startSec": 7.96,
-        "endSec": 8.08,
+        "startSec": 7.24,
+        "endSec": 7.36,
         "timingSource": "aligned"
       },
       {
         "text": "爱",
         "pinyin": "ài",
-        "startSec": 8.08,
-        "endSec": 8.66,
+        "startSec": 7.36,
+        "endSec": 7.8,
         "timingSource": "aligned"
       },
       {
         "text": "吃",
         "pinyin": "chī",
-        "startSec": 8.66,
-        "endSec": 8.94,
+        "startSec": 7.8,
+        "endSec": 8.12,
         "timingSource": "aligned"
       },
       {
         "text": "菜",
         "pinyin": "cài",
-        "startSec": 8.94,
-        "endSec": 9.24,
+        "startSec": 8.12,
+        "endSec": 8.4,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.24,
-        "endSec": 10.12,
+        "startSec": 8.4,
+        "endSec": 9.28,
         "timingSource": "estimated"
       },
       {
         "text": "蹦",
         "pinyin": "bèng",
-        "startSec": 10.12,
-        "endSec": 10.22,
+        "startSec": 9.28,
+        "endSec": 9.4,
         "timingSource": "aligned"
       },
       {
         "text": "蹦",
         "pinyin": "bèng",
-        "startSec": 10.22,
-        "endSec": 10.4,
+        "startSec": 9.4,
+        "endSec": 9.58,
         "timingSource": "aligned"
       },
       {
         "text": "跳",
         "pinyin": "tiào",
-        "startSec": 10.4,
-        "endSec": 10.68,
+        "startSec": 9.58,
+        "endSec": 9.84,
         "timingSource": "aligned"
       },
       {
         "text": "跳",
         "pinyin": "tiào",
-        "startSec": 10.68,
-        "endSec": 11.02,
+        "startSec": 9.84,
+        "endSec": 10.14,
         "timingSource": "aligned"
       },
       {
         "text": "真",
         "pinyin": "zhēn",
-        "startSec": 11.02,
-        "endSec": 11.6,
+        "startSec": 10.14,
+        "endSec": 10.62,
         "timingSource": "aligned"
       },
       {
         "text": "可",
         "pinyin": "kě",
-        "startSec": 11.6,
-        "endSec": 11.92,
+        "startSec": 10.62,
+        "endSec": 10.94,
         "timingSource": "aligned"
       },
       {
         "text": "爱",
         "pinyin": "ài",
-        "startSec": 11.92,
-        "endSec": 12.12,
+        "startSec": 10.94,
+        "endSec": 11.16,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 12.12,
-        "endSec": 12.24,
+        "startSec": 11.16,
+        "endSec": 11.28,
         "timingSource": "estimated"
       }
     ],
@@ -4398,411 +4541,411 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 0.76,
-        "endSec": 1.04,
+        "startSec": 0.0,
+        "endSec": 0.23,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 1.04,
-        "endSec": 1.32,
+        "startSec": 0.23,
+        "endSec": 0.46,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 1.32,
-        "endSec": 1.82,
+        "startSec": 0.46,
+        "endSec": 1.08,
         "timingSource": "aligned"
       },
       {
         "text": "书",
         "pinyin": "shū",
-        "startSec": 1.82,
-        "endSec": 2.04,
+        "startSec": 1.08,
+        "endSec": 1.34,
         "timingSource": "aligned"
       },
       {
         "text": "包",
         "pinyin": "bāo",
-        "startSec": 2.04,
-        "endSec": 2.3,
+        "startSec": 1.34,
+        "endSec": 1.56,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 2.3,
-        "endSec": 2.86,
+        "startSec": 1.56,
+        "endSec": 2.44,
         "timingSource": "estimated"
       },
       {
         "text": "宝",
         "pinyin": "bǎo",
-        "startSec": 2.86,
-        "endSec": 3.14,
+        "startSec": 2.44,
+        "endSec": 2.62,
         "timingSource": "aligned"
       },
       {
         "text": "贝",
         "pinyin": "bèi",
-        "startSec": 3.14,
-        "endSec": 3.28,
+        "startSec": 2.62,
+        "endSec": 2.7,
         "timingSource": "aligned"
       },
       {
         "text": "真",
         "pinyin": "zhēn",
-        "startSec": 3.28,
-        "endSec": 3.74,
+        "startSec": 2.7,
+        "endSec": 3.1,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 3.74,
-        "endSec": 3.96,
+        "startSec": 3.1,
+        "endSec": 3.3,
         "timingSource": "aligned"
       },
       {
         "text": "少",
         "pinyin": "shǎo",
-        "startSec": 3.96,
-        "endSec": 4.26,
+        "startSec": 3.3,
+        "endSec": 3.58,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 4.26,
-        "endSec": 5.42,
+        "startSec": 3.58,
+        "endSec": 4.44,
         "timingSource": "estimated"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 5.42,
-        "endSec": 5.46,
+        "startSec": 4.44,
+        "endSec": 4.48,
         "timingSource": "aligned"
       },
       {
         "text": "面",
         "pinyin": "miàn",
-        "startSec": 5.42,
-        "endSec": 5.6,
+        "startSec": 4.46,
+        "endSec": 4.66,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 5.6,
-        "endSec": 6.14,
+        "startSec": 4.66,
+        "endSec": 5.18,
         "timingSource": "aligned"
       },
       {
         "text": "课",
         "pinyin": "kè",
-        "startSec": 6.14,
-        "endSec": 6.2,
+        "startSec": 5.18,
+        "endSec": 5.3,
         "timingSource": "aligned"
       },
       {
         "text": "本",
         "pinyin": "běn",
-        "startSec": 6.2,
-        "endSec": 6.38,
+        "startSec": 5.3,
+        "endSec": 5.82,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 6.38,
-        "endSec": 7.16,
+        "startSec": 5.82,
+        "endSec": 6.22,
         "timingSource": "estimated"
       },
       {
         "text": "作",
         "pinyin": "zuò",
-        "startSec": 7.16,
-        "endSec": 7.26,
+        "startSec": 6.22,
+        "endSec": 6.32,
         "timingSource": "aligned"
       },
       {
         "text": "业",
         "pinyin": "yè",
-        "startSec": 7.26,
-        "endSec": 7.38,
+        "startSec": 6.32,
+        "endSec": 6.44,
         "timingSource": "aligned"
       },
       {
         "text": "本",
         "pinyin": "běn",
-        "startSec": 7.38,
-        "endSec": 7.62,
+        "startSec": 6.44,
+        "endSec": 6.7,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 7.62,
-        "endSec": 8.38,
+        "startSec": 6.7,
+        "endSec": 7.22,
         "timingSource": "estimated"
       },
       {
         "text": "还",
         "pinyin": "hái",
-        "startSec": 8.38,
-        "endSec": 8.68,
+        "startSec": 7.22,
+        "endSec": 7.43,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 8.68,
-        "endSec": 8.98,
+        "startSec": 7.43,
+        "endSec": 7.64,
         "timingSource": "aligned"
       },
       {
         "text": "铅",
         "pinyin": "qiān",
-        "startSec": 8.98,
-        "endSec": 9.06,
+        "startSec": 7.64,
+        "endSec": 7.96,
         "timingSource": "aligned"
       },
       {
         "text": "笔",
         "pinyin": "bǐ",
-        "startSec": 9.06,
-        "endSec": 9.26,
+        "startSec": 7.96,
+        "endSec": 8.16,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 9.26,
-        "endSec": 10.66,
+        "startSec": 8.16,
+        "endSec": 9.3,
         "timingSource": "estimated"
       },
       {
         "text": "上",
         "pinyin": "shàng",
-        "startSec": 10.66,
-        "endSec": 10.78,
+        "startSec": 9.3,
+        "endSec": 9.4,
         "timingSource": "aligned"
       },
       {
         "text": "课",
         "pinyin": "kè",
-        "startSec": 10.78,
-        "endSec": 10.94,
+        "startSec": 9.4,
+        "endSec": 9.58,
         "timingSource": "aligned"
       },
       {
         "text": "安",
         "pinyin": "ān",
-        "startSec": 10.94,
-        "endSec": 11.42,
+        "startSec": 9.58,
+        "endSec": 10.02,
         "timingSource": "aligned"
       },
       {
         "text": "安",
         "pinyin": "ān",
-        "startSec": 11.42,
-        "endSec": 11.84,
+        "startSec": 10.02,
+        "endSec": 10.44,
         "timingSource": "aligned"
       },
       {
         "text": "静",
         "pinyin": "jìng",
-        "startSec": 11.84,
-        "endSec": 11.88,
+        "startSec": 10.44,
+        "endSec": 10.48,
         "timingSource": "aligned"
       },
       {
         "text": "静",
         "pinyin": "jìng",
-        "startSec": 11.84,
-        "endSec": 12.12,
+        "startSec": 10.44,
+        "endSec": 10.9,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 12.12,
-        "endSec": 12.74,
+        "startSec": 10.9,
+        "endSec": 11.32,
         "timingSource": "estimated"
       },
       {
         "text": "下",
         "pinyin": "xià",
-        "startSec": 12.74,
-        "endSec": 13.08,
+        "startSec": 11.32,
+        "endSec": 11.7,
         "timingSource": "aligned"
       },
       {
         "text": "课",
         "pinyin": "kè",
-        "startSec": 13.08,
-        "endSec": 13.2,
+        "startSec": 11.7,
+        "endSec": 11.8,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 13.2,
-        "endSec": 13.62,
+        "startSec": 11.8,
+        "endSec": 12.2,
         "timingSource": "aligned"
       },
       {
         "text": "乱",
         "pinyin": "luàn",
-        "startSec": 13.62,
-        "endSec": 13.74,
+        "startSec": 12.2,
+        "endSec": 12.38,
         "timingSource": "aligned"
       },
       {
         "text": "跑",
         "pinyin": "pǎo",
-        "startSec": 13.74,
-        "endSec": 14.06,
+        "startSec": 12.38,
+        "endSec": 12.68,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 14.06,
-        "endSec": 15.32,
+        "startSec": 12.68,
+        "endSec": 13.48,
         "timingSource": "estimated"
       },
       {
         "text": "每",
         "pinyin": "měi",
-        "startSec": 15.32,
-        "endSec": 15.54,
+        "startSec": 13.48,
+        "endSec": 13.68,
         "timingSource": "aligned"
       },
       {
         "text": "天",
         "pinyin": "tiān",
-        "startSec": 15.54,
-        "endSec": 15.8,
+        "startSec": 13.68,
+        "endSec": 13.96,
         "timingSource": "aligned"
       },
       {
         "text": "早",
         "pinyin": "zǎo",
-        "startSec": 15.8,
-        "endSec": 16.04,
+        "startSec": 13.96,
+        "endSec": 14.18,
         "timingSource": "aligned"
       },
       {
         "text": "上",
         "pinyin": "shàng",
-        "startSec": 16.04,
-        "endSec": 16.6,
+        "startSec": 14.18,
+        "endSec": 14.5,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 16.6,
-        "endSec": 16.94,
+        "startSec": 14.5,
+        "endSec": 14.9,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 16.94,
-        "endSec": 17.12,
+        "startSec": 14.9,
+        "endSec": 15.1,
         "timingSource": "aligned"
       },
       {
         "text": "起",
         "pinyin": "qǐ",
-        "startSec": 17.12,
-        "endSec": 17.3,
+        "startSec": 15.1,
+        "endSec": 15.3,
         "timingSource": "aligned"
       },
       {
         "text": "得",
         "pinyin": "dé",
-        "startSec": 17.3,
-        "endSec": 17.52,
+        "startSec": 15.3,
+        "endSec": 15.52,
         "timingSource": "aligned"
       },
       {
         "text": "早",
         "pinyin": "zǎo",
-        "startSec": 17.52,
-        "endSec": 17.8,
+        "startSec": 15.52,
+        "endSec": 15.76,
         "timingSource": "aligned"
       },
       {
         "text": "早",
         "pinyin": "zǎo",
-        "startSec": 17.8,
-        "endSec": 18.02,
+        "startSec": 15.76,
+        "endSec": 16.08,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 18.02,
-        "endSec": 18.32,
+        "startSec": 16.08,
+        "endSec": 16.7,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 18.32,
-        "endSec": 18.44,
+        "startSec": 16.7,
+        "endSec": 17.04,
         "timingSource": "estimated"
       },
       {
         "text": "背",
         "pinyin": "bèi",
-        "startSec": 18.44,
-        "endSec": 18.56,
-        "timingSource": "estimated"
+        "startSec": 17.04,
+        "endSec": 17.24,
+        "timingSource": "aligned"
       },
       {
         "text": "着",
         "pinyin": "zhe",
-        "startSec": 18.56,
-        "endSec": 18.68,
-        "timingSource": "estimated"
+        "startSec": 17.24,
+        "endSec": 17.48,
+        "timingSource": "aligned"
       },
       {
         "text": "书",
         "pinyin": "shū",
-        "startSec": 18.68,
-        "endSec": 18.8,
-        "timingSource": "estimated"
+        "startSec": 17.48,
+        "endSec": 17.76,
+        "timingSource": "aligned"
       },
       {
         "text": "包",
         "pinyin": "bāo",
-        "startSec": 18.8,
-        "endSec": 18.92,
-        "timingSource": "estimated"
+        "startSec": 17.76,
+        "endSec": 18.02,
+        "timingSource": "aligned"
       },
       {
         "text": "去",
         "pinyin": "qù",
-        "startSec": 18.92,
-        "endSec": 19.04,
-        "timingSource": "estimated"
+        "startSec": 18.02,
+        "endSec": 18.68,
+        "timingSource": "aligned"
       },
       {
         "text": "学",
         "pinyin": "xué",
-        "startSec": 19.04,
-        "endSec": 19.16,
-        "timingSource": "estimated"
+        "startSec": 18.68,
+        "endSec": 18.98,
+        "timingSource": "aligned"
       },
       {
         "text": "校",
         "pinyin": "xiào",
-        "startSec": 19.16,
-        "endSec": 19.28,
-        "timingSource": "estimated"
+        "startSec": 18.98,
+        "endSec": 19.18,
+        "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 19.28,
-        "endSec": 19.4,
+        "startSec": 19.18,
+        "endSec": 19.3,
         "timingSource": "estimated"
       }
     ],
@@ -4919,33 +5062,33 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "日",
         "pinyin": "rì",
         "startSec": 0.0,
-        "endSec": 0.44,
+        "endSec": 0.46,
         "timingSource": "aligned"
       },
       {
         "text": "月",
         "pinyin": "yuè",
-        "startSec": 0.44,
-        "endSec": 0.88,
+        "startSec": 0.46,
+        "endSec": 0.74,
         "timingSource": "aligned"
       },
       {
         "text": "明",
         "pinyin": "míng",
-        "startSec": 0.88,
-        "endSec": 1.28,
+        "startSec": 0.74,
+        "endSec": 1.38,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.28,
-        "endSec": 1.72,
+        "startSec": 1.38,
+        "endSec": 1.66,
         "timingSource": "estimated"
       },
       {
         "text": "田",
         "pinyin": "tián",
-        "startSec": 1.72,
+        "startSec": 1.66,
         "endSec": 2.08,
         "timingSource": "aligned"
       },
@@ -4953,182 +5096,182 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "力",
         "pinyin": "lì",
         "startSec": 2.08,
-        "endSec": 2.28,
+        "endSec": 2.26,
         "timingSource": "aligned"
       },
       {
         "text": "男",
         "pinyin": "nán",
-        "startSec": 2.28,
-        "endSec": 2.6,
+        "startSec": 2.26,
+        "endSec": 2.62,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 2.6,
-        "endSec": 3.4,
+        "startSec": 2.62,
+        "endSec": 3.76,
         "timingSource": "estimated"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 3.4,
-        "endSec": 3.52,
+        "startSec": 3.76,
+        "endSec": 3.88,
         "timingSource": "aligned"
       },
       {
         "text": "大",
         "pinyin": "dà",
-        "startSec": 3.52,
-        "endSec": 3.88,
+        "startSec": 3.88,
+        "endSec": 4.24,
         "timingSource": "aligned"
       },
       {
         "text": "尖",
         "pinyin": "jiān",
-        "startSec": 3.88,
-        "endSec": 4.0,
+        "startSec": 4.24,
+        "endSec": 4.4,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 4.0,
-        "endSec": 4.58,
+        "startSec": 4.4,
+        "endSec": 5.04,
         "timingSource": "estimated"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 4.58,
-        "endSec": 4.76,
+        "startSec": 5.04,
+        "endSec": 5.24,
         "timingSource": "aligned"
       },
       {
         "text": "土",
         "pinyin": "tǔ",
-        "startSec": 4.76,
-        "endSec": 4.98,
+        "startSec": 5.24,
+        "endSec": 5.46,
         "timingSource": "aligned"
       },
       {
         "text": "尘",
         "pinyin": "chén",
-        "startSec": 4.98,
-        "endSec": 5.7,
+        "startSec": 5.46,
+        "endSec": 5.78,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 5.7,
-        "endSec": 6.22,
+        "startSec": 5.78,
+        "endSec": 6.62,
         "timingSource": "estimated"
       },
       {
         "text": "二",
         "pinyin": "èr",
-        "startSec": 6.22,
-        "endSec": 6.36,
+        "startSec": 6.62,
+        "endSec": 6.76,
         "timingSource": "aligned"
       },
       {
         "text": "人",
         "pinyin": "rén",
-        "startSec": 6.36,
-        "endSec": 6.66,
+        "startSec": 6.76,
+        "endSec": 7.0,
         "timingSource": "aligned"
       },
       {
         "text": "从",
         "pinyin": "cóng",
-        "startSec": 6.66,
-        "endSec": 6.9,
+        "startSec": 7.0,
+        "endSec": 7.26,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 6.9,
-        "endSec": 7.4,
+        "startSec": 7.26,
+        "endSec": 7.76,
         "timingSource": "estimated"
       },
       {
         "text": "三",
         "pinyin": "sān",
-        "startSec": 7.4,
-        "endSec": 7.62,
+        "startSec": 7.76,
+        "endSec": 7.96,
         "timingSource": "aligned"
       },
       {
         "text": "人",
         "pinyin": "rén",
-        "startSec": 7.62,
-        "endSec": 7.96,
+        "startSec": 7.96,
+        "endSec": 8.26,
         "timingSource": "aligned"
       },
       {
         "text": "众",
         "pinyin": "zhòng",
-        "startSec": 7.96,
-        "endSec": 8.12,
+        "startSec": 8.26,
+        "endSec": 8.44,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 8.12,
-        "endSec": 9.04,
+        "startSec": 8.44,
+        "endSec": 9.2,
         "timingSource": "estimated"
       },
       {
         "text": "双",
         "pinyin": "shuāng",
-        "startSec": 9.04,
-        "endSec": 9.1,
+        "startSec": 9.2,
+        "endSec": 9.28,
         "timingSource": "aligned"
       },
       {
         "text": "木",
         "pinyin": "mù",
-        "startSec": 9.1,
-        "endSec": 9.42,
+        "startSec": 9.28,
+        "endSec": 9.56,
         "timingSource": "aligned"
       },
       {
         "text": "林",
         "pinyin": "lín",
-        "startSec": 9.42,
-        "endSec": 9.6,
+        "startSec": 9.56,
+        "endSec": 9.74,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.6,
-        "endSec": 10.24,
+        "startSec": 9.74,
+        "endSec": 10.32,
         "timingSource": "estimated"
       },
       {
         "text": "三",
         "pinyin": "sān",
-        "startSec": 10.24,
-        "endSec": 10.52,
+        "startSec": 10.32,
+        "endSec": 10.56,
         "timingSource": "aligned"
       },
       {
         "text": "木",
         "pinyin": "mù",
-        "startSec": 10.52,
-        "endSec": 10.8,
+        "startSec": 10.56,
+        "endSec": 10.84,
         "timingSource": "aligned"
       },
       {
         "text": "森",
         "pinyin": "sēn",
-        "startSec": 10.8,
-        "endSec": 10.96,
+        "startSec": 10.84,
+        "endSec": 11.0,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 10.96,
-        "endSec": 11.08,
+        "startSec": 11.0,
+        "endSec": 11.12,
         "timingSource": "estimated"
       }
     ],
@@ -5245,314 +5388,314 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "早",
         "pinyin": "zǎo",
         "startSec": 0.0,
-        "endSec": 0.48,
+        "endSec": 0.64,
         "timingSource": "aligned"
       },
       {
         "text": "晨",
         "pinyin": "chén",
-        "startSec": 0.48,
-        "endSec": 0.92,
+        "startSec": 0.64,
+        "endSec": 1.02,
         "timingSource": "aligned"
       },
       {
         "text": "起",
         "pinyin": "qǐ",
-        "startSec": 0.92,
-        "endSec": 1.26,
+        "startSec": 1.02,
+        "endSec": 1.32,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 1.26,
-        "endSec": 1.96,
+        "startSec": 1.32,
+        "endSec": 2.04,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.96,
-        "endSec": 1.98,
+        "startSec": 2.04,
+        "endSec": 2.52,
         "timingSource": "estimated"
       },
       {
         "text": "面",
         "pinyin": "miàn",
-        "startSec": 1.98,
-        "endSec": 2.38,
+        "startSec": 2.52,
+        "endSec": 2.94,
         "timingSource": "aligned"
       },
       {
         "text": "向",
         "pinyin": "xiàng",
-        "startSec": 2.38,
-        "endSec": 2.64,
+        "startSec": 2.94,
+        "endSec": 3.2,
         "timingSource": "aligned"
       },
       {
         "text": "太",
         "pinyin": "tài",
-        "startSec": 2.64,
-        "endSec": 3.08,
+        "startSec": 3.2,
+        "endSec": 3.68,
         "timingSource": "aligned"
       },
       {
         "text": "阳",
         "pinyin": "yáng",
-        "startSec": 3.08,
-        "endSec": 3.44,
+        "startSec": 3.68,
+        "endSec": 3.96,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.44,
-        "endSec": 4.46,
+        "startSec": 3.96,
+        "endSec": 5.4,
         "timingSource": "estimated"
       },
       {
         "text": "前",
         "pinyin": "qián",
-        "startSec": 4.46,
-        "endSec": 4.5,
+        "startSec": 5.4,
+        "endSec": 5.44,
         "timingSource": "aligned"
       },
       {
         "text": "面",
         "pinyin": "miàn",
-        "startSec": 4.46,
-        "endSec": 4.74,
+        "startSec": 5.42,
+        "endSec": 5.68,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 4.74,
-        "endSec": 5.06,
+        "startSec": 5.68,
+        "endSec": 6.02,
         "timingSource": "aligned"
       },
       {
         "text": "东",
         "pinyin": "dōng",
-        "startSec": 5.06,
-        "endSec": 5.28,
+        "startSec": 6.02,
+        "endSec": 6.22,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 5.28,
-        "endSec": 6.1,
+        "startSec": 6.22,
+        "endSec": 7.18,
         "timingSource": "estimated"
       },
       {
         "text": "后",
         "pinyin": "hòu",
-        "startSec": 6.1,
-        "endSec": 6.14,
+        "startSec": 7.18,
+        "endSec": 7.24,
         "timingSource": "aligned"
       },
       {
         "text": "面",
         "pinyin": "miàn",
-        "startSec": 6.1,
-        "endSec": 6.36,
+        "startSec": 7.24,
+        "endSec": 7.46,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 6.36,
-        "endSec": 6.92,
+        "startSec": 7.46,
+        "endSec": 8.1,
         "timingSource": "aligned"
       },
       {
         "text": "西",
         "pinyin": "xī",
-        "startSec": 6.92,
-        "endSec": 6.98,
+        "startSec": 8.1,
+        "endSec": 8.14,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 6.98,
-        "endSec": 7.96,
+        "startSec": 8.14,
+        "endSec": 9.3,
         "timingSource": "estimated"
       },
       {
         "text": "左",
         "pinyin": "zuǒ",
-        "startSec": 7.96,
-        "endSec": 8.0,
+        "startSec": 9.3,
+        "endSec": 9.34,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 7.98,
-        "endSec": 8.26,
+        "startSec": 9.32,
+        "endSec": 9.56,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 8.26,
-        "endSec": 8.64,
+        "startSec": 9.56,
+        "endSec": 9.9,
         "timingSource": "aligned"
       },
       {
         "text": "北",
         "pinyin": "běi",
-        "startSec": 8.64,
-        "endSec": 8.96,
+        "startSec": 9.9,
+        "endSec": 10.16,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 8.96,
-        "endSec": 9.66,
+        "startSec": 10.16,
+        "endSec": 11.04,
         "timingSource": "estimated"
       },
       {
         "text": "右",
         "pinyin": "yòu",
-        "startSec": 9.66,
-        "endSec": 9.94,
+        "startSec": 11.04,
+        "endSec": 11.3,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 9.94,
-        "endSec": 10.16,
+        "startSec": 11.3,
+        "endSec": 11.48,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 10.16,
-        "endSec": 10.76,
+        "startSec": 11.48,
+        "endSec": 12.08,
         "timingSource": "aligned"
       },
       {
         "text": "南",
         "pinyin": "nán",
-        "startSec": 10.76,
-        "endSec": 10.92,
+        "startSec": 12.08,
+        "endSec": 12.22,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 10.92,
-        "endSec": 12.06,
+        "startSec": 12.22,
+        "endSec": 13.5,
         "timingSource": "estimated"
       },
       {
         "text": "影",
         "pinyin": "yǐng",
-        "startSec": 12.06,
-        "endSec": 12.1,
+        "startSec": 13.5,
+        "endSec": 13.68,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 12.08,
-        "endSec": 12.32,
+        "startSec": 13.68,
+        "endSec": 13.84,
         "timingSource": "aligned"
       },
       {
         "text": "像",
         "pinyin": "xiàng",
-        "startSec": 12.32,
-        "endSec": 12.82,
+        "startSec": 13.84,
+        "endSec": 14.14,
         "timingSource": "aligned"
       },
       {
         "text": "条",
         "pinyin": "tiáo",
-        "startSec": 12.82,
-        "endSec": 13.06,
+        "startSec": 14.14,
+        "endSec": 14.34,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 13.06,
-        "endSec": 13.5,
+        "startSec": 14.34,
+        "endSec": 14.84,
         "timingSource": "aligned"
       },
       {
         "text": "黑",
         "pinyin": "hēi",
-        "startSec": 13.5,
-        "endSec": 13.84,
+        "startSec": 14.84,
+        "endSec": 15.2,
         "timingSource": "aligned"
       },
       {
         "text": "狗",
         "pinyin": "gǒu",
-        "startSec": 13.84,
-        "endSec": 14.02,
+        "startSec": 15.2,
+        "endSec": 15.82,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 14.02,
-        "endSec": 14.66,
+        "startSec": 15.82,
+        "endSec": 16.36,
         "timingSource": "estimated"
       },
       {
         "text": "它",
         "pinyin": "tā",
-        "startSec": 14.66,
-        "endSec": 15.02,
+        "startSec": 16.36,
+        "endSec": 16.82,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 15.02,
-        "endSec": 15.36,
+        "startSec": 16.82,
+        "endSec": 17.06,
         "timingSource": "aligned"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 15.36,
-        "endSec": 15.53,
+        "startSec": 17.06,
+        "endSec": 17.19,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 15.53,
-        "endSec": 15.7,
+        "startSec": 17.19,
+        "endSec": 17.32,
         "timingSource": "aligned"
       },
       {
         "text": "好",
         "pinyin": "hǎo",
-        "startSec": 15.7,
-        "endSec": 16.2,
+        "startSec": 17.32,
+        "endSec": 17.74,
         "timingSource": "aligned"
       },
       {
         "text": "朋",
         "pinyin": "péng",
-        "startSec": 16.2,
-        "endSec": 16.42,
+        "startSec": 17.74,
+        "endSec": 17.92,
         "timingSource": "aligned"
       },
       {
         "text": "友",
         "pinyin": "yǒu",
-        "startSec": 16.42,
-        "endSec": 16.64,
+        "startSec": 17.92,
+        "endSec": 18.1,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 16.64,
-        "endSec": 16.76,
+        "startSec": 18.1,
+        "endSec": 18.22,
         "timingSource": "estimated"
       }
     ],
@@ -5669,295 +5812,295 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "谁",
         "pinyin": "shéi",
         "startSec": 0.0,
-        "endSec": 0.58,
+        "endSec": 0.48,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 0.58,
-        "endSec": 1.08,
+        "startSec": 0.48,
+        "endSec": 0.88,
         "timingSource": "aligned"
       },
       {
         "text": "尾",
         "pinyin": "wěi",
-        "startSec": 1.08,
-        "endSec": 1.12,
+        "startSec": 0.88,
+        "endSec": 0.94,
         "timingSource": "aligned"
       },
       {
         "text": "巴",
         "pinyin": "ba",
-        "startSec": 1.1,
-        "endSec": 1.28,
+        "startSec": 0.94,
+        "endSec": 1.12,
         "timingSource": "aligned"
       },
       {
         "text": "长",
         "pinyin": "zhǎng",
-        "startSec": 1.28,
-        "endSec": 1.86,
+        "startSec": 1.12,
+        "endSec": 1.6,
         "timingSource": "aligned"
       },
       {
         "text": "？",
-        "startSec": 1.86,
-        "endSec": 2.96,
+        "startSec": 1.6,
+        "endSec": 2.18,
         "timingSource": "estimated"
       },
       {
         "text": "谁",
         "pinyin": "shéi",
-        "startSec": 2.96,
-        "endSec": 3.32,
+        "startSec": 2.18,
+        "endSec": 2.42,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 3.32,
-        "endSec": 3.64,
+        "startSec": 2.42,
+        "endSec": 2.66,
         "timingSource": "aligned"
       },
       {
         "text": "尾",
         "pinyin": "wěi",
-        "startSec": 3.64,
-        "endSec": 3.84,
+        "startSec": 2.66,
+        "endSec": 2.84,
         "timingSource": "aligned"
       },
       {
         "text": "巴",
         "pinyin": "ba",
-        "startSec": 3.84,
-        "endSec": 3.94,
+        "startSec": 2.84,
+        "endSec": 2.94,
         "timingSource": "aligned"
       },
       {
         "text": "短",
         "pinyin": "duǎn",
-        "startSec": 3.94,
-        "endSec": 4.44,
+        "startSec": 2.94,
+        "endSec": 3.4,
         "timingSource": "aligned"
       },
       {
         "text": "？",
-        "startSec": 4.44,
-        "endSec": 5.34,
+        "startSec": 3.4,
+        "endSec": 4.18,
         "timingSource": "estimated"
       },
       {
         "text": "谁",
         "pinyin": "shéi",
-        "startSec": 5.34,
-        "endSec": 5.6,
+        "startSec": 4.18,
+        "endSec": 4.42,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 5.6,
-        "endSec": 6.06,
+        "startSec": 4.42,
+        "endSec": 4.64,
         "timingSource": "aligned"
       },
       {
         "text": "尾",
         "pinyin": "wěi",
-        "startSec": 6.06,
-        "endSec": 6.12,
+        "startSec": 4.64,
+        "endSec": 4.8,
         "timingSource": "aligned"
       },
       {
         "text": "巴",
         "pinyin": "ba",
-        "startSec": 6.12,
-        "endSec": 6.22,
+        "startSec": 4.8,
+        "endSec": 4.96,
         "timingSource": "aligned"
       },
       {
         "text": "像",
         "pinyin": "xiàng",
-        "startSec": 6.22,
-        "endSec": 6.6,
+        "startSec": 4.96,
+        "endSec": 5.3,
         "timingSource": "aligned"
       },
       {
         "text": "把",
         "pinyin": "bǎ",
-        "startSec": 6.6,
-        "endSec": 7.22,
+        "startSec": 5.3,
+        "endSec": 5.68,
         "timingSource": "aligned"
       },
       {
         "text": "伞",
         "pinyin": "sǎn",
-        "startSec": 7.22,
-        "endSec": 7.26,
+        "startSec": 5.68,
+        "endSec": 5.82,
         "timingSource": "aligned"
       },
       {
         "text": "？",
-        "startSec": 7.26,
-        "endSec": 8.62,
+        "startSec": 5.82,
+        "endSec": 7.1,
         "timingSource": "estimated"
       },
       {
         "text": "猴",
         "pinyin": "hóu",
-        "startSec": 8.62,
-        "endSec": 8.66,
+        "startSec": 7.1,
+        "endSec": 7.14,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 8.62,
-        "endSec": 8.74,
+        "startSec": 7.1,
+        "endSec": 7.24,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 8.74,
-        "endSec": 9.1,
+        "startSec": 7.24,
+        "endSec": 7.54,
         "timingSource": "aligned"
       },
       {
         "text": "尾",
         "pinyin": "wěi",
-        "startSec": 9.1,
-        "endSec": 9.2,
+        "startSec": 7.54,
+        "endSec": 7.62,
         "timingSource": "aligned"
       },
       {
         "text": "巴",
         "pinyin": "ba",
-        "startSec": 9.2,
-        "endSec": 9.28,
+        "startSec": 7.62,
+        "endSec": 7.74,
         "timingSource": "aligned"
       },
       {
         "text": "长",
         "pinyin": "zhǎng",
-        "startSec": 9.28,
-        "endSec": 9.86,
+        "startSec": 7.74,
+        "endSec": 8.26,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.86,
-        "endSec": 10.88,
+        "startSec": 8.26,
+        "endSec": 9.12,
         "timingSource": "estimated"
       },
       {
         "text": "兔",
         "pinyin": "tù",
-        "startSec": 10.88,
-        "endSec": 10.92,
+        "startSec": 9.12,
+        "endSec": 9.16,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 10.88,
-        "endSec": 11.0,
+        "startSec": 9.12,
+        "endSec": 9.22,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 11.0,
-        "endSec": 11.36,
+        "startSec": 9.22,
+        "endSec": 9.54,
         "timingSource": "aligned"
       },
       {
         "text": "尾",
         "pinyin": "wěi",
-        "startSec": 11.36,
-        "endSec": 11.44,
+        "startSec": 9.54,
+        "endSec": 9.6,
         "timingSource": "aligned"
       },
       {
         "text": "巴",
         "pinyin": "ba",
-        "startSec": 11.44,
-        "endSec": 11.5,
+        "startSec": 9.6,
+        "endSec": 9.68,
         "timingSource": "aligned"
       },
       {
         "text": "短",
         "pinyin": "duǎn",
-        "startSec": 11.5,
-        "endSec": 12.06,
+        "startSec": 9.68,
+        "endSec": 10.48,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 12.06,
-        "endSec": 13.34,
+        "startSec": 10.48,
+        "endSec": 11.4,
         "timingSource": "estimated"
       },
       {
         "text": "松",
         "pinyin": "sōng",
-        "startSec": 13.34,
-        "endSec": 13.42,
+        "startSec": 11.4,
+        "endSec": 11.46,
         "timingSource": "aligned"
       },
       {
         "text": "鼠",
         "pinyin": "shǔ",
-        "startSec": 13.42,
-        "endSec": 13.58,
+        "startSec": 11.46,
+        "endSec": 11.56,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 13.58,
-        "endSec": 13.9,
+        "startSec": 11.56,
+        "endSec": 11.94,
         "timingSource": "aligned"
       },
       {
         "text": "尾",
         "pinyin": "wěi",
-        "startSec": 13.9,
-        "endSec": 14.1,
+        "startSec": 11.94,
+        "endSec": 12.0,
         "timingSource": "aligned"
       },
       {
         "text": "巴",
         "pinyin": "ba",
-        "startSec": 14.1,
-        "endSec": 14.3,
+        "startSec": 12.0,
+        "endSec": 12.2,
         "timingSource": "aligned"
       },
       {
         "text": "像",
         "pinyin": "xiàng",
-        "startSec": 14.3,
-        "endSec": 14.88,
+        "startSec": 12.2,
+        "endSec": 12.82,
         "timingSource": "aligned"
       },
       {
         "text": "把",
         "pinyin": "bǎ",
-        "startSec": 14.88,
-        "endSec": 15.26,
+        "startSec": 12.82,
+        "endSec": 13.16,
         "timingSource": "aligned"
       },
       {
         "text": "伞",
         "pinyin": "sǎn",
-        "startSec": 15.26,
-        "endSec": 15.54,
+        "startSec": 13.16,
+        "endSec": 13.34,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 15.54,
-        "endSec": 15.66,
+        "startSec": 13.34,
+        "endSec": 13.46,
         "timingSource": "estimated"
       }
     ],
@@ -6063,524 +6206,524 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "小",
         "pinyin": "xiǎo",
         "startSec": 0.0,
-        "endSec": 0.54,
+        "endSec": 0.56,
         "timingSource": "aligned"
       },
       {
         "text": "兔",
         "pinyin": "tù",
-        "startSec": 0.54,
-        "endSec": 0.74,
+        "startSec": 0.56,
+        "endSec": 0.78,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 0.74,
-        "endSec": 1.02,
+        "startSec": 0.78,
+        "endSec": 1.1,
         "timingSource": "aligned"
       },
       {
         "text": "乖",
         "pinyin": "guāi",
-        "startSec": 1.02,
-        "endSec": 1.32,
+        "startSec": 1.1,
+        "endSec": 1.42,
         "timingSource": "aligned"
       },
       {
         "text": "乖",
         "pinyin": "guāi",
-        "startSec": 1.32,
-        "endSec": 1.52,
+        "startSec": 1.42,
+        "endSec": 1.64,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.52,
-        "endSec": 1.98,
+        "startSec": 1.64,
+        "endSec": 1.94,
         "timingSource": "estimated"
       },
       {
         "text": "把",
         "pinyin": "bǎ",
-        "startSec": 1.98,
-        "endSec": 2.24,
+        "startSec": 1.94,
+        "endSec": 2.46,
         "timingSource": "aligned"
       },
       {
         "text": "门",
         "pinyin": "mén",
-        "startSec": 2.24,
-        "endSec": 2.42,
+        "startSec": 2.46,
+        "endSec": 2.6,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 2.42,
-        "endSec": 2.78,
+        "startSec": 2.6,
+        "endSec": 2.98,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 2.78,
-        "endSec": 3.12,
+        "startSec": 2.98,
+        "endSec": 3.32,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.12,
-        "endSec": 3.4,
+        "startSec": 3.32,
+        "endSec": 3.63,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 3.4,
-        "endSec": 3.68,
+        "startSec": 3.63,
+        "endSec": 3.94,
         "timingSource": "estimated"
       },
       {
         "text": "快",
         "pinyin": "kuài",
-        "startSec": 3.68,
-        "endSec": 3.88,
+        "startSec": 3.94,
+        "endSec": 4.14,
         "timingSource": "aligned"
       },
       {
         "text": "点",
         "pinyin": "diǎn",
-        "startSec": 3.88,
-        "endSec": 4.12,
+        "startSec": 4.14,
+        "endSec": 4.42,
         "timingSource": "aligned"
       },
       {
         "text": "儿",
         "pinyin": "ér",
-        "startSec": 4.12,
-        "endSec": 4.2,
+        "startSec": 4.42,
+        "endSec": 4.48,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 4.2,
-        "endSec": 4.36,
+        "startSec": 4.48,
+        "endSec": 4.64,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 4.36,
-        "endSec": 4.6,
+        "startSec": 4.64,
+        "endSec": 4.94,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 4.6,
-        "endSec": 5.06,
+        "startSec": 4.94,
+        "endSec": 5.38,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 5.06,
-        "endSec": 5.24,
+        "startSec": 5.38,
+        "endSec": 5.52,
         "timingSource": "aligned"
       },
       {
         "text": "要",
         "pinyin": "yào",
-        "startSec": 5.24,
-        "endSec": 5.42,
+        "startSec": 5.52,
+        "endSec": 5.66,
         "timingSource": "aligned"
       },
       {
         "text": "进",
         "pinyin": "jìn",
-        "startSec": 5.42,
-        "endSec": 5.8,
+        "startSec": 5.66,
+        "endSec": 6.06,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 5.8,
-        "endSec": 6.18,
+        "startSec": 6.06,
+        "endSec": 6.42,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 6.18,
-        "endSec": 6.373,
+        "startSec": 6.42,
+        "endSec": 6.68,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 6.373,
-        "endSec": 6.567,
+        "startSec": 6.68,
+        "endSec": 6.94,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 6.567,
-        "endSec": 6.76,
+        "startSec": 6.94,
+        "endSec": 7.2,
         "timingSource": "estimated"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 6.76,
-        "endSec": 6.9,
+        "startSec": 7.2,
+        "endSec": 7.32,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 6.9,
-        "endSec": 7.06,
+        "startSec": 7.32,
+        "endSec": 7.52,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 7.06,
-        "endSec": 7.44,
+        "startSec": 7.52,
+        "endSec": 7.84,
         "timingSource": "estimated"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 7.44,
-        "endSec": 7.7,
+        "startSec": 7.84,
+        "endSec": 8.06,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 7.7,
-        "endSec": 7.94,
+        "startSec": 8.06,
+        "endSec": 8.3,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 7.94,
-        "endSec": 8.36,
+        "startSec": 8.3,
+        "endSec": 8.62,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 8.36,
-        "endSec": 8.54,
+        "startSec": 8.62,
+        "endSec": 8.78,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 8.54,
-        "endSec": 8.72,
+        "startSec": 8.78,
+        "endSec": 8.94,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 8.72,
-        "endSec": 9.12,
+        "startSec": 8.94,
+        "endSec": 9.3,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 9.12,
-        "endSec": 9.68,
+        "startSec": 9.3,
+        "endSec": 10.2,
         "timingSource": "estimated"
       },
       {
         "text": "妈",
         "pinyin": "mā",
-        "startSec": 9.68,
-        "endSec": 9.96,
+        "startSec": 10.2,
+        "endSec": 10.46,
         "timingSource": "aligned"
       },
       {
         "text": "妈",
         "pinyin": "mā",
-        "startSec": 9.96,
-        "endSec": 10.08,
+        "startSec": 10.46,
+        "endSec": 10.56,
         "timingSource": "aligned"
       },
       {
         "text": "没",
         "pinyin": "méi",
-        "startSec": 10.08,
-        "endSec": 10.36,
+        "startSec": 10.56,
+        "endSec": 10.88,
         "timingSource": "aligned"
       },
       {
         "text": "回",
         "pinyin": "huí",
-        "startSec": 10.36,
-        "endSec": 10.62,
+        "startSec": 10.88,
+        "endSec": 11.14,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 10.62,
-        "endSec": 10.92,
+        "startSec": 11.14,
+        "endSec": 11.42,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 10.92,
-        "endSec": 11.28,
+        "startSec": 11.42,
+        "endSec": 11.86,
         "timingSource": "estimated"
       },
       {
         "text": "谁",
         "pinyin": "shuí",
-        "startSec": 11.28,
-        "endSec": 11.5,
+        "startSec": 11.86,
+        "endSec": 12.1,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 11.5,
-        "endSec": 11.8,
+        "startSec": 12.1,
+        "endSec": 12.48,
         "timingSource": "aligned"
       },
       {
         "text": "也",
         "pinyin": "yě",
-        "startSec": 11.8,
-        "endSec": 11.96,
+        "startSec": 12.48,
+        "endSec": 12.88,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 11.96,
-        "endSec": 12.26,
+        "startSec": 12.88,
+        "endSec": 13.22,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 12.26,
-        "endSec": 12.46,
+        "startSec": 13.22,
+        "endSec": 13.44,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 12.46,
-        "endSec": 12.96,
+        "startSec": 13.44,
+        "endSec": 13.99,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 12.96,
-        "endSec": 13.46,
+        "startSec": 13.99,
+        "endSec": 14.54,
         "timingSource": "estimated"
       },
       {
         "text": "妈",
         "pinyin": "mā",
-        "startSec": 13.46,
-        "endSec": 13.5,
+        "startSec": 14.54,
+        "endSec": 14.58,
         "timingSource": "aligned"
       },
       {
         "text": "妈",
         "pinyin": "mā",
-        "startSec": 13.48,
-        "endSec": 13.62,
+        "startSec": 14.54,
+        "endSec": 14.7,
         "timingSource": "aligned"
       },
       {
         "text": "回",
         "pinyin": "huí",
-        "startSec": 13.62,
-        "endSec": 13.88,
+        "startSec": 14.7,
+        "endSec": 14.98,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 13.88,
-        "endSec": 14.01,
+        "startSec": 14.98,
+        "endSec": 15.12,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 14.01,
-        "endSec": 14.14,
+        "startSec": 15.12,
+        "endSec": 15.26,
         "timingSource": "aligned"
       },
       {
         "text": "：",
-        "startSec": 14.14,
-        "endSec": 14.48,
+        "startSec": 15.26,
+        "endSec": 15.57,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 14.48,
-        "endSec": 14.82,
+        "startSec": 15.57,
+        "endSec": 15.88,
         "timingSource": "estimated"
       },
       {
         "text": "好",
         "pinyin": "hǎo",
-        "startSec": 14.82,
-        "endSec": 15.06,
+        "startSec": 15.88,
+        "endSec": 16.18,
         "timingSource": "aligned"
       },
       {
         "text": "孩",
         "pinyin": "hái",
-        "startSec": 15.06,
-        "endSec": 15.26,
+        "startSec": 16.18,
+        "endSec": 16.39,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 15.26,
-        "endSec": 15.46,
+        "startSec": 16.39,
+        "endSec": 16.6,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 15.46,
-        "endSec": 16.0,
+        "startSec": 16.6,
+        "endSec": 17.12,
         "timingSource": "estimated"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 16.0,
-        "endSec": 16.28,
+        "startSec": 17.12,
+        "endSec": 17.4,
         "timingSource": "aligned"
       },
       {
         "text": "门",
         "pinyin": "mén",
-        "startSec": 16.28,
-        "endSec": 16.44,
+        "startSec": 17.4,
+        "endSec": 17.56,
         "timingSource": "aligned"
       },
       {
         "text": "吧",
         "pinyin": "ba",
-        "startSec": 16.44,
-        "endSec": 16.76,
+        "startSec": 17.56,
+        "endSec": 17.86,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 16.76,
-        "endSec": 17.073,
+        "startSec": 17.86,
+        "endSec": 18.173,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 17.073,
-        "endSec": 17.387,
+        "startSec": 18.173,
+        "endSec": 18.487,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 17.387,
-        "endSec": 17.7,
+        "startSec": 18.487,
+        "endSec": 18.8,
         "timingSource": "estimated"
       },
       {
         "text": "妈",
         "pinyin": "mā",
-        "startSec": 17.7,
-        "endSec": 17.76,
+        "startSec": 18.8,
+        "endSec": 18.84,
         "timingSource": "aligned"
       },
       {
         "text": "妈",
         "pinyin": "mā",
-        "startSec": 17.76,
-        "endSec": 17.94,
+        "startSec": 18.82,
+        "endSec": 18.98,
         "timingSource": "aligned"
       },
       {
         "text": "回",
         "pinyin": "huí",
-        "startSec": 17.94,
-        "endSec": 18.22,
+        "startSec": 18.98,
+        "endSec": 19.32,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 18.22,
-        "endSec": 18.36,
+        "startSec": 19.32,
+        "endSec": 19.46,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 18.36,
-        "endSec": 18.5,
+        "startSec": 19.46,
+        "endSec": 19.6,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 18.5,
-        "endSec": 18.94,
+        "startSec": 19.6,
+        "endSec": 20.1,
         "timingSource": "estimated"
       },
       {
         "text": "这",
         "pinyin": "zhè",
-        "startSec": 18.94,
-        "endSec": 19.2,
+        "startSec": 20.1,
+        "endSec": 20.3,
         "timingSource": "aligned"
       },
       {
         "text": "就",
         "pinyin": "jiù",
-        "startSec": 19.2,
-        "endSec": 19.46,
+        "startSec": 20.3,
+        "endSec": 20.52,
         "timingSource": "aligned"
       },
       {
         "text": "把",
         "pinyin": "bǎ",
-        "startSec": 19.46,
-        "endSec": 19.68,
+        "startSec": 20.52,
+        "endSec": 20.74,
         "timingSource": "aligned"
       },
       {
         "text": "门",
         "pinyin": "mén",
-        "startSec": 19.68,
-        "endSec": 19.86,
+        "startSec": 20.74,
+        "endSec": 20.9,
         "timingSource": "aligned"
       },
       {
         "text": "开",
         "pinyin": "kāi",
-        "startSec": 19.86,
-        "endSec": 20.14,
+        "startSec": 20.9,
+        "endSec": 21.22,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 20.14,
-        "endSec": 20.26,
+        "startSec": 21.22,
+        "endSec": 21.34,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 20.26,
-        "endSec": 20.38,
+        "startSec": 21.34,
+        "endSec": 21.46,
         "timingSource": "estimated"
       }
     ],
@@ -6686,531 +6829,531 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "雨",
         "pinyin": "yú",
         "startSec": 0.0,
-        "endSec": 0.4,
+        "endSec": 0.46,
         "timingSource": "aligned"
       },
       {
         "text": "点",
         "pinyin": "diǎn",
-        "startSec": 0.4,
-        "endSec": 0.56,
+        "startSec": 0.46,
+        "endSec": 0.7,
         "timingSource": "aligned"
       },
       {
         "text": "儿",
         "pinyin": "ér",
-        "startSec": 0.56,
-        "endSec": 0.84,
+        "startSec": 0.7,
+        "endSec": 1.08,
         "timingSource": "aligned"
       },
       {
         "text": "从",
         "pinyin": "cóng",
-        "startSec": 0.84,
-        "endSec": 1.14,
+        "startSec": 1.08,
+        "endSec": 1.72,
         "timingSource": "aligned"
       },
       {
         "text": "云",
         "pinyin": "yún",
-        "startSec": 1.14,
-        "endSec": 1.5,
+        "startSec": 1.72,
+        "endSec": 2.1,
         "timingSource": "aligned"
       },
       {
         "text": "彩",
         "pinyin": "cǎi",
-        "startSec": 1.5,
-        "endSec": 1.68,
+        "startSec": 2.1,
+        "endSec": 2.24,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 1.68,
-        "endSec": 2.02,
+        "startSec": 2.24,
+        "endSec": 2.52,
         "timingSource": "aligned"
       },
       {
         "text": "跳",
         "pinyin": "tiào",
-        "startSec": 2.02,
-        "endSec": 2.2,
+        "startSec": 2.52,
+        "endSec": 2.8,
         "timingSource": "aligned"
       },
       {
         "text": "下",
         "pinyin": "xià",
-        "startSec": 2.2,
-        "endSec": 2.52,
+        "startSec": 2.8,
+        "endSec": 3.04,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 2.52,
-        "endSec": 3.3,
+        "startSec": 3.04,
+        "endSec": 4.08,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.3,
-        "endSec": 3.39,
+        "startSec": 4.08,
+        "endSec": 4.13,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 3.39,
-        "endSec": 3.48,
+        "startSec": 4.13,
+        "endSec": 4.18,
         "timingSource": "estimated"
       },
       {
         "text": "你",
         "pinyin": "nǐ",
-        "startSec": 3.48,
-        "endSec": 3.5,
+        "startSec": 4.18,
+        "endSec": 4.23,
         "timingSource": "aligned"
       },
       {
         "text": "们",
         "pinyin": "men",
-        "startSec": 3.5,
-        "endSec": 3.52,
+        "startSec": 4.23,
+        "endSec": 4.28,
         "timingSource": "aligned"
       },
       {
         "text": "要",
         "pinyin": "yào",
-        "startSec": 3.5,
-        "endSec": 3.82,
+        "startSec": 4.28,
+        "endSec": 4.58,
         "timingSource": "aligned"
       },
       {
         "text": "去",
         "pinyin": "qù",
-        "startSec": 3.82,
-        "endSec": 4.04,
+        "startSec": 4.58,
+        "endSec": 4.82,
         "timingSource": "aligned"
       },
       {
         "text": "哪",
         "pinyin": "ná",
-        "startSec": 4.04,
-        "endSec": 4.26,
+        "startSec": 4.82,
+        "endSec": 5.04,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 4.26,
-        "endSec": 4.46,
+        "startSec": 5.04,
+        "endSec": 5.28,
         "timingSource": "aligned"
       },
       {
         "text": "？",
-        "startSec": 4.46,
-        "endSec": 4.7,
+        "startSec": 5.28,
+        "endSec": 5.61,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 4.7,
-        "endSec": 4.94,
+        "startSec": 5.61,
+        "endSec": 5.94,
         "timingSource": "estimated"
       },
       {
         "text": "小",
         "pinyin": "xiáo",
-        "startSec": 4.94,
-        "endSec": 5.36,
+        "startSec": 5.94,
+        "endSec": 6.38,
         "timingSource": "aligned"
       },
       {
         "text": "雨",
         "pinyin": "yǔ",
-        "startSec": 5.36,
-        "endSec": 5.52,
+        "startSec": 6.38,
+        "endSec": 6.58,
         "timingSource": "aligned"
       },
       {
         "text": "点",
         "pinyin": "diǎn",
-        "startSec": 5.52,
-        "endSec": 5.68,
+        "startSec": 6.58,
+        "endSec": 6.78,
         "timingSource": "aligned"
       },
       {
         "text": "说",
         "pinyin": "shuō",
-        "startSec": 5.68,
-        "endSec": 6.04,
+        "startSec": 6.78,
+        "endSec": 7.1,
         "timingSource": "aligned"
       },
       {
         "text": "：",
-        "startSec": 6.04,
-        "endSec": 6.24,
+        "startSec": 7.1,
+        "endSec": 7.22,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 6.24,
-        "endSec": 6.44,
+        "startSec": 7.22,
+        "endSec": 7.34,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 6.44,
-        "endSec": 6.59,
+        "startSec": 7.34,
+        "endSec": 7.47,
         "timingSource": "aligned"
       },
       {
         "text": "要",
         "pinyin": "yào",
-        "startSec": 6.59,
-        "endSec": 6.74,
+        "startSec": 7.47,
+        "endSec": 7.6,
         "timingSource": "aligned"
       },
       {
         "text": "去",
         "pinyin": "qù",
-        "startSec": 6.74,
-        "endSec": 7.12,
+        "startSec": 7.6,
+        "endSec": 7.94,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 7.12,
-        "endSec": 7.5,
+        "startSec": 7.94,
+        "endSec": 8.26,
         "timingSource": "aligned"
       },
       {
         "text": "花",
         "pinyin": "huā",
-        "startSec": 7.5,
-        "endSec": 7.56,
+        "startSec": 8.26,
+        "endSec": 8.36,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 7.56,
-        "endSec": 7.92,
+        "startSec": 8.36,
+        "endSec": 8.76,
         "timingSource": "aligned"
       },
       {
         "text": "草",
         "pinyin": "cǎo",
-        "startSec": 7.92,
-        "endSec": 8.04,
+        "startSec": 8.76,
+        "endSec": 8.86,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 8.04,
-        "endSec": 8.26,
+        "startSec": 8.86,
+        "endSec": 9.24,
         "timingSource": "aligned"
       },
       {
         "text": "地",
         "pinyin": "dì",
-        "startSec": 8.26,
-        "endSec": 8.43,
+        "startSec": 9.24,
+        "endSec": 9.34,
         "timingSource": "aligned"
       },
       {
         "text": "方",
         "pinyin": "fāng",
-        "startSec": 8.43,
-        "endSec": 8.6,
+        "startSec": 9.34,
+        "endSec": 9.44,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 8.6,
-        "endSec": 8.92,
+        "startSec": 9.44,
+        "endSec": 9.71,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 8.92,
-        "endSec": 9.24,
+        "startSec": 9.71,
+        "endSec": 9.98,
         "timingSource": "estimated"
       },
       {
         "text": "另",
         "pinyin": "lìng",
-        "startSec": 9.24,
-        "endSec": 9.6,
+        "startSec": 9.98,
+        "endSec": 10.5,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yí",
-        "startSec": 9.6,
-        "endSec": 9.71,
+        "startSec": 10.5,
+        "endSec": 10.6,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 9.71,
-        "endSec": 9.82,
+        "startSec": 10.6,
+        "endSec": 10.7,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiáo",
-        "startSec": 9.82,
-        "endSec": 10.14,
+        "startSec": 10.7,
+        "endSec": 11.02,
         "timingSource": "aligned"
       },
       {
         "text": "雨",
         "pinyin": "yǔ",
-        "startSec": 10.14,
-        "endSec": 10.26,
+        "startSec": 11.02,
+        "endSec": 11.14,
         "timingSource": "aligned"
       },
       {
         "text": "点",
         "pinyin": "diǎn",
-        "startSec": 10.26,
-        "endSec": 10.44,
+        "startSec": 11.14,
+        "endSec": 11.32,
         "timingSource": "aligned"
       },
       {
         "text": "说",
         "pinyin": "shuō",
-        "startSec": 10.44,
-        "endSec": 10.78,
+        "startSec": 11.32,
+        "endSec": 11.68,
         "timingSource": "aligned"
       },
       {
         "text": "：",
-        "startSec": 10.78,
-        "endSec": 10.99,
+        "startSec": 11.68,
+        "endSec": 11.91,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 10.99,
-        "endSec": 11.2,
+        "startSec": 11.91,
+        "endSec": 12.14,
         "timingSource": "estimated"
       },
       {
         "text": "我",
         "pinyin": "wǒ",
-        "startSec": 11.2,
-        "endSec": 11.34,
+        "startSec": 12.14,
+        "endSec": 12.31,
         "timingSource": "aligned"
       },
       {
         "text": "要",
         "pinyin": "yào",
-        "startSec": 11.34,
-        "endSec": 11.48,
+        "startSec": 12.31,
+        "endSec": 12.48,
         "timingSource": "aligned"
       },
       {
         "text": "去",
         "pinyin": "qù",
-        "startSec": 11.48,
-        "endSec": 11.9,
+        "startSec": 12.48,
+        "endSec": 12.82,
         "timingSource": "aligned"
       },
       {
         "text": "没",
         "pinyin": "méi",
-        "startSec": 11.9,
-        "endSec": 12.11,
+        "startSec": 12.82,
+        "endSec": 13.01,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 12.11,
-        "endSec": 12.32,
+        "startSec": 13.01,
+        "endSec": 13.2,
         "timingSource": "aligned"
       },
       {
         "text": "花",
         "pinyin": "huā",
-        "startSec": 12.32,
-        "endSec": 12.6,
+        "startSec": 13.2,
+        "endSec": 13.48,
         "timingSource": "aligned"
       },
       {
         "text": "没",
         "pinyin": "méi",
-        "startSec": 12.6,
-        "endSec": 12.79,
+        "startSec": 13.48,
+        "endSec": 13.67,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 12.79,
-        "endSec": 12.98,
+        "startSec": 13.67,
+        "endSec": 13.86,
         "timingSource": "aligned"
       },
       {
         "text": "草",
         "pinyin": "cǎo",
-        "startSec": 12.98,
-        "endSec": 13.2,
+        "startSec": 13.86,
+        "endSec": 14.08,
         "timingSource": "aligned"
       },
       {
         "text": "的",
         "pinyin": "de",
-        "startSec": 13.2,
-        "endSec": 13.76,
+        "startSec": 14.08,
+        "endSec": 14.7,
         "timingSource": "aligned"
       },
       {
         "text": "地",
         "pinyin": "dì",
-        "startSec": 13.76,
-        "endSec": 13.78,
+        "startSec": 14.7,
+        "endSec": 14.72,
         "timingSource": "aligned"
       },
       {
         "text": "方",
         "pinyin": "fāng",
-        "startSec": 13.78,
-        "endSec": 13.8,
+        "startSec": 14.72,
+        "endSec": 14.74,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 13.8,
-        "endSec": 14.12,
+        "startSec": 14.74,
+        "endSec": 15.12,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 14.12,
-        "endSec": 14.44,
+        "startSec": 15.12,
+        "endSec": 15.5,
         "timingSource": "estimated"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 14.44,
-        "endSec": 14.58,
+        "startSec": 15.5,
+        "endSec": 15.74,
         "timingSource": "aligned"
       },
       {
         "text": "久",
         "pinyin": "jiǔ",
-        "startSec": 14.58,
-        "endSec": 14.78,
+        "startSec": 15.74,
+        "endSec": 15.96,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 14.78,
-        "endSec": 15.12,
+        "startSec": 15.96,
+        "endSec": 16.46,
         "timingSource": "estimated"
       },
       {
         "text": "两",
         "pinyin": "liǎng",
-        "startSec": 15.12,
-        "endSec": 15.42,
+        "startSec": 16.46,
+        "endSec": 16.8,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 15.42,
-        "endSec": 15.6,
+        "startSec": 16.8,
+        "endSec": 17.0,
         "timingSource": "aligned"
       },
       {
         "text": "地",
         "pinyin": "dì",
-        "startSec": 15.6,
-        "endSec": 15.8,
+        "startSec": 17.0,
+        "endSec": 17.2,
         "timingSource": "aligned"
       },
       {
         "text": "方",
         "pinyin": "fāng",
-        "startSec": 15.8,
-        "endSec": 16.0,
+        "startSec": 17.2,
+        "endSec": 17.4,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 16.0,
-        "endSec": 16.28,
+        "startSec": 17.4,
+        "endSec": 17.7,
         "timingSource": "estimated"
       },
       {
         "text": "都",
         "pinyin": "dōu",
-        "startSec": 16.28,
-        "endSec": 16.68,
+        "startSec": 17.7,
+        "endSec": 18.06,
         "timingSource": "aligned"
       },
       {
         "text": "变",
         "pinyin": "biàn",
-        "startSec": 16.68,
-        "endSec": 16.88,
+        "startSec": 18.06,
+        "endSec": 18.24,
         "timingSource": "aligned"
       },
       {
         "text": "得",
         "pinyin": "dé",
-        "startSec": 16.88,
-        "endSec": 17.14,
+        "startSec": 18.24,
+        "endSec": 18.48,
         "timingSource": "aligned"
       },
       {
         "text": "更",
         "pinyin": "gèng",
-        "startSec": 17.14,
-        "endSec": 17.36,
+        "startSec": 18.48,
+        "endSec": 18.7,
         "timingSource": "aligned"
       },
       {
         "text": "加",
         "pinyin": "jiā",
-        "startSec": 17.36,
-        "endSec": 17.66,
+        "startSec": 18.7,
+        "endSec": 19.04,
         "timingSource": "aligned"
       },
       {
         "text": "好",
         "pinyin": "hǎo",
-        "startSec": 17.66,
-        "endSec": 17.9,
+        "startSec": 19.04,
+        "endSec": 19.3,
         "timingSource": "aligned"
       },
       {
         "text": "看",
         "pinyin": "kàn",
-        "startSec": 17.9,
-        "endSec": 18.16,
+        "startSec": 19.3,
+        "endSec": 19.54,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 18.16,
-        "endSec": 18.32,
+        "startSec": 19.54,
+        "endSec": 19.78,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 18.32,
-        "endSec": 18.44,
+        "startSec": 19.78,
+        "endSec": 19.9,
         "timingSource": "estimated"
       }
     ],
@@ -7327,521 +7470,521 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "乌",
         "pinyin": "wū",
         "startSec": 0.0,
-        "endSec": 0.6,
+        "endSec": 0.56,
         "timingSource": "aligned"
       },
       {
         "text": "鸦",
         "pinyin": "yā",
-        "startSec": 0.6,
-        "endSec": 0.64,
+        "startSec": 0.56,
+        "endSec": 0.6,
         "timingSource": "aligned"
       },
       {
         "text": "口",
         "pinyin": "kǒu",
-        "startSec": 0.6,
-        "endSec": 1.18,
+        "startSec": 0.56,
+        "endSec": 1.16,
         "timingSource": "aligned"
       },
       {
         "text": "渴",
         "pinyin": "kě",
-        "startSec": 1.18,
-        "endSec": 1.44,
+        "startSec": 1.16,
+        "endSec": 1.38,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 1.44,
-        "endSec": 1.9,
+        "startSec": 1.38,
+        "endSec": 1.98,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.9,
-        "endSec": 2.28,
+        "startSec": 1.98,
+        "endSec": 2.58,
         "timingSource": "estimated"
       },
       {
         "text": "到",
         "pinyin": "dào",
-        "startSec": 2.28,
-        "endSec": 2.52,
+        "startSec": 2.58,
+        "endSec": 2.68,
         "timingSource": "aligned"
       },
       {
         "text": "处",
         "pinyin": "chù",
-        "startSec": 2.52,
-        "endSec": 2.74,
+        "startSec": 2.68,
+        "endSec": 2.86,
         "timingSource": "aligned"
       },
       {
         "text": "找",
         "pinyin": "zhǎo",
-        "startSec": 2.74,
-        "endSec": 3.06,
+        "startSec": 2.86,
+        "endSec": 3.18,
         "timingSource": "aligned"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 3.06,
-        "endSec": 3.38,
+        "startSec": 3.18,
+        "endSec": 3.48,
         "timingSource": "aligned"
       },
       {
         "text": "喝",
         "pinyin": "hē",
-        "startSec": 3.38,
-        "endSec": 3.72,
+        "startSec": 3.48,
+        "endSec": 3.82,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.72,
-        "endSec": 4.82,
+        "startSec": 3.82,
+        "endSec": 5.0,
         "timingSource": "estimated"
       },
       {
         "text": "看",
         "pinyin": "kàn",
-        "startSec": 4.82,
-        "endSec": 4.86,
+        "startSec": 5.0,
+        "endSec": 5.04,
         "timingSource": "aligned"
       },
       {
         "text": "见",
         "pinyin": "jiàn",
-        "startSec": 4.86,
-        "endSec": 5.0,
+        "startSec": 5.02,
+        "endSec": 5.16,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yí",
-        "startSec": 5.0,
-        "endSec": 5.29,
+        "startSec": 5.16,
+        "endSec": 5.35,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 5.29,
-        "endSec": 5.58,
+        "startSec": 5.35,
+        "endSec": 5.54,
         "timingSource": "aligned"
       },
       {
         "text": "瓶",
         "pinyin": "píng",
-        "startSec": 5.58,
-        "endSec": 5.62,
+        "startSec": 5.54,
+        "endSec": 5.76,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 5.58,
-        "endSec": 5.92,
+        "startSec": 5.76,
+        "endSec": 6.1,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 5.92,
-        "endSec": 6.62,
+        "startSec": 6.1,
+        "endSec": 7.08,
         "timingSource": "estimated"
       },
       {
         "text": "瓶",
         "pinyin": "píng",
-        "startSec": 6.62,
-        "endSec": 6.66,
+        "startSec": 7.08,
+        "endSec": 7.12,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 6.62,
-        "endSec": 6.74,
+        "startSec": 7.08,
+        "endSec": 7.24,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 6.74,
-        "endSec": 6.86,
+        "startSec": 7.24,
+        "endSec": 7.36,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 6.86,
-        "endSec": 7.26,
+        "startSec": 7.36,
+        "endSec": 7.82,
         "timingSource": "aligned"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 7.26,
-        "endSec": 7.4,
+        "startSec": 7.82,
+        "endSec": 8.02,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 7.4,
-        "endSec": 8.24,
+        "startSec": 8.02,
+        "endSec": 8.92,
         "timingSource": "estimated"
       },
       {
         "text": "可",
         "pinyin": "kě",
-        "startSec": 8.24,
-        "endSec": 8.42,
+        "startSec": 8.92,
+        "endSec": 9.1,
         "timingSource": "aligned"
       },
       {
         "text": "瓶",
         "pinyin": "píng",
-        "startSec": 8.42,
-        "endSec": 8.7,
+        "startSec": 9.1,
+        "endSec": 9.44,
         "timingSource": "aligned"
       },
       {
         "text": "口",
         "pinyin": "kǒu",
-        "startSec": 8.7,
-        "endSec": 8.88,
+        "startSec": 9.44,
+        "endSec": 9.6,
         "timingSource": "aligned"
       },
       {
         "text": "太",
         "pinyin": "tài",
-        "startSec": 8.88,
-        "endSec": 9.24,
+        "startSec": 9.6,
+        "endSec": 10.02,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 9.24,
-        "endSec": 9.56,
+        "startSec": 10.02,
+        "endSec": 10.34,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.56,
-        "endSec": 9.92,
+        "startSec": 10.34,
+        "endSec": 10.78,
         "timingSource": "estimated"
       },
       {
         "text": "喝",
         "pinyin": "hē",
-        "startSec": 9.92,
-        "endSec": 10.06,
+        "startSec": 10.78,
+        "endSec": 10.94,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 10.06,
-        "endSec": 10.32,
+        "startSec": 10.94,
+        "endSec": 11.24,
         "timingSource": "aligned"
       },
       {
         "text": "着",
         "pinyin": "zhe",
-        "startSec": 10.32,
-        "endSec": 10.54,
+        "startSec": 11.24,
+        "endSec": 11.46,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 10.54,
-        "endSec": 11.64,
+        "startSec": 11.46,
+        "endSec": 13.08,
         "timingSource": "estimated"
       },
       {
         "text": "乌",
         "pinyin": "wū",
-        "startSec": 11.64,
-        "endSec": 11.68,
+        "startSec": 13.08,
+        "endSec": 13.12,
         "timingSource": "aligned"
       },
       {
         "text": "鸦",
         "pinyin": "yā",
-        "startSec": 11.66,
-        "endSec": 11.84,
+        "startSec": 13.12,
+        "endSec": 13.22,
         "timingSource": "aligned"
       },
       {
         "text": "看",
         "pinyin": "kàn",
-        "startSec": 11.84,
-        "endSec": 12.26,
+        "startSec": 13.22,
+        "endSec": 13.56,
         "timingSource": "aligned"
       },
       {
         "text": "见",
         "pinyin": "jiàn",
-        "startSec": 12.26,
-        "endSec": 12.44,
+        "startSec": 13.56,
+        "endSec": 13.74,
         "timingSource": "aligned"
       },
       {
         "text": "旁",
         "pinyin": "páng",
-        "startSec": 12.44,
-        "endSec": 12.78,
+        "startSec": 13.74,
+        "endSec": 14.06,
         "timingSource": "aligned"
       },
       {
         "text": "边",
         "pinyin": "biān",
-        "startSec": 12.78,
-        "endSec": 12.94,
+        "startSec": 14.06,
+        "endSec": 14.22,
         "timingSource": "aligned"
       },
       {
         "text": "有",
         "pinyin": "yǒu",
-        "startSec": 12.94,
-        "endSec": 13.22,
+        "startSec": 14.22,
+        "endSec": 14.52,
         "timingSource": "aligned"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 13.22,
-        "endSec": 13.52,
+        "startSec": 14.52,
+        "endSec": 14.84,
         "timingSource": "aligned"
       },
       {
         "text": "石",
         "pinyin": "shí",
-        "startSec": 13.52,
-        "endSec": 13.82,
+        "startSec": 14.84,
+        "endSec": 15.14,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zǐ",
-        "startSec": 13.82,
-        "endSec": 13.98,
+        "startSec": 15.14,
+        "endSec": 15.32,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 13.98,
-        "endSec": 14.7,
+        "startSec": 15.32,
+        "endSec": 16.02,
         "timingSource": "estimated"
       },
       {
         "text": "想",
         "pinyin": "xiǎng",
-        "startSec": 14.7,
-        "endSec": 14.78,
+        "startSec": 16.02,
+        "endSec": 16.08,
         "timingSource": "aligned"
       },
       {
         "text": "出",
         "pinyin": "chū",
-        "startSec": 14.78,
-        "endSec": 15.04,
+        "startSec": 16.08,
+        "endSec": 16.32,
         "timingSource": "aligned"
       },
       {
         "text": "办",
         "pinyin": "bàn",
-        "startSec": 15.04,
-        "endSec": 15.32,
+        "startSec": 16.32,
+        "endSec": 16.56,
         "timingSource": "aligned"
       },
       {
         "text": "法",
         "pinyin": "fǎ",
-        "startSec": 15.32,
-        "endSec": 15.5,
+        "startSec": 16.56,
+        "endSec": 16.72,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 15.5,
-        "endSec": 15.66,
+        "startSec": 16.72,
+        "endSec": 16.89,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 15.66,
-        "endSec": 15.82,
+        "startSec": 16.89,
+        "endSec": 17.06,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 15.82,
-        "endSec": 16.98,
+        "startSec": 17.06,
+        "endSec": 18.3,
         "timingSource": "estimated"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 16.98,
-        "endSec": 17.26,
+        "startSec": 18.3,
+        "endSec": 18.58,
         "timingSource": "aligned"
       },
       {
         "text": "颗",
         "pinyin": "kē",
-        "startSec": 17.26,
-        "endSec": 17.3,
+        "startSec": 18.58,
+        "endSec": 18.62,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yī",
-        "startSec": 17.26,
-        "endSec": 17.48,
+        "startSec": 18.58,
+        "endSec": 18.84,
         "timingSource": "aligned"
       },
       {
         "text": "颗",
         "pinyin": "kē",
-        "startSec": 17.48,
-        "endSec": 17.66,
+        "startSec": 18.84,
+        "endSec": 19.04,
         "timingSource": "aligned"
       },
       {
         "text": "放",
         "pinyin": "fàng",
-        "startSec": 17.66,
-        "endSec": 18.02,
+        "startSec": 19.04,
+        "endSec": 19.46,
         "timingSource": "aligned"
       },
       {
         "text": "进",
         "pinyin": "jìn",
-        "startSec": 18.02,
-        "endSec": 18.22,
+        "startSec": 19.46,
+        "endSec": 19.64,
         "timingSource": "aligned"
       },
       {
         "text": "瓶",
         "pinyin": "píng",
-        "startSec": 18.22,
-        "endSec": 18.5,
+        "startSec": 19.64,
+        "endSec": 19.92,
         "timingSource": "aligned"
       },
       {
         "text": "子",
         "pinyin": "zi",
-        "startSec": 18.5,
-        "endSec": 18.7,
+        "startSec": 19.92,
+        "endSec": 20.12,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lǐ",
-        "startSec": 18.7,
-        "endSec": 18.9,
+        "startSec": 20.12,
+        "endSec": 20.34,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 18.9,
-        "endSec": 19.68,
+        "startSec": 20.34,
+        "endSec": 21.14,
         "timingSource": "estimated"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 19.68,
-        "endSec": 20.02,
+        "startSec": 21.14,
+        "endSec": 21.54,
         "timingSource": "aligned"
       },
       {
         "text": "渐",
         "pinyin": "jiàn",
-        "startSec": 20.02,
-        "endSec": 20.4,
+        "startSec": 21.54,
+        "endSec": 21.94,
         "timingSource": "aligned"
       },
       {
         "text": "渐",
         "pinyin": "jiàn",
-        "startSec": 20.4,
-        "endSec": 20.6,
+        "startSec": 21.94,
+        "endSec": 22.16,
         "timingSource": "aligned"
       },
       {
         "text": "升",
         "pinyin": "shēng",
-        "startSec": 20.6,
-        "endSec": 20.9,
+        "startSec": 22.16,
+        "endSec": 22.46,
         "timingSource": "aligned"
       },
       {
         "text": "高",
         "pinyin": "gāo",
-        "startSec": 20.9,
-        "endSec": 21.1,
+        "startSec": 22.46,
+        "endSec": 22.66,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 21.1,
-        "endSec": 21.72,
+        "startSec": 22.66,
+        "endSec": 23.34,
         "timingSource": "estimated"
       },
       {
         "text": "乌",
         "pinyin": "wū",
-        "startSec": 21.72,
-        "endSec": 22.02,
+        "startSec": 23.34,
+        "endSec": 23.64,
         "timingSource": "aligned"
       },
       {
         "text": "鸦",
         "pinyin": "yā",
-        "startSec": 22.02,
-        "endSec": 22.24,
+        "startSec": 23.64,
+        "endSec": 23.86,
         "timingSource": "aligned"
       },
       {
         "text": "喝",
         "pinyin": "hē",
-        "startSec": 22.24,
-        "endSec": 22.58,
+        "startSec": 23.86,
+        "endSec": 24.24,
         "timingSource": "aligned"
       },
       {
         "text": "着",
         "pinyin": "zhe",
-        "startSec": 22.58,
-        "endSec": 22.8,
+        "startSec": 24.24,
+        "endSec": 24.42,
         "timingSource": "aligned"
       },
       {
         "text": "水",
         "pinyin": "shuǐ",
-        "startSec": 22.8,
-        "endSec": 23.0,
+        "startSec": 24.42,
+        "endSec": 24.68,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 23.0,
-        "endSec": 23.36,
+        "startSec": 24.68,
+        "endSec": 25.1,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 23.36,
-        "endSec": 23.48,
+        "startSec": 25.1,
+        "endSec": 25.22,
         "timingSource": "estimated"
       }
     ],
@@ -7947,497 +8090,497 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "地",
         "pinyin": "dì",
         "startSec": 0.0,
-        "endSec": 0.78,
+        "endSec": 0.5,
         "timingSource": "aligned"
       },
       {
         "text": "里",
         "pinyin": "lí",
-        "startSec": 0.78,
-        "endSec": 1.0,
+        "startSec": 0.5,
+        "endSec": 0.82,
         "timingSource": "aligned"
       },
       {
         "text": "长",
         "pinyin": "zhǎng",
-        "startSec": 1.0,
-        "endSec": 1.18,
+        "startSec": 0.82,
+        "endSec": 1.02,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 1.18,
-        "endSec": 1.4,
+        "startSec": 1.02,
+        "endSec": 1.24,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yí",
-        "startSec": 1.4,
-        "endSec": 1.57,
+        "startSec": 1.24,
+        "endSec": 1.37,
         "timingSource": "aligned"
       },
       {
         "text": "个",
         "pinyin": "gè",
-        "startSec": 1.57,
-        "endSec": 1.74,
+        "startSec": 1.37,
+        "endSec": 1.5,
         "timingSource": "aligned"
       },
       {
         "text": "大",
         "pinyin": "dà",
-        "startSec": 1.74,
-        "endSec": 2.42,
+        "startSec": 1.5,
+        "endSec": 2.2,
         "timingSource": "aligned"
       },
       {
         "text": "萝",
         "pinyin": "luó",
-        "startSec": 2.42,
-        "endSec": 2.46,
+        "startSec": 2.2,
+        "endSec": 2.24,
         "timingSource": "aligned"
       },
       {
         "text": "卜",
         "pinyin": "bo",
-        "startSec": 2.42,
-        "endSec": 2.56,
+        "startSec": 2.22,
+        "endSec": 2.34,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 2.56,
-        "endSec": 3.52,
+        "startSec": 2.34,
+        "endSec": 3.1,
         "timingSource": "estimated"
       },
       {
         "text": "爷",
         "pinyin": "yé",
-        "startSec": 3.52,
-        "endSec": 3.56,
+        "startSec": 3.1,
+        "endSec": 3.14,
         "timingSource": "aligned"
       },
       {
         "text": "爷",
         "pinyin": "yé",
-        "startSec": 3.54,
-        "endSec": 3.8,
+        "startSec": 3.12,
+        "endSec": 3.44,
         "timingSource": "aligned"
       },
       {
         "text": "拔",
         "pinyin": "bá",
-        "startSec": 3.8,
-        "endSec": 4.02,
+        "startSec": 3.44,
+        "endSec": 3.64,
         "timingSource": "aligned"
       },
       {
         "text": "呀",
         "pinyin": "ya",
-        "startSec": 4.02,
-        "endSec": 4.22,
+        "startSec": 3.64,
+        "endSec": 3.84,
         "timingSource": "aligned"
       },
       {
         "text": "拔",
         "pinyin": "bá",
-        "startSec": 4.22,
-        "endSec": 4.36,
+        "startSec": 3.84,
+        "endSec": 4.06,
         "timingSource": "aligned"
       },
       {
         "text": "呀",
         "pinyin": "ya",
-        "startSec": 4.36,
-        "endSec": 4.94,
+        "startSec": 4.06,
+        "endSec": 4.56,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 4.94,
-        "endSec": 5.06,
+        "startSec": 4.56,
+        "endSec": 4.68,
         "timingSource": "estimated"
       },
       {
         "text": "拔",
         "pinyin": "bá",
-        "startSec": 4.94,
-        "endSec": 5.16,
+        "startSec": 4.56,
+        "endSec": 4.82,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 5.16,
-        "endSec": 5.38,
+        "startSec": 4.82,
+        "endSec": 5.04,
         "timingSource": "aligned"
       },
       {
         "text": "动",
         "pinyin": "dòng",
-        "startSec": 5.38,
+        "startSec": 5.04,
         "endSec": 5.66,
         "timingSource": "aligned"
       },
       {
         "text": "。",
         "startSec": 5.66,
-        "endSec": 6.38,
+        "endSec": 6.28,
         "timingSource": "estimated"
       },
       {
         "text": "奶",
         "pinyin": "nǎi",
-        "startSec": 6.38,
-        "endSec": 6.42,
+        "startSec": 6.28,
+        "endSec": 6.32,
         "timingSource": "aligned"
       },
       {
         "text": "奶",
         "pinyin": "nǎi",
-        "startSec": 6.38,
-        "endSec": 6.48,
+        "startSec": 6.28,
+        "endSec": 6.42,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 6.48,
-        "endSec": 6.8,
+        "startSec": 6.42,
+        "endSec": 6.74,
         "timingSource": "aligned"
       },
       {
         "text": "帮",
         "pinyin": "bāng",
-        "startSec": 6.8,
-        "endSec": 6.98,
+        "startSec": 6.74,
+        "endSec": 6.92,
         "timingSource": "aligned"
       },
       {
         "text": "忙",
         "pinyin": "máng",
-        "startSec": 6.98,
-        "endSec": 7.4,
+        "startSec": 6.92,
+        "endSec": 7.26,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 7.4,
-        "endSec": 7.54,
+        "startSec": 7.26,
+        "endSec": 7.56,
         "timingSource": "estimated"
       },
       {
         "text": "还",
         "pinyin": "hái",
-        "startSec": 7.54,
-        "endSec": 7.73,
+        "startSec": 7.56,
+        "endSec": 7.78,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 7.73,
-        "endSec": 7.92,
+        "startSec": 7.78,
+        "endSec": 8.0,
         "timingSource": "aligned"
       },
       {
         "text": "拔",
         "pinyin": "bá",
-        "startSec": 7.92,
-        "endSec": 8.06,
+        "startSec": 8.0,
+        "endSec": 8.14,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bù",
-        "startSec": 8.06,
-        "endSec": 8.46,
+        "startSec": 8.14,
+        "endSec": 8.56,
         "timingSource": "aligned"
       },
       {
         "text": "动",
         "pinyin": "dòng",
-        "startSec": 8.46,
-        "endSec": 8.56,
+        "startSec": 8.56,
+        "endSec": 8.68,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 8.56,
-        "endSec": 9.4,
+        "startSec": 8.68,
+        "endSec": 9.74,
         "timingSource": "estimated"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 9.4,
-        "endSec": 9.5,
+        "startSec": 9.74,
+        "endSec": 9.84,
         "timingSource": "aligned"
       },
       {
         "text": "狗",
         "pinyin": "gǒu",
-        "startSec": 9.5,
-        "endSec": 9.62,
+        "startSec": 9.84,
+        "endSec": 9.98,
         "timingSource": "aligned"
       },
       {
         "text": "跑",
         "pinyin": "pǎo",
-        "startSec": 9.62,
-        "endSec": 9.96,
+        "startSec": 9.98,
+        "endSec": 10.34,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 9.96,
-        "endSec": 10.11,
+        "startSec": 10.34,
+        "endSec": 10.49,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 10.11,
-        "endSec": 10.26,
+        "startSec": 10.49,
+        "endSec": 10.64,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 10.26,
-        "endSec": 10.88,
+        "startSec": 10.64,
+        "endSec": 11.4,
         "timingSource": "estimated"
       },
       {
         "text": "小",
         "pinyin": "xiǎo",
-        "startSec": 10.88,
-        "endSec": 11.0,
+        "startSec": 11.4,
+        "endSec": 11.56,
         "timingSource": "aligned"
       },
       {
         "text": "猫",
         "pinyin": "māo",
-        "startSec": 11.0,
-        "endSec": 11.08,
+        "startSec": 11.56,
+        "endSec": 11.62,
         "timingSource": "aligned"
       },
       {
         "text": "也",
         "pinyin": "yě",
-        "startSec": 11.08,
-        "endSec": 11.36,
+        "startSec": 11.62,
+        "endSec": 11.92,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 11.36,
-        "endSec": 11.52,
+        "startSec": 11.92,
+        "endSec": 12.08,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 11.52,
-        "endSec": 11.68,
+        "startSec": 12.08,
+        "endSec": 12.24,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 11.68,
-        "endSec": 12.42,
+        "startSec": 12.24,
+        "endSec": 13.06,
         "timingSource": "estimated"
       },
       {
         "text": "大",
         "pinyin": "dà",
-        "startSec": 12.42,
-        "endSec": 12.6,
+        "startSec": 13.06,
+        "endSec": 13.23,
         "timingSource": "aligned"
       },
       {
         "text": "家",
         "pinyin": "jiā",
-        "startSec": 12.6,
-        "endSec": 12.78,
+        "startSec": 13.23,
+        "endSec": 13.4,
         "timingSource": "aligned"
       },
       {
         "text": "一",
         "pinyin": "yì",
-        "startSec": 12.78,
-        "endSec": 13.0,
+        "startSec": 13.4,
+        "endSec": 13.6,
         "timingSource": "aligned"
       },
       {
         "text": "起",
         "pinyin": "qǐ",
-        "startSec": 13.0,
-        "endSec": 13.22,
+        "startSec": 13.6,
+        "endSec": 13.8,
         "timingSource": "aligned"
       },
       {
         "text": "用",
         "pinyin": "yòng",
-        "startSec": 13.22,
-        "endSec": 13.62,
+        "startSec": 13.8,
+        "endSec": 14.18,
         "timingSource": "aligned"
       },
       {
         "text": "力",
         "pinyin": "lì",
-        "startSec": 13.62,
-        "endSec": 13.74,
+        "startSec": 14.18,
+        "endSec": 14.3,
         "timingSource": "aligned"
       },
       {
         "text": "：",
-        "startSec": 13.74,
-        "endSec": 14.12,
+        "startSec": 14.3,
+        "endSec": 14.52,
         "timingSource": "estimated"
       },
       {
         "text": "“",
-        "startSec": 14.12,
-        "endSec": 14.5,
+        "startSec": 14.52,
+        "endSec": 14.74,
         "timingSource": "estimated"
       },
       {
         "text": "嗨",
         "pinyin": "hāi",
-        "startSec": 14.5,
-        "endSec": 14.74,
+        "startSec": 14.74,
+        "endSec": 15.04,
         "timingSource": "aligned"
       },
       {
         "text": "哟",
         "pinyin": "yō",
-        "startSec": 14.74,
-        "endSec": 14.88,
+        "startSec": 15.04,
+        "endSec": 15.18,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 14.88,
-        "endSec": 15.0,
+        "startSec": 15.18,
+        "endSec": 15.4,
         "timingSource": "estimated"
       },
       {
         "text": "嗨",
         "pinyin": "hāi",
-        "startSec": 15.0,
-        "endSec": 15.34,
+        "startSec": 15.4,
+        "endSec": 15.72,
         "timingSource": "aligned"
       },
       {
         "text": "哟",
         "pinyin": "yō",
-        "startSec": 15.34,
-        "endSec": 15.76,
+        "startSec": 15.72,
+        "endSec": 16.18,
         "timingSource": "aligned"
       },
       {
         "text": "！",
-        "startSec": 15.76,
-        "endSec": 15.97,
+        "startSec": 16.18,
+        "endSec": 16.4,
         "timingSource": "estimated"
       },
       {
         "text": "”",
-        "startSec": 15.97,
-        "endSec": 16.18,
+        "startSec": 16.4,
+        "endSec": 16.62,
         "timingSource": "estimated"
       },
       {
         "text": "萝",
         "pinyin": "luó",
-        "startSec": 16.18,
-        "endSec": 16.52,
+        "startSec": 16.62,
+        "endSec": 16.88,
         "timingSource": "aligned"
       },
       {
         "text": "卜",
         "pinyin": "bo",
-        "startSec": 16.52,
-        "endSec": 16.56,
+        "startSec": 16.88,
+        "endSec": 16.98,
         "timingSource": "aligned"
       },
       {
         "text": "拔",
         "pinyin": "bá",
-        "startSec": 16.56,
-        "endSec": 16.82,
+        "startSec": 16.98,
+        "endSec": 17.28,
         "timingSource": "aligned"
       },
       {
         "text": "出",
         "pinyin": "chū",
-        "startSec": 16.82,
-        "endSec": 17.12,
+        "startSec": 17.28,
+        "endSec": 17.58,
         "timingSource": "aligned"
       },
       {
         "text": "来",
         "pinyin": "lái",
-        "startSec": 17.12,
-        "endSec": 17.24,
+        "startSec": 17.58,
+        "endSec": 17.73,
         "timingSource": "aligned"
       },
       {
         "text": "了",
         "pinyin": "le",
-        "startSec": 17.24,
-        "endSec": 17.36,
+        "startSec": 17.73,
+        "endSec": 17.88,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 17.36,
-        "endSec": 17.72,
+        "startSec": 17.88,
+        "endSec": 18.3,
         "timingSource": "estimated"
       },
       {
         "text": "大",
         "pinyin": "dà",
-        "startSec": 17.72,
-        "endSec": 17.98,
+        "startSec": 18.3,
+        "endSec": 18.52,
         "timingSource": "aligned"
       },
       {
         "text": "家",
         "pinyin": "jiā",
-        "startSec": 17.98,
-        "endSec": 18.24,
+        "startSec": 18.52,
+        "endSec": 18.74,
         "timingSource": "aligned"
       },
       {
         "text": "笑",
         "pinyin": "xiào",
-        "startSec": 18.24,
-        "endSec": 18.66,
+        "startSec": 18.74,
+        "endSec": 19.2,
         "timingSource": "aligned"
       },
       {
         "text": "哈",
         "pinyin": "hā",
-        "startSec": 18.66,
-        "endSec": 18.87,
+        "startSec": 19.2,
+        "endSec": 19.41,
         "timingSource": "aligned"
       },
       {
         "text": "哈",
         "pinyin": "hā",
-        "startSec": 18.87,
-        "endSec": 19.08,
+        "startSec": 19.41,
+        "endSec": 19.62,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 19.08,
-        "endSec": 19.2,
+        "startSec": 19.62,
+        "endSec": 19.74,
         "timingSource": "estimated"
       }
     ],
@@ -8552,569 +8695,320 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
     "scriptTokens": [
       {
         "text": "小",
-        "pinyin": "xiǎo",
-        "startSec": 0.0,
-        "endSec": 0.76,
-        "timingSource": "aligned"
+        "pinyin": "xiǎo"
       },
       {
         "text": "猴",
-        "pinyin": "hóu",
-        "startSec": 0.76,
-        "endSec": 0.8,
-        "timingSource": "aligned"
+        "pinyin": "hóu"
       },
       {
         "text": "子",
-        "pinyin": "zi",
-        "startSec": 0.76,
-        "endSec": 1.06,
-        "timingSource": "aligned"
+        "pinyin": "zi"
       },
       {
         "text": "看",
-        "pinyin": "kàn",
-        "startSec": 1.06,
-        "endSec": 1.84,
-        "timingSource": "aligned"
+        "pinyin": "kàn"
       },
       {
         "text": "见",
-        "pinyin": "jiàn",
-        "startSec": 1.84,
-        "endSec": 2.14,
-        "timingSource": "aligned"
+        "pinyin": "jiàn"
       },
       {
         "text": "井",
-        "pinyin": "jǐng",
-        "startSec": 2.14,
-        "endSec": 2.34,
-        "timingSource": "aligned"
+        "pinyin": "jǐng"
       },
       {
         "text": "里",
-        "pinyin": "lǐ",
-        "startSec": 2.34,
-        "endSec": 2.68,
-        "timingSource": "aligned"
+        "pinyin": "lǐ"
       },
       {
         "text": "有",
-        "pinyin": "yǒu",
-        "startSec": 2.68,
-        "endSec": 2.9,
-        "timingSource": "aligned"
+        "pinyin": "yǒu"
       },
       {
         "text": "个",
-        "pinyin": "gè",
-        "startSec": 2.9,
-        "endSec": 3.4,
-        "timingSource": "aligned"
+        "pinyin": "gè"
       },
       {
         "text": "月",
-        "pinyin": "yuè",
-        "startSec": 3.4,
-        "endSec": 3.44,
-        "timingSource": "aligned"
+        "pinyin": "yuè"
       },
       {
         "text": "亮",
-        "pinyin": "liàng",
-        "startSec": 3.42,
-        "endSec": 3.58,
-        "timingSource": "aligned"
+        "pinyin": "liàng"
       },
       {
-        "text": "。",
-        "startSec": 3.58,
-        "endSec": 4.16,
-        "timingSource": "estimated"
+        "text": "。"
       },
       {
-        "text": "“",
-        "startSec": 4.16,
-        "endSec": 4.74,
-        "timingSource": "estimated"
+        "text": "“"
       },
       {
         "text": "不",
-        "pinyin": "bù",
-        "startSec": 4.74,
-        "endSec": 4.76,
-        "timingSource": "aligned"
+        "pinyin": "bù"
       },
       {
         "text": "好",
-        "pinyin": "hǎo",
-        "startSec": 4.76,
-        "endSec": 4.78,
-        "timingSource": "aligned"
+        "pinyin": "hǎo"
       },
       {
         "text": "啦",
-        "pinyin": "la",
-        "startSec": 4.78,
-        "endSec": 5.28,
-        "timingSource": "aligned"
+        "pinyin": "la"
       },
       {
-        "text": "！",
-        "startSec": 5.28,
-        "endSec": 5.44,
-        "timingSource": "estimated"
+        "text": "！"
       },
       {
         "text": "月",
-        "pinyin": "yuè",
-        "startSec": 5.44,
-        "endSec": 6.18,
-        "timingSource": "aligned"
+        "pinyin": "yuè"
       },
       {
         "text": "亮",
-        "pinyin": "liàng",
-        "startSec": 6.18,
-        "endSec": 6.34,
-        "timingSource": "aligned"
+        "pinyin": "liàng"
       },
       {
         "text": "掉",
-        "pinyin": "diào",
-        "startSec": 6.34,
-        "endSec": 6.72,
-        "timingSource": "aligned"
+        "pinyin": "diào"
       },
       {
         "text": "井",
-        "pinyin": "jǐng",
-        "startSec": 6.72,
-        "endSec": 7.04,
-        "timingSource": "aligned"
+        "pinyin": "jǐng"
       },
       {
         "text": "里",
-        "pinyin": "lǐ",
-        "startSec": 7.04,
-        "endSec": 7.3,
-        "timingSource": "aligned"
+        "pinyin": "lǐ"
       },
       {
         "text": "了",
-        "pinyin": "le",
-        "startSec": 7.3,
-        "endSec": 7.6,
-        "timingSource": "aligned"
+        "pinyin": "le"
       },
       {
-        "text": "！",
-        "startSec": 7.6,
-        "endSec": 8.41,
-        "timingSource": "estimated"
+        "text": "！"
       },
       {
-        "text": "”",
-        "startSec": 8.41,
-        "endSec": 9.22,
-        "timingSource": "estimated"
+        "text": "”"
       },
       {
         "text": "猴",
-        "pinyin": "hóu",
-        "startSec": 9.22,
-        "endSec": 9.26,
-        "timingSource": "aligned"
+        "pinyin": "hóu"
       },
       {
         "text": "子",
-        "pinyin": "zi",
-        "startSec": 9.24,
-        "endSec": 9.36,
-        "timingSource": "aligned"
+        "pinyin": "zi"
       },
       {
         "text": "们",
-        "pinyin": "men",
-        "startSec": 9.36,
-        "endSec": 10.0,
-        "timingSource": "aligned"
+        "pinyin": "men"
       },
       {
         "text": "爬",
-        "pinyin": "pá",
-        "startSec": 10.0,
-        "endSec": 10.04,
-        "timingSource": "aligned"
+        "pinyin": "pá"
       },
       {
         "text": "上",
-        "pinyin": "shàng",
-        "startSec": 10.0,
-        "endSec": 10.32,
-        "timingSource": "aligned"
+        "pinyin": "shàng"
       },
       {
         "text": "大",
-        "pinyin": "dà",
-        "startSec": 10.32,
-        "endSec": 10.72,
-        "timingSource": "aligned"
+        "pinyin": "dà"
       },
       {
         "text": "树",
-        "pinyin": "shù",
-        "startSec": 10.72,
-        "endSec": 10.86,
-        "timingSource": "aligned"
+        "pinyin": "shù"
       },
       {
-        "text": "，",
-        "startSec": 10.86,
-        "endSec": 11.22,
-        "timingSource": "estimated"
+        "text": "，"
       },
       {
         "text": "一",
-        "pinyin": "yì",
-        "startSec": 11.22,
-        "endSec": 11.62,
-        "timingSource": "aligned"
+        "pinyin": "yì"
       },
       {
         "text": "只",
-        "pinyin": "zhī",
-        "startSec": 11.62,
-        "endSec": 11.8,
-        "timingSource": "aligned"
+        "pinyin": "zhī"
       },
       {
         "text": "拉",
-        "pinyin": "lā",
-        "startSec": 11.8,
-        "endSec": 12.02,
-        "timingSource": "aligned"
+        "pinyin": "lā"
       },
       {
         "text": "一",
-        "pinyin": "yì",
-        "startSec": 12.02,
-        "endSec": 12.34,
-        "timingSource": "aligned"
+        "pinyin": "yì"
       },
       {
         "text": "只",
-        "pinyin": "zhī",
-        "startSec": 12.34,
-        "endSec": 12.62,
-        "timingSource": "aligned"
+        "pinyin": "zhī"
       },
       {
-        "text": "，",
-        "startSec": 12.62,
-        "endSec": 12.86,
-        "timingSource": "estimated"
+        "text": "，"
       },
       {
         "text": "去",
-        "pinyin": "qù",
-        "startSec": 12.86,
-        "endSec": 13.42,
-        "timingSource": "aligned"
+        "pinyin": "qù"
       },
       {
         "text": "捞",
-        "pinyin": "lāo",
-        "startSec": 13.42,
-        "endSec": 13.46,
-        "timingSource": "aligned"
+        "pinyin": "lāo"
       },
       {
         "text": "月",
-        "pinyin": "yuè",
-        "startSec": 13.42,
-        "endSec": 13.82,
-        "timingSource": "aligned"
+        "pinyin": "yuè"
       },
       {
         "text": "亮",
-        "pinyin": "liàng",
-        "startSec": 13.82,
-        "endSec": 13.96,
-        "timingSource": "aligned"
+        "pinyin": "liàng"
       },
       {
-        "text": "。",
-        "startSec": 13.96,
-        "endSec": 14.6,
-        "timingSource": "estimated"
+        "text": "。"
       },
       {
         "text": "小",
-        "pinyin": "xiǎo",
-        "startSec": 14.6,
-        "endSec": 15.8,
-        "timingSource": "aligned"
+        "pinyin": "xiǎo"
       },
       {
         "text": "猴",
-        "pinyin": "hóu",
-        "startSec": 15.8,
-        "endSec": 15.98,
-        "timingSource": "aligned"
+        "pinyin": "hóu"
       },
       {
         "text": "子",
-        "pinyin": "zi",
-        "startSec": 15.98,
-        "endSec": 16.34,
-        "timingSource": "aligned"
+        "pinyin": "zi"
       },
       {
         "text": "伸",
-        "pinyin": "shēn",
-        "startSec": 16.34,
-        "endSec": 16.54,
-        "timingSource": "aligned"
+        "pinyin": "shēn"
       },
       {
         "text": "手",
-        "pinyin": "shǒu",
-        "startSec": 16.54,
-        "endSec": 16.72,
-        "timingSource": "aligned"
+        "pinyin": "shǒu"
       },
       {
         "text": "去",
-        "pinyin": "qù",
-        "startSec": 16.72,
-        "endSec": 17.08,
-        "timingSource": "aligned"
+        "pinyin": "qù"
       },
       {
         "text": "捞",
-        "pinyin": "lāo",
-        "startSec": 17.08,
-        "endSec": 17.56,
-        "timingSource": "aligned"
+        "pinyin": "lāo"
       },
       {
-        "text": "，",
-        "startSec": 17.56,
-        "endSec": 17.8,
-        "timingSource": "estimated"
+        "text": "，"
       },
       {
         "text": "手",
-        "pinyin": "shǒu",
-        "startSec": 17.8,
-        "endSec": 18.02,
-        "timingSource": "aligned"
+        "pinyin": "shǒu"
       },
       {
         "text": "一",
-        "pinyin": "yī",
-        "startSec": 18.02,
-        "endSec": 18.3,
-        "timingSource": "aligned"
+        "pinyin": "yī"
       },
       {
         "text": "碰",
-        "pinyin": "pèng",
-        "startSec": 18.3,
-        "endSec": 18.5,
-        "timingSource": "aligned"
+        "pinyin": "pèng"
       },
       {
         "text": "水",
-        "pinyin": "shuǐ",
-        "startSec": 18.5,
-        "endSec": 18.88,
-        "timingSource": "aligned"
+        "pinyin": "shuǐ"
       },
       {
-        "text": "，",
-        "startSec": 18.88,
-        "endSec": 19.62,
-        "timingSource": "estimated"
+        "text": "，"
       },
       {
         "text": "月",
-        "pinyin": "yuè",
-        "startSec": 19.62,
-        "endSec": 19.7,
-        "timingSource": "aligned"
+        "pinyin": "yuè"
       },
       {
         "text": "亮",
-        "pinyin": "liàng",
-        "startSec": 19.7,
-        "endSec": 19.86,
-        "timingSource": "aligned"
+        "pinyin": "liàng"
       },
       {
         "text": "就",
-        "pinyin": "jiù",
-        "startSec": 19.86,
-        "endSec": 20.3,
-        "timingSource": "aligned"
+        "pinyin": "jiù"
       },
       {
         "text": "不",
-        "pinyin": "bú",
-        "startSec": 20.3,
-        "endSec": 20.46,
-        "timingSource": "aligned"
+        "pinyin": "bú"
       },
       {
         "text": "见",
-        "pinyin": "jiàn",
-        "startSec": 20.46,
-        "endSec": 20.66,
-        "timingSource": "aligned"
+        "pinyin": "jiàn"
       },
       {
         "text": "了",
-        "pinyin": "le",
-        "startSec": 20.66,
-        "endSec": 21.14,
-        "timingSource": "aligned"
+        "pinyin": "le"
       },
       {
-        "text": "。",
-        "startSec": 21.14,
-        "endSec": 22.36,
-        "timingSource": "estimated"
+        "text": "。"
       },
       {
         "text": "老",
-        "pinyin": "lǎo",
-        "startSec": 22.36,
-        "endSec": 22.6,
-        "timingSource": "aligned"
+        "pinyin": "lǎo"
       },
       {
         "text": "猴",
-        "pinyin": "hóu",
-        "startSec": 22.6,
-        "endSec": 22.78,
-        "timingSource": "aligned"
+        "pinyin": "hóu"
       },
       {
         "text": "子",
-        "pinyin": "zi",
-        "startSec": 22.78,
-        "endSec": 23.18,
-        "timingSource": "aligned"
+        "pinyin": "zi"
       },
       {
         "text": "抬",
-        "pinyin": "tái",
-        "startSec": 23.18,
-        "endSec": 23.44,
-        "timingSource": "aligned"
+        "pinyin": "tái"
       },
       {
         "text": "头",
-        "pinyin": "tóu",
-        "startSec": 23.44,
-        "endSec": 23.6,
-        "timingSource": "aligned"
+        "pinyin": "tóu"
       },
       {
         "text": "一",
-        "pinyin": "yī",
-        "startSec": 23.6,
-        "endSec": 23.92,
-        "timingSource": "aligned"
+        "pinyin": "yī"
       },
       {
         "text": "看",
-        "pinyin": "kàn",
-        "startSec": 23.92,
-        "endSec": 24.16,
-        "timingSource": "aligned"
+        "pinyin": "kàn"
       },
       {
-        "text": "：",
-        "startSec": 24.16,
-        "endSec": 24.49,
-        "timingSource": "estimated"
+        "text": "："
       },
       {
-        "text": "“",
-        "startSec": 24.49,
-        "endSec": 24.82,
-        "timingSource": "estimated"
+        "text": "“"
       },
       {
         "text": "原",
-        "pinyin": "yuán",
-        "startSec": 24.82,
-        "endSec": 25.08,
-        "timingSource": "aligned"
+        "pinyin": "yuán"
       },
       {
         "text": "来",
-        "pinyin": "lái",
-        "startSec": 25.08,
-        "endSec": 25.44,
-        "timingSource": "aligned"
+        "pinyin": "lái"
       },
       {
         "text": "月",
-        "pinyin": "yuè",
-        "startSec": 25.44,
-        "endSec": 25.76,
-        "timingSource": "aligned"
+        "pinyin": "yuè"
       },
       {
         "text": "亮",
-        "pinyin": "liàng",
-        "startSec": 25.76,
-        "endSec": 25.92,
-        "timingSource": "aligned"
+        "pinyin": "liàng"
       },
       {
         "text": "在",
-        "pinyin": "zài",
-        "startSec": 25.92,
-        "endSec": 26.34,
-        "timingSource": "aligned"
+        "pinyin": "zài"
       },
       {
         "text": "天",
-        "pinyin": "tiān",
-        "startSec": 26.34,
-        "endSec": 26.62,
-        "timingSource": "aligned"
+        "pinyin": "tiān"
       },
       {
         "text": "上",
-        "pinyin": "shàng",
-        "startSec": 26.62,
-        "endSec": 27.0,
-        "timingSource": "aligned"
+        "pinyin": "shàng"
       },
       {
         "text": "呢",
-        "pinyin": "ne",
-        "startSec": 27.0,
-        "endSec": 27.24,
-        "timingSource": "aligned"
+        "pinyin": "ne"
       },
       {
-        "text": "！",
-        "startSec": 27.24,
-        "endSec": 27.36,
-        "timingSource": "estimated"
+        "text": "！"
       },
       {
-        "text": "”",
-        "startSec": 27.36,
-        "endSec": 27.48,
-        "timingSource": "estimated"
+        "text": "”"
       }
     ],
     "words": [
@@ -9219,232 +9113,232 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
         "text": "四",
         "pinyin": "sì",
         "startSec": 0.0,
-        "endSec": 0.58,
+        "endSec": 0.84,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 0.58,
-        "endSec": 1.16,
+        "startSec": 0.84,
+        "endSec": 1.04,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 1.16,
-        "endSec": 1.56,
+        "startSec": 1.04,
+        "endSec": 1.48,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 1.56,
-        "endSec": 2.1,
+        "startSec": 1.48,
+        "endSec": 2.34,
         "timingSource": "estimated"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 2.1,
-        "endSec": 2.38,
+        "startSec": 2.34,
+        "endSec": 2.8,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 2.38,
-        "endSec": 2.68,
+        "startSec": 2.8,
+        "endSec": 3.14,
         "timingSource": "aligned"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 2.68,
-        "endSec": 3.12,
+        "startSec": 3.14,
+        "endSec": 3.46,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 3.12,
-        "endSec": 4.02,
+        "startSec": 3.46,
+        "endSec": 4.34,
         "timingSource": "estimated"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 4.02,
-        "endSec": 4.06,
+        "startSec": 4.34,
+        "endSec": 4.8,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 4.02,
-        "endSec": 4.24,
+        "startSec": 4.8,
+        "endSec": 5.14,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 4.24,
-        "endSec": 4.58,
+        "startSec": 5.14,
+        "endSec": 5.42,
         "timingSource": "aligned"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 4.58,
-        "endSec": 4.94,
+        "startSec": 5.42,
+        "endSec": 5.82,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 4.94,
-        "endSec": 5.58,
-        "timingSource": "aligned"
-      },
-      {
-        "text": "，",
-        "startSec": 5.58,
-        "endSec": 5.98,
-        "timingSource": "estimated"
-      },
-      {
-        "text": "四",
-        "pinyin": "sì",
-        "startSec": 5.98,
+        "startSec": 5.82,
         "endSec": 6.12,
         "timingSource": "aligned"
       },
       {
+        "text": "，",
+        "startSec": 6.12,
+        "endSec": 7.18,
+        "timingSource": "estimated"
+      },
+      {
+        "text": "四",
+        "pinyin": "sì",
+        "startSec": 7.18,
+        "endSec": 7.26,
+        "timingSource": "aligned"
+      },
+      {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 6.12,
-        "endSec": 6.34,
+        "startSec": 7.26,
+        "endSec": 7.54,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 6.34,
-        "endSec": 6.68,
+        "startSec": 7.54,
+        "endSec": 8.0,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 6.68,
-        "endSec": 6.84,
-        "timingSource": "aligned"
-      },
-      {
-        "text": "十",
-        "pinyin": "shí",
-        "startSec": 6.84,
-        "endSec": 7.3,
-        "timingSource": "aligned"
-      },
-      {
-        "text": "。",
-        "startSec": 7.3,
+        "startSec": 8.0,
         "endSec": 8.26,
-        "timingSource": "estimated"
+        "timingSource": "aligned"
       },
       {
         "text": "十",
         "pinyin": "shí",
         "startSec": 8.26,
-        "endSec": 8.3,
+        "endSec": 8.68,
+        "timingSource": "aligned"
+      },
+      {
+        "text": "。",
+        "startSec": 8.68,
+        "endSec": 9.7,
+        "timingSource": "estimated"
+      },
+      {
+        "text": "十",
+        "pinyin": "shí",
+        "startSec": 9.7,
+        "endSec": 9.92,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 8.28,
-        "endSec": 8.74,
+        "startSec": 9.92,
+        "endSec": 10.26,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bú",
-        "startSec": 8.74,
-        "endSec": 8.98,
+        "startSec": 10.26,
+        "endSec": 10.52,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 8.98,
-        "endSec": 9.22,
+        "startSec": 10.52,
+        "endSec": 10.78,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 9.22,
-        "endSec": 9.52,
+        "startSec": 10.78,
+        "endSec": 11.14,
         "timingSource": "aligned"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 9.52,
-        "endSec": 9.88,
+        "startSec": 11.14,
+        "endSec": 11.46,
         "timingSource": "aligned"
       },
       {
         "text": "，",
-        "startSec": 9.88,
-        "endSec": 10.46,
+        "startSec": 11.46,
+        "endSec": 12.1,
         "timingSource": "estimated"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 10.46,
-        "endSec": 10.82,
+        "startSec": 12.1,
+        "endSec": 12.48,
         "timingSource": "aligned"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 10.82,
-        "endSec": 11.12,
+        "startSec": 12.48,
+        "endSec": 12.76,
         "timingSource": "aligned"
       },
       {
         "text": "不",
         "pinyin": "bú",
-        "startSec": 11.12,
-        "endSec": 11.49,
+        "startSec": 12.76,
+        "endSec": 13.14,
         "timingSource": "aligned"
       },
       {
         "text": "是",
         "pinyin": "shì",
-        "startSec": 11.49,
-        "endSec": 11.86,
+        "startSec": 13.14,
+        "endSec": 13.52,
         "timingSource": "aligned"
       },
       {
         "text": "十",
         "pinyin": "shí",
-        "startSec": 11.86,
-        "endSec": 12.2,
+        "startSec": 13.52,
+        "endSec": 13.7,
         "timingSource": "aligned"
       },
       {
         "text": "四",
         "pinyin": "sì",
-        "startSec": 12.2,
-        "endSec": 12.42,
+        "startSec": 13.7,
+        "endSec": 14.08,
         "timingSource": "aligned"
       },
       {
         "text": "。",
-        "startSec": 12.42,
-        "endSec": 12.54,
+        "startSec": 14.08,
+        "endSec": 14.2,
         "timingSource": "estimated"
       }
     ],

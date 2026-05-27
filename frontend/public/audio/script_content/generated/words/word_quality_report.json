@@ -1,0 +1,140 @@
+{
+  "generatedAt": "2026-05-22T23:35:34.591285+00:00",
+  "provider": "qwen",
+  "model": "qwen3-tts-instruct-flash",
+  "voice": "Serena",
+  "qualityCheckEnabled": true,
+  "maxRetries": 2,
+  "failedCount": 16,
+  "items": [
+    {
+      "wordId": "wm-04-07-yi4zhi1",
+      "hanzi": "一只",
+      "sessionId": "wm-04",
+      "attempts": 3,
+      "finalTranscript": "意志",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-04-07-yi4zhi1.mp3"
+    },
+    {
+      "wordId": "wm-06-01-yue4er2",
+      "hanzi": "月儿",
+      "sessionId": "wm-06",
+      "attempts": 3,
+      "finalTranscript": "院儿",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-06-01-yue4er2.mp3"
+    },
+    {
+      "wordId": "wm-08-05-you2",
+      "hanzi": "游",
+      "sessionId": "wm-08",
+      "attempts": 3,
+      "finalTranscript": "有",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-08-05-you2.mp3"
+    },
+    {
+      "wordId": "wm-09-09-wu3zhi3",
+      "hanzi": "五只",
+      "sessionId": "wm-09",
+      "attempts": 3,
+      "finalTranscript": "五階",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-09-09-wu3zhi3.mp3"
+    },
+    {
+      "wordId": "wm-10-02-jin4ting1",
+      "hanzi": "近听",
+      "sessionId": "wm-10",
+      "attempts": 3,
+      "finalTranscript": "靜聽",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-10-02-jin4ting1.mp3"
+    },
+    {
+      "wordId": "wm-10-05-hua1",
+      "hanzi": "花",
+      "sessionId": "wm-10",
+      "attempts": 3,
+      "finalTranscript": "哇",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-10-05-hua1.mp3"
+    },
+    {
+      "wordId": "wm-11-02-er3",
+      "hanzi": "耳",
+      "sessionId": "wm-11",
+      "attempts": 3,
+      "finalTranscript": "",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-11-02-er3.mp3"
+    },
+    {
+      "wordId": "wm-11-03-mu4",
+      "hanzi": "目",
+      "sessionId": "wm-11",
+      "attempts": 3,
+      "finalTranscript": "",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-11-03-mu4.mp3"
+    },
+    {
+      "wordId": "wm-12-03-liang3zhi3",
+      "hanzi": "两只",
+      "sessionId": "wm-12",
+      "attempts": 3,
+      "finalTranscript": "党支",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-12-03-liang3zhi3.mp3"
+    },
+    {
+      "wordId": "wm-12-09-you4",
+      "hanzi": "又",
+      "sessionId": "wm-12",
+      "attempts": 3,
+      "finalTranscript": "要",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-12-09-you4.mp3"
+    },
+    {
+      "wordId": "wm-14-01-ri4",
+      "hanzi": "日",
+      "sessionId": "wm-14",
+      "attempts": 3,
+      "finalTranscript": "是",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-14-01-ri4.mp3"
+    },
+    {
+      "wordId": "wm-14-03-ming2",
+      "hanzi": "明",
+      "sessionId": "wm-14",
+      "attempts": 3,
+      "finalTranscript": "牛",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-14-03-ming2.mp3"
+    },
+    {
+      "wordId": "wm-14-07-mu4",
+      "hanzi": "木",
+      "sessionId": "wm-14",
+      "attempts": 3,
+      "finalTranscript": "夢",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-14-07-mu4.mp3"
+    },
+    {
+      "wordId": "wm-14-08-lin2",
+      "hanzi": "林",
+      "sessionId": "wm-14",
+      "attempts": 3,
+      "finalTranscript": "零",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-14-08-lin2.mp3"
+    },
+    {
+      "wordId": "wm-16-04-yu2san3",
+      "hanzi": "雨伞",
+      "sessionId": "wm-16",
+      "attempts": 3,
+      "finalTranscript": "雨傘",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-16-04-yu2san3.mp3"
+    },
+    {
+      "wordId": "wm-20-02-ba2",
+      "hanzi": "拔",
+      "sessionId": "wm-20",
+      "attempts": 3,
+      "finalTranscript": "哈",
+      "audioPath": "frontend/public/audio/script_content/generated/words/wm-20-02-ba2.mp3"
+    }
+  ],
+  "scope": "all_words"
+}

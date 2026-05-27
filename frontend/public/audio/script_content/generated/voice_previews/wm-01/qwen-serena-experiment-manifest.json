@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-05-20T21:40:18.952836+00:00",
+  "sessionId": "wm-01",
+  "voice": "Serena",
+  "provider": "qwen",
+  "model": "qwen3-tts-flash",
+  "profiles": [
+    {
+      "profileId": "p1-baseline-cn",
+      "label": "baseline chinese",
+      "languageType": "Chinese",
+      "outputPath": "frontend/public/audio/script_content/generated/voice_previews/wm-01/wm-01-qwen-serena-p1-baseline-cn.mp3",
+      "textPreview": "天地人。你我他。一二三四五，金木水火土。天地分上下，日月照今古。"
+    },
+    {
+      "profileId": "p2-baseline-auto",
+      "label": "baseline auto language",
+      "languageType": "Auto",
+      "outputPath": "frontend/public/audio/script_content/generated/voice_previews/wm-01/wm-01-qwen-serena-p2-baseline-auto.mp3",
+      "textPreview": "天地人。你我他。一二三四五，金木水火土。天地分上下，日月照今古。"
+    },
+    {
+      "profileId": "p3-phrase-breaks",
+      "label": "phrase breaks",
+      "languageType": "Chinese",
+      "outputPath": "frontend/public/audio/script_content/generated/voice_previews/wm-01/wm-01-qwen-serena-p3-phrase-breaks.mp3",
+      "textPreview": "天地人。\n你我他。\n一二三四五，\n金木水火土。\n天地分上下，\n日月照今古。"
+    },
+    {
+      "profileId": "p4-long-pauses",
+      "label": "long pauses",
+      "languageType": "Chinese",
+      "outputPath": "frontend/public/audio/script_content/generated/voice_previews/wm-01/wm-01-qwen-serena-p4-long-pauses.mp3",
+      "textPreview": "天地人。……\n你我他。……\n一二三四五，……金木水火土。……\n天地分上下，……日月照今古。……"
+    },
+    {
+      "profileId": "p5-story-calm",
+      "label": "story calm",
+      "languageType": "Chinese",
+      "outputPath": "frontend/public/audio/script_content/generated/voice_previews/wm-01/wm-01-qwen-serena-p5-story-calm.mp3",
+      "textPreview": "天地人。\n你我他。\n一二三四五。\n金木水火土。\n天地分上下。\n日月照今古。"
+    },
+    {
+      "profileId": "p6-lively-rhythm",
+      "label": "lively rhythm",
+      "languageType": "Chinese",
+      "outputPath": "frontend/public/audio/script_content/generated/voice_previews/wm-01/wm-01-qwen-serena-p6-lively-rhythm.mp3",
+      "textPreview": "天地人！\n你我他！\n一二三四五，金木水火土！\n天地分上下，日月照今古！"
+    }
+  ]
+}

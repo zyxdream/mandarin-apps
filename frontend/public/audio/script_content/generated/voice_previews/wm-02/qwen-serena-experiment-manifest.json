@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-05-21T23:56:06.441545+00:00",
+  "sessionId": "wm-02",
+  "voice": "Serena",
+  "provider": "qwen",
+  "model": "qwen3-tts-flash",
+  "profiles": [
+    {
+      "profileId": "p2-baseline-auto",
+      "label": "baseline auto language",
+      "languageType": "Auto",
+      "outputPath": "frontend/public/audio/script_content/generated/voice_previews/wm-02/wm-02-qwen-serena-p2-baseline-auto.mp3",
+      "textPreview": "口耳目。手足。站如松，坐如钟。行如风，卧如弓。日月水火，山石田禾。"
+    }
+  ]
+}
