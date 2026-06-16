@@ -1,6 +1,7 @@
 import type { Word } from '../types/word.js';
 import type { GameState, MoleAnimState, MoleReaction, MoleState, EvalResult } from '../types/game.js';
 import type { PronunciationEvaluator } from '../types/evaluator.js';
+import type { EvaluationAudio } from '../types/audio.js';
 import { shuffleWords } from '../data/words.js';
 import { getMoleSlots, pickMoleSlot, type BoardConfig } from './moleLayout.js';
 import { scoreForResult } from './scoring.js';
@@ -171,7 +172,7 @@ export class GameEngine {
     this.flushPendingEvaluation();
   }
 
-  async submitEvaluation(audioBlob: Blob): Promise<void> {
+  async submitEvaluation(audio: EvaluationAudio): Promise<void> {
     if (this.state.isPaused) return;
     if (!this.state.activeMole || this.evaluating) return;
     if (this.state.activeMole.animState !== 'active' && this.state.activeMole.animState !== 'retry') return;
@@ -183,7 +184,9 @@ export class GameEngine {
     const evaluationStartedAt = performance.now();
     console.log('[latency] game evaluation start', {
       word: word.hanzi,
-      bytes: audioBlob.size,
+      bytes: audio.blob.size,
+      audioFormat: audio.format,
+      sampleRate: audio.sampleRate,
     });
 
     this.setState({
@@ -196,7 +199,7 @@ export class GameEngine {
 
     let result: EvalResult;
     try {
-      result = await this.evaluator.evaluate(audioBlob, word);
+      result = await this.evaluator.evaluate(audio, word);
     } catch {
       result = { success: false, confidence: 0, wordId: word.id, error: true };
     }

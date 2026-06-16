@@ -1,27 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { preparePcm16Audio } from '../audio/pcmCapture';
+import type { AudioCaptureStats, EvaluationAudio } from '../types/audio';
 
 export type MicState = 'idle' | 'requesting' | 'listening' | 'denied';
-
-export interface AudioCaptureStats {
-  durationMs: number;
-  peakVolume: number;
-  averageVolume: number;
-  peakRms: number;
-  averageRms: number;
-  chunks: number;
-}
-
-export interface CapturedAudio {
-  blob: Blob;
-  stats: AudioCaptureStats;
-}
 
 export interface UseMicrophoneReturn {
   micState: MicState;
   volume: number;
   startListening: () => Promise<void>;
   stopListening: () => void;
-  captureRecentAudio: (options?: CaptureRecentAudioOptions) => CapturedAudio | null;
+  captureRecentAudio: (options?: CaptureRecentAudioOptions) => EvaluationAudio | null;
   resetCaptureBuffer: () => void;
 }
 
@@ -36,6 +24,13 @@ interface AudioChunk {
   blob: Blob;
   createdAt: number;
   isHeader: boolean;
+}
+
+interface PcmChunk {
+  samples: Float32Array;
+  sampleRate: number;
+  startAt: number;
+  endAt: number;
 }
 
 interface VolumeSample {
@@ -83,13 +78,17 @@ export function useMicrophone(): UseMicrophoneReturn {
   const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const pcmNodeRef = useRef<AudioWorkletNode | null>(null);
+  const silentGainRef = useRef<GainNode | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<AudioChunk[]>([]);
+  const pcmChunksRef = useRef<PcmChunk[]>([]);
   const volumeSamplesRef = useRef<VolumeSample[]>([]);
   const animationRef = useRef<number | null>(null);
   const volumeRef = useRef(0);
   const lastVolumeLogRef = useRef(0);
   const mimeTypeRef = useRef('audio/webm');
+  const pcmCaptureEnabledRef = useRef(false);
 
   const createRecorder = useCallback((stream: MediaStream, mimeType: string) => {
     const recorder = new MediaRecorder(stream, { mimeType });
@@ -105,6 +104,58 @@ export function useMicrophone(): UseMicrophoneReturn {
     return recorder;
   }, []);
 
+  const setupPcmCapture = useCallback(async (audioContext: AudioContext, source: MediaStreamAudioSourceNode) => {
+    if (!('audioWorklet' in audioContext) || typeof AudioWorkletNode === 'undefined') {
+      console.warn('[mic] PCM capture unavailable; AudioWorklet is not supported');
+      pcmCaptureEnabledRef.current = false;
+      return;
+    }
+
+    try {
+      await audioContext.audioWorklet.addModule('/audio-worklets/pcm-capture-processor.js');
+      const pcmNode = new AudioWorkletNode(audioContext, 'pcm-capture-processor', {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [1],
+      });
+      const silentGain = audioContext.createGain();
+      silentGain.gain.value = 0;
+      pcmNode.port.onmessage = event => {
+        const data = event.data as {
+          type?: string;
+          samples?: Float32Array;
+          sampleRate?: number;
+        };
+        if (data.type !== 'pcm' || !(data.samples instanceof Float32Array)) return;
+
+        const sampleRate = Number.isFinite(data.sampleRate) && data.sampleRate ? data.sampleRate : audioContext.sampleRate;
+        const now = Date.now();
+        const durationMs = (data.samples.length / sampleRate) * 1000;
+        pcmChunksRef.current = [
+          ...pcmChunksRef.current.filter(chunk => now - chunk.endAt <= MAX_AUDIO_BUFFER_MS),
+          {
+            samples: data.samples,
+            sampleRate,
+            startAt: now - durationMs,
+            endAt: now,
+          },
+        ];
+      };
+      source.connect(pcmNode);
+      pcmNode.connect(silentGain);
+      silentGain.connect(audioContext.destination);
+      pcmNodeRef.current = pcmNode;
+      silentGainRef.current = silentGain;
+      pcmCaptureEnabledRef.current = true;
+      console.log('[mic] PCM worklet capture started', { sampleRate: audioContext.sampleRate });
+    } catch (error) {
+      console.warn('[mic] PCM capture setup failed; falling back to MediaRecorder', error);
+      pcmCaptureEnabledRef.current = false;
+      pcmNodeRef.current = null;
+      silentGainRef.current = null;
+    }
+  }, []);
+
   const stopListening = useCallback(() => {
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
@@ -115,8 +166,14 @@ export function useMicrophone(): UseMicrophoneReturn {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
       recorderRef.current.stop();
     }
+    pcmNodeRef.current?.disconnect();
+    silentGainRef.current?.disconnect();
+    pcmNodeRef.current = null;
+    silentGainRef.current = null;
+    pcmCaptureEnabledRef.current = false;
     recorderRef.current = null;
     chunksRef.current = [];
+    pcmChunksRef.current = [];
     volumeSamplesRef.current = [];
     void audioContextRef.current?.close();
     audioContextRef.current = null;
@@ -179,6 +236,7 @@ export function useMicrophone(): UseMicrophoneReturn {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: requestedAudio });
       streamRef.current = stream;
       chunksRef.current = [];
+      pcmChunksRef.current = [];
       volumeSamplesRef.current = [];
       console.log('[mic] stream ready', {
         tracks: stream.getAudioTracks().map(track => ({
@@ -211,6 +269,7 @@ export function useMicrophone(): UseMicrophoneReturn {
       analyser.fftSize = 512;
       analyser.smoothingTimeConstant = 0.65;
       source.connect(analyser);
+      await setupPcmCapture(audioContext, source);
 
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
@@ -230,11 +289,11 @@ export function useMicrophone(): UseMicrophoneReturn {
       console.error('[mic] failed to start', error);
       setMicState('denied');
     }
-  }, [createRecorder, micState, sampleVolume]);
+  }, [createRecorder, micState, sampleVolume, setupPcmCapture]);
 
   useEffect(() => stopListening, [stopListening]);
 
-  const captureRecentAudio = useCallback((options?: CaptureRecentAudioOptions): CapturedAudio | null => {
+  const captureRecentAudio = useCallback((options?: CaptureRecentAudioOptions): EvaluationAudio | null => {
     const recorder = recorderRef.current;
     if (recorder?.state === 'recording') {
       recorder.requestData();
@@ -245,17 +304,6 @@ export function useMicrophone(): UseMicrophoneReturn {
       ? Math.max(0, options.sinceMs - (options.preRollMs ?? 180))
       : now - RECENT_AUDIO_WINDOW_MS;
     const toMs = Math.max(fromMs, (options?.untilMs ?? now) + (options?.postRollMs ?? 0));
-    const recentChunks = chunksRef.current.filter(chunk =>
-      chunk.isHeader || (chunk.createdAt >= fromMs && chunk.createdAt <= toMs),
-    );
-    if (recentChunks.length === 0) {
-      console.warn('[mic] no recent audio chunks to submit');
-      return null;
-    }
-
-    const blob = new Blob(recentChunks.map(chunk => chunk.blob), {
-      type: 'audio/webm',
-    });
     const recentSamples = volumeSamplesRef.current.filter(
       sample => sample.createdAt >= fromMs && sample.createdAt <= toMs,
     );
@@ -267,19 +315,94 @@ export function useMicrophone(): UseMicrophoneReturn {
     const averageRms = recentSamples.length
       ? recentSamples.reduce((total, sample) => total + sample.rms, 0) / recentSamples.length
       : 0;
-    const nonHeaderChunks = recentChunks.filter(chunk => !chunk.isHeader);
-    const firstChunkAt = nonHeaderChunks[0]?.createdAt ?? fromMs;
-    const lastChunkAt = nonHeaderChunks[nonHeaderChunks.length - 1]?.createdAt ?? toMs;
-    const durationMs = Math.max(0, lastChunkAt - firstChunkAt + 100);
-    const stats: AudioCaptureStats = {
+    const buildStats = (durationMs: number, chunks: number): AudioCaptureStats => ({
       durationMs,
       peakVolume,
       averageVolume,
       peakRms,
       averageRms,
-      chunks: recentChunks.length,
-    };
+      chunks,
+    });
+
+    if (pcmCaptureEnabledRef.current) {
+      const recentPcmChunks = pcmChunksRef.current.filter(chunk =>
+        chunk.endAt >= fromMs && chunk.startAt <= toMs,
+      );
+      const sourceSampleRate = recentPcmChunks[0]?.sampleRate ?? audioContextRef.current?.sampleRate ?? TARGET_SAMPLE_RATE;
+      const selectedSegments: Float32Array[] = [];
+      let totalSamples = 0;
+
+      for (const chunk of recentPcmChunks) {
+        if (chunk.sampleRate !== sourceSampleRate) continue;
+        const startIndex = Math.max(0, Math.floor(((fromMs - chunk.startAt) / 1000) * chunk.sampleRate));
+        const endIndex = Math.min(
+          chunk.samples.length,
+          Math.ceil(((toMs - chunk.startAt) / 1000) * chunk.sampleRate),
+        );
+        if (endIndex <= startIndex) continue;
+        const segment = chunk.samples.slice(startIndex, endIndex);
+        selectedSegments.push(segment);
+        totalSamples += segment.length;
+      }
+
+      if (totalSamples > 0) {
+        const pcmFloat32 = new Float32Array(totalSamples);
+        let cursor = 0;
+        for (const segment of selectedSegments) {
+          pcmFloat32.set(segment, cursor);
+          cursor += segment.length;
+        }
+        const prepared = preparePcm16Audio(pcmFloat32, sourceSampleRate, TARGET_SAMPLE_RATE);
+        const blob = new Blob([prepared.buffer], { type: 'application/octet-stream' });
+        const stats = buildStats(prepared.durationMs, recentPcmChunks.length);
+        console.log('[mic] captured recent audio', {
+          format: 'pcm_s16le',
+          chunks: recentPcmChunks.length,
+          bytes: blob.size,
+          type: blob.type,
+          sourceSampleRate,
+          sampleRate: prepared.sampleRate,
+          bounded: Boolean(options?.sinceMs || options?.untilMs),
+          untilMs: options?.untilMs ?? null,
+          postRollMs: options?.postRollMs ?? null,
+          durationMs: stats.durationMs,
+          peakVolume: Number(stats.peakVolume.toFixed(3)),
+          averageVolume: Number(stats.averageVolume.toFixed(3)),
+          peakRms: Number(stats.peakRms.toFixed(4)),
+          averageRms: Number(stats.averageRms.toFixed(4)),
+        });
+        return {
+          blob,
+          format: 'pcm_s16le',
+          sampleRate: prepared.sampleRate,
+          channels: 1,
+          mimeType: 'application/octet-stream',
+          filename: 'recording.pcm',
+          stats,
+        };
+      }
+
+      console.warn('[mic] no recent PCM chunks; falling back to MediaRecorder');
+    }
+
+    const recentChunks = chunksRef.current.filter(chunk =>
+      chunk.isHeader || (chunk.createdAt >= fromMs && chunk.createdAt <= toMs),
+    );
+    if (recentChunks.length === 0) {
+      console.warn('[mic] no recent audio chunks to submit');
+      return null;
+    }
+
+    const blob = new Blob(recentChunks.map(chunk => chunk.blob), {
+      type: 'audio/webm',
+    });
+    const nonHeaderChunks = recentChunks.filter(chunk => !chunk.isHeader);
+    const firstChunkAt = nonHeaderChunks[0]?.createdAt ?? fromMs;
+    const lastChunkAt = nonHeaderChunks[nonHeaderChunks.length - 1]?.createdAt ?? toMs;
+    const durationMs = Math.max(0, lastChunkAt - firstChunkAt + 100);
+    const stats = buildStats(durationMs, recentChunks.length);
     console.log('[mic] captured recent audio', {
+      format: 'webm_opus',
       chunks: recentChunks.length,
       bytes: blob.size,
       type: blob.type,
@@ -292,7 +415,15 @@ export function useMicrophone(): UseMicrophoneReturn {
       peakRms: Number(stats.peakRms.toFixed(4)),
       averageRms: Number(stats.averageRms.toFixed(4)),
     });
-    return { blob, stats };
+    return {
+      blob,
+      format: 'webm_opus',
+      sampleRate: null,
+      channels: null,
+      mimeType: blob.type,
+      filename: 'recording.webm',
+      stats,
+    };
   }, []);
 
   const resetCaptureBuffer = useCallback(() => {
@@ -310,7 +441,9 @@ export function useMicrophone(): UseMicrophoneReturn {
     }
 
     chunksRef.current = [];
+    pcmChunksRef.current = [];
     volumeSamplesRef.current = [];
+    pcmNodeRef.current?.port.postMessage({ type: 'reset' });
     const nextRecorder = createRecorder(stream, mimeTypeRef.current);
     nextRecorder.start(100);
     recorderRef.current = nextRecorder;

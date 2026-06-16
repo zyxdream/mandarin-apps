@@ -1,10 +1,12 @@
 import asyncio
+import io
 import os
 import re
 import subprocess
 import tempfile
 import time
 import uuid
+import wave
 from difflib import SequenceMatcher
 from pathlib import Path
 from statistics import mean
@@ -192,6 +194,7 @@ ISSUE_SEVERITY = {
 GENERIC_HINT_CODE = "nice_try_again"
 
 MIN_REALTIME_AUDIO_BYTES = int(os.getenv("MIN_REALTIME_AUDIO_BYTES", "9000"))
+MIN_REALTIME_AUDIO_DURATION_MS = int(os.getenv("MIN_REALTIME_AUDIO_DURATION_MS", "300"))
 MIN_REALTIME_AUDIO_RMS = float(os.getenv("MIN_REALTIME_AUDIO_RMS", "0.006"))
 MIN_REALTIME_AUDIO_PEAK = float(os.getenv("MIN_REALTIME_AUDIO_PEAK", "0.045"))
 MIN_REALTIME_ACTIVE_RATIO = float(os.getenv("MIN_REALTIME_ACTIVE_RATIO", "0.025"))
@@ -214,6 +217,60 @@ PRACTICE_THRESHOLDS = {
 }
 
 LOCAL_ASR_DENOISE_RETRY_ENABLED = os.getenv("LOCAL_ASR_DENOISE_RETRY", "true").lower() == "true"
+PCM_AUDIO_FORMAT = "pcm_s16le"
+WEBM_AUDIO_FORMAT = "webm_opus"
+
+
+def normalize_audio_format(audio_format: str | None) -> str:
+    normalized = (audio_format or WEBM_AUDIO_FORMAT).strip().lower()
+    if normalized in {"", "webm", "webm_opus", "audio/webm"}:
+        return WEBM_AUDIO_FORMAT
+    if normalized in {"pcm_s16le", "pcm16", "s16le", "int16"}:
+        return PCM_AUDIO_FORMAT
+    raise HTTPException(status_code=400, detail=f"Unsupported audio_format: {audio_format}")
+
+
+def decode_pcm_s16le_waveform(
+    audio_bytes: bytes,
+    sample_rate: int | None,
+    channels: int | None,
+) -> tuple[int, np.ndarray]:
+    if sample_rate != 16000:
+        raise HTTPException(status_code=400, detail="pcm_s16le audio requires sample_rate=16000")
+    if channels != 1:
+        raise HTTPException(status_code=400, detail="pcm_s16le audio requires channels=1")
+    if len(audio_bytes) % 2 != 0:
+        raise HTTPException(status_code=400, detail="pcm_s16le audio byte length must be even")
+
+    waveform = np.frombuffer(audio_bytes, dtype="<i2").astype(np.float32) / 32768.0
+    return sample_rate, waveform
+
+
+def pcm_s16le_to_wav_bytes(audio_bytes: bytes, sample_rate: int, channels: int) -> bytes:
+    with io.BytesIO() as buffer:
+        with wave.open(buffer, "wb") as wav_file:
+            wav_file.setnchannels(channels)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(sample_rate)
+            wav_file.writeframes(audio_bytes)
+        return buffer.getvalue()
+
+
+def should_attempt_local_denoise_retry(
+    audio_format: str,
+    transcript_usable: bool,
+    vad_result: VadResult | None,
+    eval_mode: str,
+    enabled: bool = LOCAL_ASR_DENOISE_RETRY_ENABLED,
+) -> bool:
+    if audio_format != WEBM_AUDIO_FORMAT or transcript_usable or not enabled:
+        return False
+    return (
+        eval_mode != "realtime" or
+        vad_result is None or
+        vad_result.detected or
+        vad_result.reason in {"disabled", "unsupported_sample_rate"}
+    )
 
 
 def analyze_audio_activity(waveform: np.ndarray, sample_rate: int) -> dict[str, float | int]:
@@ -251,6 +308,7 @@ def analyze_audio_activity(waveform: np.ndarray, sample_rate: int) -> dict[str, 
 
 def is_realtime_audio_too_weak(activity: dict[str, float | int]) -> bool:
     return (
+        int(activity["duration_ms"]) < MIN_REALTIME_AUDIO_DURATION_MS or
         float(activity["rms"]) < MIN_REALTIME_AUDIO_RMS or
         float(activity["peak"]) < MIN_REALTIME_AUDIO_PEAK or
         float(activity["active_ratio"]) < MIN_REALTIME_ACTIVE_RATIO or
@@ -848,6 +906,9 @@ async def evaluate_pronunciation_local(
     pinyin_raw: str = Form(...),
     hanzi: str = Form(""),
     eval_mode: str = Form("realtime"),
+    audio_format: str | None = Form(None),
+    sample_rate: int | None = Form(None),
+    channels: int | None = Form(None),
 ) -> EvaluateResponse:
     """
     Prototype local evaluator:
@@ -861,6 +922,7 @@ async def evaluate_pronunciation_local(
     eval_mode = eval_mode.lower().strip()
     if eval_mode not in {"realtime", "practice"}:
         eval_mode = "realtime"
+    resolved_audio_format = normalize_audio_format(audio_format)
 
     audio_bytes = await audio.read()
     debug_log(
@@ -873,6 +935,9 @@ async def evaluate_pronunciation_local(
             "eval_mode": eval_mode,
             "filename": audio.filename,
             "content_type": audio.content_type,
+            "audio_format": resolved_audio_format,
+            "sample_rate": sample_rate,
+            "channels": channels,
             "bytes": len(audio_bytes),
             "model_dir": str(local_asr.model_dir),
         },
@@ -882,23 +947,19 @@ async def evaluate_pronunciation_local(
     if not audio_bytes:
         return EvaluateResponse(success=False, confidence=0.0, word_id=word_id)
 
-    if eval_mode == "realtime" and len(audio_bytes) < MIN_REALTIME_AUDIO_BYTES:
-        return EvaluateResponse(
-            success=False,
-            confidence=0.0,
-            word_id=word_id,
-            hint_code="too_quiet",
-            hint_text=hint_text_for_code("too_quiet"),
-        )
-
     try:
         timings["audio_decode_start"] = time.perf_counter()
-        sample_rate, waveform = await asyncio.to_thread(
-            local_asr.load_webm_waveform,
-            audio_bytes,
-            audio.filename or "speech.webm",
-        )
+        if resolved_audio_format == PCM_AUDIO_FORMAT:
+            sample_rate, waveform = decode_pcm_s16le_waveform(audio_bytes, sample_rate, channels)
+        else:
+            sample_rate, waveform = await asyncio.to_thread(
+                local_asr.load_webm_waveform,
+                audio_bytes,
+                audio.filename or "speech.webm",
+            )
         timings["audio_decode_end"] = time.perf_counter()
+    except HTTPException:
+        raise
     except LocalAsrUnavailable as exc:
         debug_log(request_id, "local_asr_unavailable", {"error": str(exc)}, started_at)
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -954,6 +1015,7 @@ async def evaluate_pronunciation_local(
             "local_audio_rejected_no_speech",
             {
                 **activity,
+                "min_duration_ms": MIN_REALTIME_AUDIO_DURATION_MS,
                 "min_rms": MIN_REALTIME_AUDIO_RMS,
                 "min_peak": MIN_REALTIME_AUDIO_PEAK,
                 "min_active_ratio": MIN_REALTIME_ACTIVE_RATIO,
@@ -1013,13 +1075,7 @@ async def evaluate_pronunciation_local(
 
     debug_log(request_id, "local_asr_transcript", {"transcript": transcript}, started_at)
     transcript_usable = is_transcript_usable(transcript, pinyin_raw)
-    allow_denoise_retry = (
-        eval_mode != "realtime" or
-        vad_result is None or
-        vad_result.detected or
-        vad_result.reason in {"disabled", "unsupported_sample_rate"}
-    )
-    if not transcript_usable and LOCAL_ASR_DENOISE_RETRY_ENABLED and allow_denoise_retry:
+    if should_attempt_local_denoise_retry(resolved_audio_format, transcript_usable, vad_result, eval_mode):
         debug_log(
             request_id,
             "local_asr_denoise_retry_start",
@@ -1076,6 +1132,7 @@ async def evaluate_pronunciation_local(
             "local_latency_summary",
             {
                 "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
+                "audio_decode_ms": int((timings["audio_decode_end"] - timings["audio_decode_start"]) * 1000),
                 "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
                 "asr_denoise_ms": int((timings.get("asr_denoise_end", timings.get("asr_denoise_start", timings["response_end"])) - timings.get("asr_denoise_start", timings["response_end"])) * 1000),
                 "vad_ms": int((timings.get("vad_end", timings["response_end"]) - timings.get("vad_start", timings.get("audio_decode_end", timings["response_end"]))) * 1000),
@@ -1110,6 +1167,7 @@ async def evaluate_pronunciation_local(
         "local_latency_summary",
         {
             "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
+            "audio_decode_ms": int((timings["audio_decode_end"] - timings["audio_decode_start"]) * 1000),
             "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
             "asr_denoise_ms": int((timings.get("asr_denoise_end", timings.get("asr_denoise_start", timings["response_end"])) - timings.get("asr_denoise_start", timings["response_end"])) * 1000),
             "vad_ms": int((timings.get("vad_end", timings["response_end"]) - timings.get("vad_start", timings.get("audio_decode_end", timings["response_end"]))) * 1000),
@@ -1138,6 +1196,9 @@ async def evaluate_pronunciation(
     pinyin_raw: str = Form(...),
     hanzi: str = Form(""),
     eval_mode: str = Form("realtime"),
+    audio_format: str | None = Form(None),
+    sample_rate: int | None = Form(None),
+    channels: int | None = Form(None),
 ) -> EvaluateResponse:
     """
     V1 Mandarin scoring:
@@ -1154,6 +1215,7 @@ async def evaluate_pronunciation(
     eval_mode = eval_mode.lower().strip()
     if eval_mode not in {"realtime", "practice"}:
         eval_mode = "realtime"
+    resolved_audio_format = normalize_audio_format(audio_format)
     audio_bytes = await audio.read()
     model = get_transcribe_model()
     dev_fake = is_fake_evaluation_enabled()
@@ -1168,6 +1230,9 @@ async def evaluate_pronunciation(
             "eval_mode": eval_mode,
             "filename": audio.filename,
             "content_type": audio.content_type,
+            "audio_format": resolved_audio_format,
+            "sample_rate": sample_rate,
+            "channels": channels,
             "bytes": len(audio_bytes),
             "model": model,
             "dev_fake": dev_fake,
@@ -1184,6 +1249,9 @@ async def evaluate_pronunciation(
             "eval_mode": eval_mode,
             "filename": audio.filename,
             "content_type": audio.content_type,
+            "audio_format": resolved_audio_format,
+            "sample_rate": sample_rate,
+            "channels": channels,
             "bytes": len(audio_bytes),
             "model": model,
             "dev_fake": dev_fake,
@@ -1196,7 +1264,34 @@ async def evaluate_pronunciation(
         debug_log(request_id, "request_rejected_empty_audio", {}, started_at)
         return EvaluateResponse(success=False, confidence=0.0, word_id=word_id)
 
-    if eval_mode == "realtime" and len(audio_bytes) < MIN_REALTIME_AUDIO_BYTES:
+    openai_audio_bytes = audio_bytes
+    openai_filename = audio.filename or "speech.webm"
+    openai_mime_type = audio.content_type or "audio/webm"
+    acoustic_audio_bytes = audio_bytes
+    if resolved_audio_format == PCM_AUDIO_FORMAT:
+        pcm_sample_rate, _ = decode_pcm_s16le_waveform(audio_bytes, sample_rate, channels)
+        pcm_channels = 1
+        if eval_mode == "realtime":
+            duration_ms = int((len(audio_bytes) / 2 / pcm_sample_rate) * 1000)
+            if duration_ms < MIN_REALTIME_AUDIO_DURATION_MS:
+                debug_log(
+                    request_id,
+                    "audio_rejected_too_short",
+                    {"duration_ms": duration_ms, "min_duration_ms": MIN_REALTIME_AUDIO_DURATION_MS},
+                    started_at,
+                )
+                return EvaluateResponse(
+                    success=False,
+                    confidence=0.0,
+                    word_id=word_id,
+                    hint_code="too_quiet",
+                    hint_text=hint_text_for_code("too_quiet"),
+                )
+        openai_audio_bytes = pcm_s16le_to_wav_bytes(audio_bytes, pcm_sample_rate, pcm_channels)
+        openai_filename = "speech.wav"
+        openai_mime_type = "audio/wav"
+        acoustic_audio_bytes = openai_audio_bytes
+    elif eval_mode == "realtime" and len(audio_bytes) < MIN_REALTIME_AUDIO_BYTES:
         debug_log(
             request_id,
             "audio_rejected_too_small",
@@ -1258,7 +1353,7 @@ async def evaluate_pronunciation(
         timings["asr_start"] = time.perf_counter()
         transcription = await client.audio.transcriptions.create(
             model=model,
-            file=(audio.filename or "speech.webm", audio_bytes, "audio/webm"),
+            file=(openai_filename, openai_audio_bytes, openai_mime_type),
             language="zh",
             prompt=(
                 "Transcribe only the spoken Mandarin target word in Simplified Chinese. "
@@ -1315,7 +1410,7 @@ async def evaluate_pronunciation(
     if run_acoustic:
         debug_log(request_id, "acoustic_start", {"eval_mode": eval_mode}, started_at)
         timings["acoustic_start"] = time.perf_counter()
-        acoustic_scores, acoustic_hint = analyze_tone_contour(audio_bytes, pinyin_raw)
+        acoustic_scores, acoustic_hint = analyze_tone_contour(acoustic_audio_bytes, pinyin_raw)
         timings["acoustic_end"] = time.perf_counter()
         debug_log(request_id, "acoustic_complete", {"acoustic_scores": acoustic_scores, "acoustic_hint": acoustic_hint}, started_at)
     else:

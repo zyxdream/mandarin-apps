@@ -808,7 +808,7 @@ export function GameScreen({
       });
       return;
     }
-    const { blob: audio, stats } = capture;
+    const { stats } = capture;
     const peakRiseOverNoise = stats.peakVolume - noiseFloorRef.current;
     if (shouldSkipCaptureQuality(stats, noiseFloorRef.current, thresholds)) {
       console.log('[speech] skipped capture quality gate', {
@@ -829,8 +829,10 @@ export function GameScreen({
     }
     const speechEndedAt = now;
     console.log('[speech] end, submitting audio', {
-      bytes: audio.size,
-      type: audio.type,
+      bytes: capture.blob.size,
+      type: capture.mimeType,
+      audioFormat: capture.format,
+      sampleRate: capture.sampleRate,
       word: activeMole.word.hanzi,
       pinyinRaw: activeMole.word.pinyinRaw,
       captureDurationMs: stats.durationMs,
@@ -843,13 +845,14 @@ export function GameScreen({
       silenceWaitMs: speechEndedAt - lastVoiceAtRef.current,
       peakVolume: Number(speechPeakVolume.toFixed(3)),
       averageVolume: Number(stats.averageVolume.toFixed(3)),
-      bytes: audio.size,
+      bytes: capture.blob.size,
+      audioFormat: capture.format,
     });
     console.log('[latency] speech end to submit', {
       word: activeMole.word.hanzi,
       elapsedMs: Math.max(0, Date.now() - speechEndedAt),
     });
-    submitEvaluation(audio);
+    submitEvaluation(capture);
   }, [captureRecentAudio, gameState?.activeMole, isGamePaused, micState, resetCaptureBuffer, submitEvaluation, volume]);
 
   return (

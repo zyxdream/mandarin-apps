@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import type { GameState, MoleState } from '../types/game';
+import type { EvaluationAudio } from '../types/audio';
 import { GameEngine } from '../engine/gameEngine';
 import { HttpEvaluator } from '../evaluator/httpEvaluator';
 import { WORDS } from '../data/words';
@@ -119,8 +120,8 @@ export function useGameEngine(scriptSession?: ScriptSession) {
     const safeHeight = Math.max(1, Math.round(canvasHeight));
     engineRef.current?.setCanvasSize({ canvasWidth: safeWidth, canvasHeight: safeHeight });
   }, []);
-  const submitEvaluation = useCallback((blob: Blob) => {
-    engineRef.current?.submitEvaluation(blob);
+  const submitEvaluation = useCallback((audio: EvaluationAudio) => {
+    engineRef.current?.submitEvaluation(audio);
   }, []);
   const togglePause = useCallback(() => {
     engineRef.current?.togglePause();

@@ -1,12 +1,15 @@
 import type { PronunciationEvaluator } from '../types/evaluator';
 import type { Word } from '../types/word';
 import type { EvalResult } from '../types/game';
+import type { EvaluationAudio } from '../types/audio';
+import { buildEvaluationFormData } from './evaluationFormData';
 
 /**
  * Real backend evaluator. Replace FakeEvaluator with this in useGameEngine.ts
  * once the /evaluate endpoint is implemented.
  *
- * Expected request: multipart/form-data { audio: Blob, word_id: string, pinyin_raw: string }
+ * Expected request: multipart/form-data with audio bytes, target word fields,
+ * and optional audio_format/sample_rate/channels metadata for PCM fast paths.
  * Expected response is transport-neutral so HTTP and future WebSocket
  * evaluation can feed the same EvalResult shape into GameEngine.
  */
@@ -42,20 +45,18 @@ export class HttpEvaluator implements PronunciationEvaluator {
     }
   }
 
-  async evaluate(audioBlob: Blob, word: Word): Promise<EvalResult> {
+  async evaluate(audio: EvaluationAudio, word: Word): Promise<EvalResult> {
     const requestStartedAt = performance.now();
     try {
-      const form = new FormData();
-      form.append('audio', audioBlob, 'recording.webm');
-      form.append('word_id', word.id);
-      form.append('pinyin_raw', word.pinyinRaw);
-      form.append('hanzi', word.hanzi);
-      form.append('eval_mode', 'realtime');
+      const form = buildEvaluationFormData(audio, word);
 
       console.log('[latency] evaluator request start', {
         word: word.hanzi,
         pinyinRaw: word.pinyinRaw,
-        bytes: audioBlob.size,
+        bytes: audio.blob.size,
+        audioFormat: audio.format,
+        sampleRate: audio.sampleRate,
+        channels: audio.channels,
         baseUrl: this.baseUrl,
         path: this.evaluatePath,
       });

@@ -1,6 +1,7 @@
 import type { PronunciationEvaluator } from '../types/evaluator';
 import type { Word } from '../types/word';
 import type { EvalResult } from '../types/game';
+import type { EvaluationAudio } from '../types/audio';
 
 export interface FakeEvaluatorConfig {
   successProbability: number;
@@ -17,7 +18,7 @@ export class FakeEvaluator implements PronunciationEvaluator {
     };
   }
 
-  async evaluate(_audioBlob: Blob, word: Word): Promise<EvalResult> {
+  async evaluate(_audio: EvaluationAudio, word: Word): Promise<EvalResult> {
     await new Promise(r => setTimeout(r, this.config.latencyMs));
     const success = Math.random() < this.config.successProbability;
     return {

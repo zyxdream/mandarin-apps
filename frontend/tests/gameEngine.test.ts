@@ -4,6 +4,7 @@ import { GameEngine } from '../src/engine/gameEngine.js';
 import type { EvalResult, GameState, MoleAnimState } from '../src/types/game.js';
 import type { PronunciationEvaluator } from '../src/types/evaluator.js';
 import type { Word } from '../src/types/word.js';
+import type { EvaluationAudio } from '../src/types/audio.js';
 
 function buildWord(index: number, hanzi = '学习词'): Word {
   return {
@@ -27,13 +28,32 @@ function buildWordsFromHanzi(hanziList: string[]): Word[] {
 }
 
 const evaluator: PronunciationEvaluator = {
-  evaluate: async (_audioBlob: Blob, word: Word): Promise<EvalResult> => ({
+  evaluate: async (_audio: EvaluationAudio, word: Word): Promise<EvalResult> => ({
     success: false,
     confidence: 0,
     wordId: word.id,
     error: true,
   }),
 };
+
+function buildEvaluationAudio(): EvaluationAudio {
+  return {
+    blob: new Blob(['test'], { type: 'audio/webm' }),
+    format: 'webm_opus',
+    sampleRate: null,
+    channels: null,
+    mimeType: 'audio/webm',
+    filename: 'recording.webm',
+    stats: {
+      durationMs: 500,
+      peakVolume: 0.8,
+      averageVolume: 0.4,
+      peakRms: 0.1,
+      averageRms: 0.05,
+      chunks: 1,
+    },
+  };
+}
 
 interface EngineHarness {
   engine: GameEngine;
@@ -241,7 +261,7 @@ test('in-flight evaluation result is deferred while paused and applied on resume
   withMockTimers(t);
   let resolveEval: ((result: EvalResult) => void) | null = null;
   const evaluatorWithResolve: PronunciationEvaluator = {
-    evaluate: async (_audioBlob: Blob, _word: Word): Promise<EvalResult> => (
+    evaluate: async (): Promise<EvalResult> => (
       new Promise<EvalResult>(resolve => {
         resolveEval = resolve;
       })
@@ -263,7 +283,7 @@ test('in-flight evaluation result is deferred while paused and applied on resume
 
   const activeWord = startedState.activeMole?.word;
   assert.ok(activeWord, 'expected active word');
-  const submitPromise = engine.submitEvaluation(new Blob(['test']));
+  const submitPromise = engine.submitEvaluation(buildEvaluationAudio());
   const submittedState = readLatest();
   assert.ok(submittedState, 'expected state after submit');
   assert.equal(submittedState.activeMole?.animState, 'listening');
