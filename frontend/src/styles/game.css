@@ -1889,7 +1889,7 @@
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24);
   overflow: hidden;
   padding: clamp(0.32rem, 0.95vh, 0.62rem);
-  transform: translateY(calc(var(--cover-panel-lift) - clamp(1.25rem, 4vh, 3rem)));
+  transform: translateY(calc(var(--cover-panel-lift) - clamp(4.5rem, 9vh, 7.5rem)));
 }
 
 .session-select-back-anchor {
