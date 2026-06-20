@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties, WheelEvent as ReactWheelEvent } from 'react';
+import type { ScriptSession } from '../data/scriptSessions';
 import { warmupDeep } from '../warmup/backendWarmup';
 
 interface SessionSelectScreenProps {
-  sessionCount: number;
+  sessions: ReadonlyArray<ScriptSession>;
   onSelectSession: (sessionIndex: number) => void;
   onBack: () => void;
 }
 
 const DIRT_HOLE = '/assets/objects/dirt_hole_1.v2.webp';
-const SCORE_STAR = '/assets/ui/score_star.v2.webp';
 const SESSION_LIST_TOP_PANEL = '/assets/objects/cover_word_banner_top.v2.webp';
 const SESSION_LIST_SECOND_PANEL = '/assets/ui/second_session_list_panel.v2.webp';
 const MAP_SIDE_PADDING = 168;
@@ -26,6 +26,7 @@ const MAP_HOLE_RIM_OFFSET = 84;
 
 interface SessionMapNode {
   sessionNumber: number;
+  title: string;
   x: number;
   y: number;
 }
@@ -74,12 +75,12 @@ function sampleRouteY(routePoints: RoutePoint[], x: number): number {
   return routePoints[routePoints.length - 1].y;
 }
 
-export function SessionSelectScreen({ sessionCount, onSelectSession, onBack }: SessionSelectScreenProps) {
+export function SessionSelectScreen({ sessions, onSelectSession, onBack }: SessionSelectScreenProps) {
   const headingRef = useRef<HTMLDivElement | null>(null);
   const backRef = useRef<HTMLButtonElement | null>(null);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
 
-  const sessions = useMemo(() => Array.from({ length: sessionCount }, (_, index) => index + 1), [sessionCount]);
+  const sessionCount = sessions.length;
 
   useEffect(() => {
     let cancelled = false;
@@ -183,7 +184,8 @@ export function SessionSelectScreen({ sessionCount, onSelectSession, onBack }: S
     () => {
       const random = createDeterministicRandom((sessionCount + 17) * 3266489917);
       const anchorStep = sessionCount > 1 ? (mapWidth - MAP_SIDE_PADDING * 2) / (sessionCount - 1) : 0;
-      return sessions.map((sessionNumber, index) => {
+      return sessions.map((session, index) => {
+        const sessionNumber = index + 1;
         const anchorX = sessionCount === 1 ? mapWidth / 2 : MAP_SIDE_PADDING + index * anchorStep;
         const xJitter = index === 0 || index === sessions.length - 1 ? 0 : (random() - 0.5) * MAP_NODE_X_JITTER * 2;
         const x = clamp(anchorX + xJitter, MAP_SIDE_PADDING, mapWidth - MAP_SIDE_PADDING);
@@ -192,6 +194,7 @@ export function SessionSelectScreen({ sessionCount, onSelectSession, onBack }: S
         const y = clamp(routeY + yJitter, MAP_TOP_PADDING, MAP_HEIGHT - MAP_BOTTOM_PADDING);
         return {
           sessionNumber,
+          title: session.title,
           x,
           y,
         };
@@ -297,16 +300,14 @@ export function SessionSelectScreen({ sessionCount, onSelectSession, onBack }: S
                     className="session-map-node"
                     style={nodeStyle}
                     onClick={() => onSelectSession(node.sessionNumber - 1)}
-                    aria-label={`Open Session ${node.sessionNumber}`}
+                    aria-label={`${node.title} #${node.sessionNumber}`}
                   >
-                    <div className="session-map-star-crown" aria-hidden="true">
-                      <img className="session-map-star session-map-star--muted" src={SCORE_STAR} alt="" />
-                      <img className="session-map-star session-map-star--muted" src={SCORE_STAR} alt="" />
-                      <img className="session-map-star session-map-star--muted" src={SCORE_STAR} alt="" />
-                    </div>
                     <div className="session-map-hole-wrap">
                       <img className="session-map-hole-image" src={DIRT_HOLE} alt="" />
-                      <span className="session-map-hole-label">#{node.sessionNumber}</span>
+                      <div className="session-map-hole-label">
+                        <span className="session-map-hole-label-line">#{node.sessionNumber}</span>
+                        <span className="session-map-hole-label-line">{node.title}</span>
+                      </div>
                     </div>
                   </button>
                 );

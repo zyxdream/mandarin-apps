@@ -47,7 +47,7 @@ WORD_AUDIO_OUT_DIR = AUDIO_OUT_DIR / "words"
 WORD_AUDIO_PUBLIC_DIR = f"{AUDIO_PUBLIC_DIR}/words"
 TIMINGS_OUT_DIR = AUDIO_OUT_DIR / "timings"
 
-TTS_MODEL = "gpt-4o-tts"
+TTS_MODEL = "gpt-4o-mini-tts"
 TTS_VOICE = "nova"
 TTS_SPEED = 0.85
 TTS_VOICES = (
@@ -465,11 +465,37 @@ def build_word(
     }
 
 
+def count_cjk_characters(text: str) -> int:
+    return sum(1 for char in text if unicodedata.category(char) == "Lo" and "\u4e00" <= char <= "\u9fff")
+
+
+def validate_session_titles(source: dict[str, Any], *, max_cjk_chars: int = 5) -> None:
+    seen_titles: dict[str, str] = {}
+    for raw_session in source.get("sessions", []):
+        session_id = raw_session.get("id", "<unknown>")
+        title = (raw_session.get("title") or "").strip()
+        if not title:
+            raise ValueError(f"Session {session_id!r} is missing a non-empty title.")
+        cjk_count = count_cjk_characters(title)
+        if cjk_count == 0:
+            raise ValueError(f"Session {session_id!r} title {title!r} must contain Chinese characters.")
+        if cjk_count > max_cjk_chars:
+            raise ValueError(
+                f"Session {session_id!r} title {title!r} has {cjk_count} Chinese characters; max is {max_cjk_chars}."
+            )
+        if title in seen_titles:
+            raise ValueError(
+                f"Duplicate session title {title!r} for {session_id!r} and {seen_titles[title]!r}."
+            )
+        seen_titles[title] = session_id
+
+
 def build_sessions(source: dict[str, Any]) -> list[dict[str, Any]]:
+    validate_session_titles(source)
     sessions = []
     for session_index, raw_session in enumerate(source.get("sessions", [])):
         session_id = raw_session["id"]
-        title = (raw_session.get("title") or "").strip() or f"Session {session_id}"
+        title = (raw_session.get("title") or "").strip()
         source_items = [str(item) for item in raw_session.get("source", []) if str(item).strip()]
         game_words: list[dict[str, Any]] = []
         for word_index, raw_word in enumerate(raw_session.get("game_words", [])):

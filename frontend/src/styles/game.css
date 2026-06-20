@@ -1433,7 +1433,7 @@
 }
 
 .session-practice-label {
-  font-size: 0.72rem;
+  font-size: clamp(0.82rem, 1.05vw, 0.92rem);
   font-weight: 800;
   color: rgba(255, 224, 102, 0.9);
   margin-bottom: 0.2rem;
@@ -1448,13 +1448,13 @@
 .session-unit-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
   border: 1px solid rgba(255, 240, 196, 0.22);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   color: #fff6da;
   font: inherit;
-  padding: 0.24rem 0.55rem;
+  padding: 0.3rem 0.68rem;
   cursor: pointer;
   transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
 }
@@ -1470,12 +1470,12 @@
 }
 
 .session-unit-chip-label {
-  font-size: 0.78rem;
+  font-size: clamp(0.92rem, 1.25vw, 1.05rem);
   font-weight: 900;
 }
 
 .session-unit-chip-seq {
-  font-size: 0.62rem;
+  font-size: clamp(0.68rem, 0.95vw, 0.78rem);
   opacity: 0.85;
 }
 
@@ -1987,29 +1987,10 @@
   border-radius: 12px;
 }
 
-.session-map-star-crown {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: clamp(0.08rem, 0.42vw, 0.22rem);
-  margin-bottom: -0.18rem;
-}
-
-.session-map-star {
-  width: clamp(22px, 1.9vw, 30px);
-  height: auto;
-  pointer-events: none;
-  user-select: none;
-}
-
-.session-map-star--muted {
-  filter: grayscale(1) saturate(0.1) brightness(0.72) contrast(1.06);
-  opacity: 0.96;
-}
-
 .session-map-hole-wrap {
   position: relative;
   width: clamp(168px, 14vw, 232px);
+  overflow: visible;
 }
 
 .session-map-hole-image {
@@ -2029,16 +2010,25 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.06em;
+  width: max-content;
   color: #ffe8be;
   font-size: clamp(1rem, 1.35vw, 1.28rem);
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.014em;
-  white-space: nowrap;
+  text-align: center;
   text-shadow:
     2px 2px 0 rgba(48, 26, 10, 0.88),
     0 0 7px rgba(16, 9, 4, 0.6);
   pointer-events: none;
+}
+
+.session-map-hole-label-line {
+  white-space: nowrap;
 }
 
 .session-select-back-button {

@@ -6,11 +6,9 @@ import { CelebrationScreen } from './screens/CelebrationScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import { SessionSelectScreen } from './screens/SessionSelectScreen';
 import { DEFAULT_REWARD_FOOD, type RewardFood } from './data/rewards';
-import { getNextScriptSessionIndex, getPreviousScriptSessionIndex, getScriptSession } from './data/scriptSessions';
+import { getNextScriptSessionIndex, getPreviousScriptSessionIndex, getScriptSession, ORDERED_SCRIPT_SESSIONS } from './data/scriptSessions';
 import './styles/game.css';
 import './styles/animations.css';
-
-const SESSION_SELECTOR_COUNT = 22;
 
 type AppScreen = 'start' | 'sessionSelect' | 'game' | 'celebration' | 'result';
 
@@ -73,7 +71,7 @@ export default function App() {
   if (screen === 'sessionSelect') {
     return (
       <SessionSelectScreen
-        sessionCount={SESSION_SELECTOR_COUNT}
+        sessions={ORDERED_SCRIPT_SESSIONS}
         onSelectSession={handleSelectSession}
         onBack={handleBackToStart}
       />

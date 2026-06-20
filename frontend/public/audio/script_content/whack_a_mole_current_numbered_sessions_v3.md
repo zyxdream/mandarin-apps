@@ -1,8 +1,10 @@
 # Current Whack-a-Mole Sessions
 
-Each session uses a short Mandarin paragraph as the pre-game audio script, followed by a focused target word/phrase bank for whack-a-mole pronunciation practice. Titles are omitted; each audio uses the paragraph directly.
+Each session uses a short Mandarin paragraph as the pre-game audio script, followed by a focused target word/phrase bank for whack-a-mole pronunciation practice. Each session also has a short unique display title (≤5 Chinese characters) shown on the session selection map.
 
 ## wm-01
+
+**Title:** 天地人
 
 **Audio reader script:**
 
@@ -14,6 +16,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-02
 
+**Title:** 找朋友
+
 **Audio reader script:**
 
 > 找呀找呀找朋友，找到一个好朋友。敬个礼，握握手，你是我的好朋友。
@@ -23,6 +27,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 你好、一个、我的、找到、朋友、握手、敬礼、是、好、朋友
 
 ## wm-03
+
+**Title:** 一片
 
 **Audio reader script:**
 
@@ -34,6 +40,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-04
 
+**Title:** 多少
+
 **Audio reader script:**
 
 > 一头大黄牛，一只小花猫。一个很大，一个很小。水里一群鸭子，天上一只小鸟。一边很多，一边很少。
@@ -43,6 +51,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 大小、多少、黄牛、小猫、一群、鸭子、一只、小鸟、一边、一头
 
 ## wm-05
+
+**Title:** 秋天
 
 **Audio reader script:**
 
@@ -54,6 +64,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-06
 
+**Title:** 弯月亮
+
 **Audio reader script:**
 
 > 月儿弯弯，像一只小船。船的两头，尖尖的。我坐在船里。看见闪闪的星星。看见蓝蓝的天。
@@ -63,6 +75,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 月儿、弯弯的、小船、两头、尖尖的、坐下、看见、星星、蓝天、像
 
 ## wm-07
+
+**Title:** 小星星
 
 **Audio reader script:**
 
@@ -74,6 +88,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-08
 
+**Title:** 江南
+
 **Audio reader script:**
 
 > 江南的水里，长满了莲叶。一片一片，高高的，圆圆的。小鱼在叶子下面游来游去。一条在东边，一条在西边。一条在南边，一条在北边。
@@ -83,6 +99,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 江南、莲叶、一条、小鱼、下面、东边、西边、南边、北边、游来游去
 
 ## wm-09
+
+**Title:** 打老虎
 
 **Audio reader script:**
 
@@ -94,6 +112,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-10
 
+**Title:** 山水
+
 **Audio reader script:**
 
 > 远看山有色。近听水无声。春去花还在。人来鸟不惊。
@@ -103,6 +123,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 远看、近听、山色、水声、花、春、还在、来、惊、有无
 
 ## wm-11
+
+**Title:** 口耳目
 
 **Audio reader script:**
 
@@ -114,6 +136,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-12
 
+**Title:** 小白兔
+
 **Audio reader script:**
 
 > 小白兔，白又白，两只耳朵竖起来。爱吃萝卜爱吃菜，蹦蹦跳跳真可爱。
@@ -123,6 +147,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 小白兔、耳朵、两只、竖起来、萝卜、青菜、可爱、又、真
 
 ## wm-13
+
+**Title:** 小书包
 
 **Audio reader script:**
 
@@ -134,6 +160,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-14
 
+**Title:** 日月
+
 **Audio reader script:**
 
 > 日月明，田力男。小大尖，小土尘。二人从，三人众，双木林，三木森。
@@ -143,6 +171,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 日、月、明、田、力、男、木、林、森林
 
 ## wm-15
+
+**Title:** 东西南北
 
 **Audio reader script:**
 
@@ -154,6 +184,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-16
 
+**Title:** 尾巴
+
 **Audio reader script:**
 
 > 谁的尾巴长？谁的尾巴短？谁的尾巴像把伞？猴子的尾巴长，兔子的尾巴短。松鼠的尾巴像把伞。
@@ -163,6 +195,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 尾巴、长、短、雨伞、猴子、兔子、松鼠、好看
 
 ## wm-17
+
+**Title:** 小兔乖
 
 **Audio reader script:**
 
@@ -174,6 +208,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-18
 
+**Title:** 小雨点
+
 **Audio reader script:**
 
 > 雨点儿从云彩里跳下来。“你们要去哪里？”小雨点说：“我要去有花有草的地方。”另一个小雨点说：“我要去没有花没有草的地方。”不久，两个地方，都变得更加好看了。
@@ -183,6 +219,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 雨点、云彩、跳、要去、哪里、说、地方、没有、更加
 
 ## wm-19
+
+**Title:** 乌鸦喝水
 
 **Audio reader script:**
 
@@ -194,6 +232,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-20
 
+**Title:** 拔萝卜
+
 **Audio reader script:**
 
 > 地里长了一个大萝卜。爷爷拔呀拔呀，拔不动。奶奶来帮忙，还是拔不动。小狗跑来了，小猫也来了。大家一起用力：“嗨哟，嗨哟！”萝卜拔出来了，大家笑哈哈。
@@ -204,6 +244,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 
 ## wm-21
 
+**Title:** 捞月亮
+
 **Audio reader script:**
 
 > 小猴子看见井里有个月亮。“不好啦！月亮掉井里了！”猴子们爬上大树，一只拉一只，去捞月亮。小猴子伸手去捞，手一碰水，月亮就不见了。老猴子抬头一看：“原来月亮在天上呢！”
@@ -213,6 +255,8 @@ Each session uses a short Mandarin paragraph as the pre-game audio script, follo
 小猴子、井里、月亮、掉、爬树、伸手、老猴子、原来
 
 ## wm-22
+
+**Title:** 四是四
 
 **Audio reader script:**
 

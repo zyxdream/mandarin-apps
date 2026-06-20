@@ -4,7 +4,7 @@ import type { ScriptSession } from './scriptSessions';
 export const SCRIPT_SESSIONS: ScriptSession[] = [
   {
     "id": "wm-01",
-    "title": "Session wm-01",
+    "title": "天地人",
     "source": [],
     "ttsScript": "天在上，地在下。太阳升，月亮落。一天，两天，三天。你，我，他，站在天地中间。",
     "audioUrl": "/audio/script_content/generated/wm-01.mp3",
@@ -380,7 +380,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-02",
-    "title": "Session wm-02",
+    "title": "找朋友",
     "source": [],
     "ttsScript": "找呀找呀找朋友，找到一个好朋友。敬个礼，握握手，你是我的好朋友。",
     "audioUrl": "/audio/script_content/generated/wm-02.mp3",
@@ -709,7 +709,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-03",
-    "title": "Session wm-03",
+    "title": "一片",
     "source": [],
     "ttsScript": "一片两片三四片，五片六片七八片。九片十片无数片，飞入水中都不见。",
     "audioUrl": "/audio/script_content/generated/wm-03.mp3",
@@ -1050,7 +1050,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-04",
-    "title": "Session wm-04",
+    "title": "多少",
     "source": [],
     "ttsScript": "一头大黄牛，一只小花猫。一个很大，一个很小。水里一群鸭子，天上一只小鸟。一边很多，一边很少。",
     "audioUrl": "/audio/script_content/generated/wm-04.mp3",
@@ -1485,7 +1485,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-05",
-    "title": "Session wm-05",
+    "title": "秋天",
     "source": [],
     "ttsScript": "秋天来了，树叶黄了。天空很蓝，很高。一群大雁往南飞。一会儿排成个“人”字，一会儿排成个“一”字。",
     "audioUrl": "/audio/script_content/generated/wm-05.mp3",
@@ -1931,7 +1931,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-06",
-    "title": "Session wm-06",
+    "title": "弯月亮",
     "source": [],
     "ttsScript": "月儿弯弯，像一只小船。船的两头，尖尖的。我坐在船里。看见闪闪的星星。看见蓝蓝的天。",
     "audioUrl": "/audio/script_content/generated/wm-06.mp3",
@@ -2332,7 +2332,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-07",
-    "title": "Session wm-07",
+    "title": "小星星",
     "source": [],
     "ttsScript": "一闪一闪亮晶晶，满天都是小星星。挂在天上放光明，好像许多小眼睛。",
     "audioUrl": "/audio/script_content/generated/wm-07.mp3",
@@ -2662,7 +2662,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-08",
-    "title": "Session wm-08",
+    "title": "江南",
     "source": [],
     "ttsScript": "江南的水里，长满了莲叶。一片一片，高高的，圆圆的。小鱼在叶子下面游来游去。一条在东边，一条在西边。一条在南边，一条在北边。",
     "audioUrl": "/audio/script_content/generated/wm-08.mp3",
@@ -3189,7 +3189,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-09",
-    "title": "Session wm-09",
+    "title": "打老虎",
     "source": [],
     "ttsScript": "一二三四五，上山打老虎。老虎没打着，看见小松鼠。松鼠有几只？我来数一数。一二三四五，五只小松鼠。",
     "audioUrl": "/audio/script_content/generated/wm-09.mp3",
@@ -3638,7 +3638,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-10",
-    "title": "Session wm-10",
+    "title": "山水",
     "source": [],
     "ttsScript": "远看山有色。近听水无声。春去花还在。人来鸟不惊。",
     "audioUrl": "/audio/script_content/generated/wm-10.mp3",
@@ -3923,7 +3923,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-11",
-    "title": "Session wm-11",
+    "title": "口耳目",
     "source": [],
     "ttsScript": "口耳目手足。站如松，坐如钟，行如风，卧如弓。",
     "audioUrl": "/audio/script_content/generated/wm-11.mp3",
@@ -4193,7 +4193,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-12",
-    "title": "Session wm-12",
+    "title": "小白兔",
     "source": [],
     "ttsScript": "小白兔，白又白，两只耳朵竖起来。爱吃萝卜爱吃菜，蹦蹦跳跳真可爱。",
     "audioUrl": "/audio/script_content/generated/wm-12.mp3",
@@ -4533,7 +4533,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-13",
-    "title": "Session wm-13",
+    "title": "小书包",
     "source": [],
     "ttsScript": "我的小书包，宝贝真不少。里面有课本，作业本，还有铅笔。上课安安静静，下课不乱跑。每天早上，我起得早早的。背着书包去学校。",
     "audioUrl": "/audio/script_content/generated/wm-13.mp3",
@@ -5053,7 +5053,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-14",
-    "title": "Session wm-14",
+    "title": "日月",
     "source": [],
     "ttsScript": "日月明，田力男。小大尖，小土尘。二人从，三人众，双木林，三木森。",
     "audioUrl": "/audio/script_content/generated/wm-14.mp3",
@@ -5379,7 +5379,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-15",
-    "title": "Session wm-15",
+    "title": "东西南北",
     "source": [],
     "ttsScript": "早晨起来，面向太阳。前面是东，后面是西，左边是北，右边是南。影子像条小黑狗，它是我的好朋友。",
     "audioUrl": "/audio/script_content/generated/wm-15.mp3",
@@ -5803,7 +5803,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-16",
-    "title": "Session wm-16",
+    "title": "尾巴",
     "source": [],
     "ttsScript": "谁的尾巴长？谁的尾巴短？谁的尾巴像把伞？猴子的尾巴长，兔子的尾巴短。松鼠的尾巴像把伞。",
     "audioUrl": "/audio/script_content/generated/wm-16.mp3",
@@ -6197,7 +6197,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-17",
-    "title": "Session wm-17",
+    "title": "小兔乖",
     "source": [],
     "ttsScript": "小兔子乖乖，把门开开。“快点儿开开，我要进来。”“不开，不开，我不开。妈妈没回来，谁来也不开。”妈妈回来了：“好孩子，开门吧。”“妈妈回来了，这就把门开。”",
     "audioUrl": "/audio/script_content/generated/wm-17.mp3",
@@ -6820,7 +6820,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-18",
-    "title": "Session wm-18",
+    "title": "小雨点",
     "source": [],
     "ttsScript": "雨点儿从云彩里跳下来。“你们要去哪里？”小雨点说：“我要去有花有草的地方。”另一个小雨点说：“我要去没有花没有草的地方。”不久，两个地方，都变得更加好看了。",
     "audioUrl": "/audio/script_content/generated/wm-18.mp3",
@@ -7461,7 +7461,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-19",
-    "title": "Session wm-19",
+    "title": "乌鸦喝水",
     "source": [],
     "ttsScript": "乌鸦口渴了，到处找水喝。看见一个瓶子，瓶子里有水。可瓶口太小，喝不着。乌鸦看见旁边有小石子，想出办法来了。一颗一颗放进瓶子里。水渐渐升高，乌鸦喝着水了。",
     "audioUrl": "/audio/script_content/generated/wm-19.mp3",
@@ -8081,7 +8081,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-20",
-    "title": "Session wm-20",
+    "title": "拔萝卜",
     "source": [],
     "ttsScript": "地里长了一个大萝卜。爷爷拔呀拔呀，拔不动。奶奶来帮忙，还是拔不动。小狗跑来了，小猫也来了。大家一起用力：“嗨哟，嗨哟！”萝卜拔出来了，大家笑哈哈。",
     "audioUrl": "/audio/script_content/generated/wm-20.mp3",
@@ -8688,7 +8688,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-21",
-    "title": "Session wm-21",
+    "title": "捞月亮",
     "source": [],
     "ttsScript": "小猴子看见井里有个月亮。“不好啦！月亮掉井里了！”猴子们爬上大树，一只拉一只，去捞月亮。小猴子伸手去捞，手一碰水，月亮就不见了。老猴子抬头一看：“原来月亮在天上呢！”",
     "audioUrl": "/audio/script_content/generated/wm-21.mp3",
@@ -9104,7 +9104,7 @@ export const SCRIPT_SESSIONS: ScriptSession[] = [
   },
   {
     "id": "wm-22",
-    "title": "Session wm-22",
+    "title": "四是四",
     "source": [],
     "ttsScript": "四是四，十是十。十四是十四，四十是四十。十四不是四十，四十不是十四。",
     "audioUrl": "/audio/script_content/generated/wm-22.mp3",
