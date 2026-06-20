@@ -321,6 +321,7 @@ export class GameEngine {
     this.clearHardWordTimeout();
     const word = this.state.activeMole.word;
     const newCombo = this.state.combo + 1;
+    const newWordStreak = this.state.wordStreak + 1;
     const earned = scoreForResult(word, newCombo);
     console.log('[latency] response applied as hit', {
       word: word.hanzi,
@@ -338,6 +339,8 @@ export class GameEngine {
       score: this.state.score + earned,
       combo: newCombo,
       maxCombo: Math.max(this.state.maxCombo, newCombo),
+      wordStreak: newWordStreak,
+      maxWordStreak: Math.max(this.state.maxWordStreak, newWordStreak),
       wordsHit: [...this.state.wordsHit, word],
       consecutiveMissCount: 0,
     });
@@ -387,6 +390,7 @@ export class GameEngine {
     this.setState({
       activeMole: { ...mole, animState: 'escaping', reaction: 'idle' },
       combo: 0,
+      wordStreak: 0,
       wordsMissed: [...this.state.wordsMissed, word],
     });
 
@@ -491,6 +495,8 @@ export class GameEngine {
       score: 0,
       combo: 0,
       maxCombo: 0,
+      wordStreak: 0,
+      maxWordStreak: 0,
       timeRemaining: initialRoundSeconds,
       isPaused: false,
       wordsHit: [],

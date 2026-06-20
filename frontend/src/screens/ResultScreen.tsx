@@ -35,7 +35,7 @@ export function ResultScreen({
   onNextGame,
   onBackToSessionSelect,
 }: ResultScreenProps) {
-  const { wordsHit, wordsMissed, maxCombo } = finalState;
+  const { wordsHit, wordsMissed, maxWordStreak } = finalState;
   const totalWords = wordsHit.length + wordsMissed.length;
   const accuracyRate = totalWords > 0 ? wordsHit.length / totalWords : 0;
   const accuracyPercent = Math.round(accuracyRate * 100);
@@ -303,7 +303,7 @@ export function ResultScreen({
               <span className="result-stat-label">Accuracy</span>
             </div>
             <div className="result-stat">
-              <span className="result-stat-value result-stat-value--combo">{maxCombo}</span>
+              <span className="result-stat-value result-stat-value--combo">{maxWordStreak}</span>
               <span className="result-stat-label">Best Streak</span>
             </div>
           </div>

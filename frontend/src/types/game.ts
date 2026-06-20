@@ -32,6 +32,8 @@ export interface GameState {
   score: number;
   combo: number;
   maxCombo: number;
+  wordStreak: number;
+  maxWordStreak: number;
   timeRemaining: number;
   isPaused: boolean;
   wordsHit: Word[];

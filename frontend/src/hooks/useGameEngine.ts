@@ -12,6 +12,8 @@ interface LogicalSnapshot {
   score: number;
   combo: number;
   maxCombo: number;
+  wordStreak: number;
+  maxWordStreak: number;
   timeRemaining: number;
   isPaused: boolean;
   isEvaluating: boolean;
@@ -32,6 +34,8 @@ function extractLogical(state: GameState): LogicalSnapshot {
     score: state.score,
     combo: state.combo,
     maxCombo: state.maxCombo,
+    wordStreak: state.wordStreak,
+    maxWordStreak: state.maxWordStreak,
     timeRemaining: state.timeRemaining,
     isPaused: state.isPaused,
     isEvaluating: state.isEvaluating,
@@ -54,6 +58,7 @@ function logicalChanged(a: LogicalSnapshot | null, b: LogicalSnapshot): boolean 
     a.score !== b.score ||
     a.combo !== b.combo ||
     a.maxCombo !== b.maxCombo ||
+    a.maxWordStreak !== b.maxWordStreak ||
     a.timeRemaining !== b.timeRemaining ||
     a.isPaused !== b.isPaused ||
     a.isEvaluating !== b.isEvaluating ||

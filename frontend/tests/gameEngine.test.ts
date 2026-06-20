@@ -108,6 +108,88 @@ function withMockTimers(t: TestContext) {
   t.mock.timers.enable({ apis: ['setTimeout', 'setInterval', 'Date'] });
 }
 
+const EMERGE_MS = 260;
+const MISS_FEEDBACK_MS = 1080;
+const ESCAPE_CYCLE_MS = 1180 + 120 + EMERGE_MS;
+const ONE_HANZI_ACTIVE_TIMEOUT_MS = 7000;
+
+function createEvaluatorHarness(words: Word[], outcomes: boolean[]): EngineHarness {
+  let outcomeIndex = 0;
+  const customEvaluator: PronunciationEvaluator = {
+    evaluate: async (_audio, word): Promise<EvalResult> => ({
+      success: outcomes[outcomeIndex++] ?? false,
+      confidence: outcomes[outcomeIndex - 1] ? 0.95 : 0.2,
+      wordId: word.id,
+    }),
+  };
+  const engine = new GameEngine(
+    words,
+    customEvaluator,
+    { canvasWidth: 800, canvasHeight: 600 },
+    { preserveWordOrder: true },
+  );
+  let latest: GameState | null = null;
+  let gameOverEvents = 0;
+
+  engine.subscribe(event => {
+    if (event.type === 'stateChanged') {
+      latest = event.state as GameState;
+      return;
+    }
+    latest = event.finalState as GameState;
+    gameOverEvents += 1;
+  });
+
+  return {
+    engine,
+    latestState: () => {
+      assert.ok(latest, 'expected at least one emitted state');
+      return latest;
+    },
+    gameOverCount: () => gameOverEvents,
+  };
+}
+
+async function submitWhileActive(
+  t: TestContext,
+  engine: GameEngine,
+  latestState: () => GameState,
+): Promise<void> {
+  advanceToActiveMole(latestState, t);
+  assert.equal(latestState().activeMole?.animState, 'active');
+  await engine.submitEvaluation(buildEvaluationAudio());
+}
+
+function advanceToActiveMole(latestState: () => GameState, t: TestContext, maxMs = 5000): void {
+  for (let elapsed = 0; elapsed < maxMs; elapsed += 20) {
+    const state = latestState();
+    if (state.screen === 'result') return;
+    if (state.activeMole?.animState === 'active') return;
+    t.mock.timers.tick(20);
+  }
+  assert.fail('timed out waiting for active mole');
+}
+
+async function whackWordWithOptionalMiss(
+  t: TestContext,
+  engine: GameEngine,
+  latestState: () => GameState,
+  missFirst: boolean,
+): Promise<void> {
+  advanceToActiveMole(latestState, t);
+  assert.equal(latestState().activeMole?.animState, 'active');
+  if (missFirst) {
+    await submitWhileActive(t, engine, latestState);
+    assert.equal(latestState().combo, 0);
+    t.mock.timers.tick(MISS_FEEDBACK_MS);
+    advanceToActiveMole(latestState, t);
+    assert.equal(latestState().activeMole?.animState, 'active');
+  }
+  await submitWhileActive(t, engine, latestState);
+  assert.equal(latestState().activeMole?.animState, 'hit');
+  advanceToActiveMole(latestState, t);
+}
+
 test('8 3-hanzi words initialize with 80 seconds', () => {
   const { engine, latestState } = createHarness(8);
   engine.start();
@@ -382,5 +464,73 @@ test('3-plus-hanzi word timeout remains 10 seconds even at low remaining time', 
   t.mock.timers.tick(1);
   assert.equal(latestState().activeMole?.animState, 'escaping');
   assert.equal(latestState().wordsMissed.length, 1);
+  engine.stop();
+});
+
+test('maxWordStreak counts consecutive whacks and ignores pronunciation retries', async t => {
+  withMockTimers(t);
+  const words = buildWordsFromHanzi(Array.from({ length: 10 }, (_, index) => `词${index + 1}`));
+  const outcomes = Array.from({ length: 20 }, (_, index) => index % 2 === 1);
+  const { engine, latestState, gameOverCount } = createEvaluatorHarness(words, outcomes);
+
+  engine.start();
+  t.mock.timers.tick(EMERGE_MS);
+
+  for (let index = 0; index < words.length; index += 1) {
+    await whackWordWithOptionalMiss(t, engine, latestState, true);
+  }
+
+  assert.equal(gameOverCount(), 1);
+  const state = latestState();
+  assert.equal(state.screen, 'result');
+  assert.equal(state.wordsHit.length, 10);
+  assert.equal(state.wordsMissed.length, 0);
+  assert.equal(state.maxWordStreak, 10);
+  assert.equal(state.maxCombo, 1);
+  engine.stop();
+});
+
+test('maxWordStreak resets when a mole escapes', async t => {
+  withMockTimers(t);
+  const words = buildWordsFromHanzi(['一', '二', '三', '四']);
+  const outcomes = [true, true, true];
+  const { engine, latestState } = createEvaluatorHarness(words, outcomes);
+
+  engine.start();
+  t.mock.timers.tick(EMERGE_MS);
+  await whackWordWithOptionalMiss(t, engine, latestState, false);
+  await whackWordWithOptionalMiss(t, engine, latestState, false);
+
+  assert.equal(latestState().activeMole?.animState, 'active');
+  t.mock.timers.tick(ONE_HANZI_ACTIVE_TIMEOUT_MS);
+  assert.equal(latestState().activeMole?.animState, 'escaping');
+  t.mock.timers.tick(ESCAPE_CYCLE_MS);
+  advanceToActiveMole(latestState, t);
+
+  await whackWordWithOptionalMiss(t, engine, latestState, false);
+  assert.equal(latestState().maxWordStreak, 2);
+  assert.equal(latestState().wordStreak, 1);
+  engine.stop();
+});
+
+test('handleMiss still resets combo for HUD scoring', async t => {
+  withMockTimers(t);
+  const words = buildWordsFromHanzi(['一', '二']);
+  const outcomes = [true, false, true, true];
+  const { engine, latestState } = createEvaluatorHarness(words, outcomes);
+
+  engine.start();
+  t.mock.timers.tick(EMERGE_MS);
+  await whackWordWithOptionalMiss(t, engine, latestState, false);
+  assert.equal(latestState().combo, 1);
+
+  await submitWhileActive(t, engine, latestState);
+  assert.equal(latestState().combo, 0);
+  assert.equal(latestState().wordStreak, 1);
+  t.mock.timers.tick(MISS_FEEDBACK_MS);
+
+  await submitWhileActive(t, engine, latestState);
+  assert.equal(latestState().combo, 1);
+  assert.equal(latestState().wordStreak, 2);
   engine.stop();
 });
