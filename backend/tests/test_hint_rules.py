@@ -1,6 +1,7 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -72,17 +73,21 @@ class PronunciationHintRuleTests(unittest.TestCase):
         self.assertEqual(hint_code, "extra_beat")
         self.assertEqual(hint_text, "Beats: Keep it short")
 
-    def test_ambiguous_low_confidence_gets_generic_hint(self) -> None:
-        hint_code, hint_text = select_hint(
-            "shi4",
-            "ma2",
-            confidence=0.05,
-            lexical_score=0.0,
-            syllable_score=0.0,
-            tone_score=0.0,
-        )
-        self.assertEqual(hint_code, "nice_try_again")
-        self.assertEqual(hint_text, "Tip: Nice try — again!")
+    def test_ambiguous_low_confidence_gets_rotating_generic_hint(self) -> None:
+        for retry_text in ("Try again", "So close"):
+            with self.subTest(retry_text=retry_text):
+                with patch("routers.evaluate.random.choice", return_value=retry_text):
+                    hint_code, hint_text = select_hint(
+                        "shi4",
+                        "ma2",
+                        confidence=0.05,
+                        lexical_score=0.0,
+                        syllable_score=0.0,
+                        tone_score=0.0,
+                    )
+
+                self.assertEqual(hint_code, "nice_try_again")
+                self.assertEqual(hint_text, f"Tip: {retry_text}")
 
     def test_success_returns_no_hint(self) -> None:
         success, confidence, _, _, _, hint_code, hint_text = score_transcript("火", "火", "huo3")

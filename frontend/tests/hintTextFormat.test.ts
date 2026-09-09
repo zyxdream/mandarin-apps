@@ -12,14 +12,19 @@ test('keeps desired retroflex hint shape', () => {
   assert.equal(output, 'zh/ch/sh/r: curl tongue');
 });
 
-test('deduplicates try-again style tip prefix and keeps concise body', () => {
-  const output = formatTeachingHint({
-    code: 'nice_try_again',
-    text: 'Tip: Nice-try - again!',
-    confidence: 0.31,
-  });
+test('deduplicates generic retry tip prefix and keeps replacement bodies', () => {
+  const cases = [
+    ['Tip: Try again', 'Try again'],
+    ['Tip: So close', 'So close'],
+  ] as const;
 
-  assert.equal(output, 'Nice-try - again!');
+  for (const [text, expected] of cases) {
+    assert.equal(formatTeachingHint({
+      code: 'nice_try_again',
+      text,
+      confidence: 0.31,
+    }), expected);
+  }
 });
 
 test('missing beat keeps concise label only', () => {

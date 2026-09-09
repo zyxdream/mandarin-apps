@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { GameState } from '../types/game';
-import { GAME_AUDIO } from '../audio/gameAudioCatalog';
+import { GAME_AUDIO, HINT_VOICE_AUDIO_BY_TEXT } from '../audio/gameAudioCatalog';
+import type { HintVoiceAudioClip } from '../audio/gameAudioCatalog';
+import { formatTeachingHint } from '../engine/hintTextFormat';
 
 type SfxKey = keyof typeof GAME_AUDIO.sfx;
 
 const BGM_FADE_MS = 120;
 const COLLECT_SFX_DELAY_MS = 220;
+const HINT_VOICE_DELAY_MS = 360;
 
 function clampVolume(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -29,10 +32,33 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const bgmFadeRafRef = useRef<number | null>(null);
   const sfxTemplatesRef = useRef<Record<string, HTMLAudioElement>>({});
   const collectDelayRef = useRef<number | null>(null);
+  const hintVoiceDelayRef = useRef<number | null>(null);
+  const activeHintVoiceRef = useRef<HTMLAudioElement | null>(null);
 
   const lastAnimStateRef = useRef<string | null>(null);
   const lastHitCountRef = useRef(0);
+  const lastHintVoiceSourceRef = useRef<GameState['lastHint'] | null>(null);
   const targetBgmVolume = getTargetBgmVolume(gameState);
+
+  const clearDelayedAudio = useCallback(() => {
+    if (collectDelayRef.current !== null) {
+      window.clearTimeout(collectDelayRef.current);
+      collectDelayRef.current = null;
+    }
+    if (hintVoiceDelayRef.current !== null) {
+      window.clearTimeout(hintVoiceDelayRef.current);
+      hintVoiceDelayRef.current = null;
+    }
+  }, []);
+
+  const stopActiveHintVoice = useCallback(() => {
+    const activeHintVoice = activeHintVoiceRef.current;
+    if (!activeHintVoice) return;
+
+    activeHintVoice.pause();
+    activeHintVoice.currentTime = 0;
+    activeHintVoiceRef.current = null;
+  }, []);
 
   const cancelBgmFade = useCallback(() => {
     if (bgmFadeRafRef.current !== null) {
@@ -50,6 +76,16 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
       bgmRef.current = bgm;
     }
     return bgmRef.current;
+  }, []);
+
+  const ensureAudioTemplate = useCallback((url: string) => {
+    let template = sfxTemplatesRef.current[url];
+    if (!template) {
+      template = new Audio(url);
+      template.preload = 'auto';
+      sfxTemplatesRef.current[url] = template;
+    }
+    return template;
   }, []);
 
   const fadeBgmTo = useCallback((targetVolume: number) => {
@@ -79,25 +115,57 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     bgmFadeRafRef.current = requestAnimationFrame(tick);
   }, [cancelBgmFade]);
 
-  const playSfx = useCallback((key: SfxKey) => {
-    const url = GAME_AUDIO.sfx[key];
-    let template = sfxTemplatesRef.current[url];
-    if (!template) {
-      template = new Audio(url);
-      template.preload = 'auto';
-      sfxTemplatesRef.current[url] = template;
-    }
-
+  const playAudioUrl = useCallback((url: string, volume: number, label: string) => {
+    const template = ensureAudioTemplate(url);
     const instance = template.cloneNode(true) as HTMLAudioElement;
-    instance.volume = GAME_AUDIO.volume.sfx;
+    instance.volume = volume;
     void instance.play().catch(error => {
-      console.warn('[audio] sfx play failed', { key, error });
+      console.warn('[audio] play failed', { label, error });
     });
-  }, []);
+    return instance;
+  }, [ensureAudioTemplate]);
+
+  const playSfx = useCallback((key: SfxKey) => {
+    playAudioUrl(GAME_AUDIO.sfx[key], GAME_AUDIO.volume.sfx, `sfx:${key}`);
+  }, [playAudioUrl]);
+
+  const playHintVoice = useCallback((clip: HintVoiceAudioClip) => {
+    stopActiveHintVoice();
+
+    const instance = playAudioUrl(clip.url, GAME_AUDIO.volume.hintVoice, `hint-voice:${clip.id}`);
+    activeHintVoiceRef.current = instance;
+    const clearActiveHintVoice = () => {
+      if (activeHintVoiceRef.current === instance) {
+        activeHintVoiceRef.current = null;
+      }
+    };
+    instance.addEventListener('ended', clearActiveHintVoice, { once: true });
+    instance.addEventListener('error', clearActiveHintVoice, { once: true });
+  }, [playAudioUrl, stopActiveHintVoice]);
+
+  const scheduleHintVoice = useCallback((hint: GameState['lastHint']) => {
+    if (!hint) return;
+
+    const visibleHintText = formatTeachingHint(hint);
+    const clip = HINT_VOICE_AUDIO_BY_TEXT[visibleHintText];
+    if (!clip) return;
+
+    if (hintVoiceDelayRef.current !== null) {
+      window.clearTimeout(hintVoiceDelayRef.current);
+      hintVoiceDelayRef.current = null;
+    }
+    stopActiveHintVoice();
+    hintVoiceDelayRef.current = window.setTimeout(() => {
+      hintVoiceDelayRef.current = null;
+      playHintVoice(clip);
+    }, HINT_VOICE_DELAY_MS);
+  }, [playHintVoice, stopActiveHintVoice]);
 
   useEffect(() => {
     if (!enabled) {
       cancelBgmFade();
+      clearDelayedAudio();
+      stopActiveHintVoice();
       const bgm = bgmRef.current;
       if (bgm) {
         bgm.pause();
@@ -111,7 +179,17 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     void bgm.play().catch(error => {
       console.warn('[audio] bgm play blocked', error);
     });
-  }, [enabled, cancelBgmFade, ensureBgm]);
+  }, [enabled, cancelBgmFade, clearDelayedAudio, ensureBgm, stopActiveHintVoice]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const urls = new Set([
+      ...Object.values(GAME_AUDIO.sfx),
+      ...GAME_AUDIO.hintVoice.map(clip => clip.url),
+    ]);
+    urls.forEach(url => ensureAudioTemplate(url));
+  }, [enabled, ensureAudioTemplate]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -127,9 +205,19 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   }, [enabled, targetBgmVolume, ensureBgm, fadeBgmTo]);
 
   useEffect(() => {
-    if (!enabled || !gameState) return;
+    if (!gameState) return;
 
     const animState = gameState.activeMole?.animState ?? null;
+    const hitCount = gameState.wordsHit.length;
+    const currentHint = gameState.lastHint;
+
+    if (!enabled) {
+      lastAnimStateRef.current = animState;
+      lastHitCountRef.current = hitCount;
+      lastHintVoiceSourceRef.current = currentHint;
+      return;
+    }
+
     if (animState === 'hit' && lastAnimStateRef.current !== 'hit') {
       playSfx('whack');
     }
@@ -141,26 +229,46 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     }
     lastAnimStateRef.current = animState;
 
-    const hitCount = gameState.wordsHit.length;
     if (hitCount > lastHitCountRef.current) {
       playSfx('success');
-      if (collectDelayRef.current !== null) {
-        window.clearTimeout(collectDelayRef.current);
-      }
+      clearDelayedAudio();
+      stopActiveHintVoice();
       collectDelayRef.current = window.setTimeout(() => {
         collectDelayRef.current = null;
         playSfx('collect');
       }, COLLECT_SFX_DELAY_MS);
     }
     lastHitCountRef.current = hitCount;
-  }, [enabled, gameState?.activeMole?.animState, gameState?.wordsHit.length, gameState?.combo, gameState, playSfx]);
+
+    if (!currentHint) {
+      lastHintVoiceSourceRef.current = null;
+      if (hintVoiceDelayRef.current !== null) {
+        window.clearTimeout(hintVoiceDelayRef.current);
+        hintVoiceDelayRef.current = null;
+      }
+      return;
+    }
+
+    if (!gameState.isEvaluating && currentHint !== lastHintVoiceSourceRef.current) {
+      lastHintVoiceSourceRef.current = currentHint;
+      scheduleHintVoice(currentHint);
+    }
+  }, [
+    enabled,
+    gameState?.activeMole?.animState,
+    gameState?.wordsHit.length,
+    gameState?.combo,
+    gameState,
+    clearDelayedAudio,
+    playSfx,
+    scheduleHintVoice,
+    stopActiveHintVoice,
+  ]);
 
   useEffect(() => () => {
     cancelBgmFade();
-    if (collectDelayRef.current !== null) {
-      window.clearTimeout(collectDelayRef.current);
-      collectDelayRef.current = null;
-    }
+    clearDelayedAudio();
+    stopActiveHintVoice();
 
     const bgm = bgmRef.current;
     if (bgm) {
@@ -170,5 +278,5 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     }
     bgmRef.current = null;
     sfxTemplatesRef.current = {};
-  }, [cancelBgmFade]);
+  }, [cancelBgmFade, clearDelayedAudio, stopActiveHintVoice]);
 }

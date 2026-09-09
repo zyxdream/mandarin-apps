@@ -1,6 +1,7 @@
 import asyncio
 import io
 import os
+import random
 import re
 import subprocess
 import tempfile
@@ -126,6 +127,9 @@ INITIALS = (
     "w",
 )
 
+GENERIC_HINT_CODE = "nice_try_again"
+GENERIC_RETRY_HINTS = ("Try again", "So close")
+
 HINTS: dict[str, str] = {
     "tone_flat": "Laser flat",
     "tone_rise": "Rocket up",
@@ -144,7 +148,7 @@ HINTS: dict[str, str] = {
     "final_round_mouth": "Round mouth",
     "missing_beat": "Say every beat",
     "extra_beat": "Keep it short",
-    "nice_try_again": "Nice try — again!",
+    GENERIC_HINT_CODE: GENERIC_RETRY_HINTS[0],
     "too_quiet": "🔊 Speak a little louder",
     "try_again_clearer": "🎤 Try again clearer",
 }
@@ -181,7 +185,8 @@ def hint_display_text(code: str, body: str) -> str:
 
 
 def hint_text_for_code(code: str) -> str:
-    return hint_display_text(code, HINTS[code])
+    body = random.choice(GENERIC_RETRY_HINTS) if code == GENERIC_HINT_CODE else HINTS[code]
+    return hint_display_text(code, body)
 
 ISSUE_SEVERITY = {
     "tone_mismatch": 1,
@@ -190,8 +195,6 @@ ISSUE_SEVERITY = {
     "extra_syllable": 4,
     "missing_syllable": 4,
 }
-
-GENERIC_HINT_CODE = "nice_try_again"
 
 MIN_REALTIME_AUDIO_BYTES = int(os.getenv("MIN_REALTIME_AUDIO_BYTES", "9000"))
 MIN_REALTIME_AUDIO_DURATION_MS = int(os.getenv("MIN_REALTIME_AUDIO_DURATION_MS", "300"))
