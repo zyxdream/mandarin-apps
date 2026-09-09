@@ -9,19 +9,33 @@ from threading import Lock
 import numpy as np
 
 
+DEFAULT_MODEL_NAME = "sensevoice-small"
+SENSEVOICE_REQUIRED_FILES = (
+    "am.mvn",
+    "chn_jpn_yue_eng_ko_spectok.bpe.model",
+    "config.yaml",
+    "configuration.json",
+    "model.pt",
+)
+
+
 class LocalAsrUnavailable(RuntimeError):
     pass
 
 
-class SherpaOnnxAsr:
+class SenseVoiceAsr:
     def __init__(self) -> None:
-        self._recognizer = None
+        self._model = None
+        self._postprocess = None
         self._lock = Lock()
 
     @property
     def model_dir(self) -> Path:
-        default_dir = Path(__file__).resolve().parent / "models" / "sherpa-onnx-paraformer-zh-small-2024-03-09"
-        return Path(os.getenv("SHERPA_ONNX_MODEL_DIR", str(default_dir))).expanduser()
+        default_dir = Path(__file__).resolve().parent / "models" / DEFAULT_MODEL_NAME
+        return Path(os.getenv("SENSEVOICE_MODEL_DIR", str(default_dir))).expanduser()
+
+    def model_files_ready(self) -> bool:
+        return all((self.model_dir / filename).exists() for filename in SENSEVOICE_REQUIRED_FILES)
 
     def transcribe_webm(self, audio_bytes: bytes, filename: str = "speech.webm", denoise: bool = False) -> str:
         sample_rate, waveform = self.load_webm_waveform(audio_bytes, filename, denoise=denoise)
@@ -37,59 +51,72 @@ class SherpaOnnxAsr:
             return self._read_wav(wav_path)
 
     def transcribe_waveform(self, sample_rate: int, waveform: np.ndarray) -> str:
-        recognizer = self._get_recognizer()
-        stream = recognizer.create_stream()
-        stream.accept_waveform(sample_rate, waveform)
-        recognizer.decode_stream(stream)
-        return getattr(stream.result, "text", "") or ""
+        model = self._get_model()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wav_path = Path(tmpdir) / "speech.wav"
+            self._write_wav(wav_path, sample_rate, waveform)
+            with self._lock:
+                result = model.generate(
+                    input=str(wav_path),
+                    cache={},
+                    language=os.getenv("SENSEVOICE_LANGUAGE", "zh"),
+                    use_itn=True,
+                    batch_size_s=int(os.getenv("SENSEVOICE_BATCH_SIZE_S", "60")),
+                    merge_vad=True,
+                    merge_length_s=int(os.getenv("SENSEVOICE_MERGE_LENGTH_S", "15")),
+                )
+        return self._extract_text(result)
 
     def ensure_ready(self) -> dict[str, bool | int | str]:
-        already_loaded = self._recognizer is not None
+        already_loaded = self._model is not None
         started_at = time.perf_counter()
-        recognizer = self._get_recognizer()
+        model = self._get_model()
         elapsed_ms = int((time.perf_counter() - started_at) * 1000)
         return {
-            "ready": recognizer is not None,
+            "ready": model is not None,
             "already_loaded": already_loaded,
             "elapsed_ms": elapsed_ms,
             "model_dir": str(self.model_dir),
         }
 
-    def _get_recognizer(self):
-        if self._recognizer is not None:
-            return self._recognizer
+    def _get_model(self):
+        if self._model is not None:
+            return self._model
 
         with self._lock:
-            if self._recognizer is not None:
-                return self._recognizer
+            if self._model is not None:
+                return self._model
 
             try:
-                import sherpa_onnx  # type: ignore[import-not-found]
+                from funasr import AutoModel  # type: ignore[import-not-found]
+                from funasr.utils.postprocess_utils import rich_transcription_postprocess
             except Exception as exc:
                 raise LocalAsrUnavailable(
-                    "sherpa-onnx is not installed. Install it with `pip install sherpa-onnx`."
+                    "FunASR is not installed. Run `python -m pip install -r backend/requirements.txt`."
                 ) from exc
 
             model_dir = self.model_dir
-            model_path = model_dir / "model.int8.onnx"
-            tokens_path = model_dir / "tokens.txt"
-            if not model_path.exists() or not tokens_path.exists():
+            missing_files = [
+                filename for filename in SENSEVOICE_REQUIRED_FILES
+                if not (model_dir / filename).exists()
+            ]
+            if missing_files:
                 raise LocalAsrUnavailable(
-                    "Sherpa ONNX model files are missing. Expected "
-                    f"{model_path} and {tokens_path}. Download "
-                    "sherpa-onnx-paraformer-zh-small-2024-03-09 into backend/models/."
+                    "SenseVoiceSmall model files are missing. Expected "
+                    f"{', '.join(missing_files)} in {model_dir}. Download "
+                    f"{DEFAULT_MODEL_NAME} into backend/models/."
                 )
 
-            self._recognizer = sherpa_onnx.OfflineRecognizer.from_paraformer(
-                paraformer=str(model_path),
-                tokens=str(tokens_path),
-                num_threads=int(os.getenv("SHERPA_ONNX_NUM_THREADS", "2")),
-                sample_rate=16000,
-                feature_dim=80,
-                decoding_method="greedy_search",
-                provider=os.getenv("SHERPA_ONNX_PROVIDER", "cpu"),
+            self._model = AutoModel(
+                model=str(model_dir),
+                vad_model=None,
+                device=os.getenv("SENSEVOICE_DEVICE", "cpu"),
+                hub="hf",
+                disable_update=True,
+                disable_pbar=True,
             )
-            return self._recognizer
+            self._postprocess = rich_transcription_postprocess
+            return self._model
 
     def _convert_to_wav(self, input_path: Path, wav_path: Path, denoise: bool = False) -> None:
         filters = ["highpass=f=80", "lowpass=f=7800"]
@@ -140,5 +167,29 @@ class SherpaOnnxAsr:
         waveform = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
         return sample_rate, waveform
 
+    def _write_wav(self, wav_path: Path, sample_rate: int, waveform: np.ndarray) -> None:
+        clipped = np.clip(waveform, -1.0, 1.0)
+        pcm = (clipped * 32767.0).astype(np.int16)
+        with wave.open(str(wav_path), "wb") as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(sample_rate)
+            wav_file.writeframes(pcm.tobytes())
 
-local_asr = SherpaOnnxAsr()
+    def _extract_text(self, result: object) -> str:
+        if not result or not isinstance(result, list):
+            return ""
+
+        text = ""
+        first = result[0]
+        if isinstance(first, dict):
+            text = str(first.get("text") or "")
+        else:
+            text = str(first)
+
+        if self._postprocess:
+            return str(self._postprocess(text))
+        return text
+
+
+local_asr = SenseVoiceAsr()

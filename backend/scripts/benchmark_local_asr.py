@@ -91,7 +91,7 @@ def benchmark(audio_dir: Path) -> list[dict[str, object]]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Benchmark local sherpa-onnx ASR against the game word list.")
+    parser = argparse.ArgumentParser(description="Benchmark local ASR against the game word list.")
     parser.add_argument(
         "--audio-dir",
         type=Path,
