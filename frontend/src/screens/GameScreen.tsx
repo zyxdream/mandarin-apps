@@ -10,9 +10,11 @@ import { RewardComboPopup } from '../components/RewardComboPopup';
 import type { RewardComboPopupVariant } from '../components/RewardComboPopup';
 import { VoiceMeter } from '../components/MicButton';
 import {
+  advanceSpeechEndpoint,
   blendNoiseFloor,
   computeSpeechThresholds,
   HIGH_SENSITIVITY_SPEECH_CONFIG,
+  resolveSpeechCaptureTiming,
   shouldSkipCaptureQuality,
   shouldSkipWeakUtterance,
 } from '../engine/speechDetection';
@@ -722,6 +724,7 @@ export function GameScreen({
     const now = Date.now();
     const activeMole = gameState.activeMole;
     const thresholds = computeSpeechThresholds(noiseFloorRef.current);
+    const captureTiming = resolveSpeechCaptureTiming(activeMole.word.pinyinRaw);
     const {
       speechStartThreshold,
       speechEndThreshold,
@@ -729,7 +732,6 @@ export function GameScreen({
       minSpeechAverageVolume,
       minSpeechRiseOverNoise,
       speechStartHoldMs,
-      speechEndSilenceMs,
       strikeCooldownMs,
       minSpeechDurationMs,
     } = thresholds;
@@ -769,8 +771,17 @@ export function GameScreen({
     }
 
     voiceCandidateStartedAtRef.current = 0;
-    if (!isSpeakingRef.current || volume > speechEndThreshold) return;
-    if (now - lastVoiceAtRef.current < speechEndSilenceMs) return;
+    if (!isSpeakingRef.current) return;
+
+    const endpoint = advanceSpeechEndpoint(
+      lastVoiceAtRef.current,
+      now,
+      volume,
+      speechEndThreshold,
+      captureTiming.speechEndSilenceMs,
+    );
+    lastVoiceAtRef.current = endpoint.lastVoiceAtMs;
+    if (!endpoint.hasEnded) return;
     if (now - lastStrikeRef.current < strikeCooldownMs) return;
 
     isSpeakingRef.current = false;
@@ -797,9 +808,9 @@ export function GameScreen({
 
     const capture = captureRecentAudio({
       sinceMs: speechStartedAtRef.current,
-      preRollMs: 220,
+      preRollMs: captureTiming.preRollMs,
       untilMs: lastVoiceAtRef.current,
-      postRollMs: 90,
+      postRollMs: captureTiming.postRollMs,
     });
     if (!capture) {
       console.warn('[speech] skipped: no captured audio', {
@@ -843,6 +854,7 @@ export function GameScreen({
       word: activeMole.word.hanzi,
       speechDurationMs,
       silenceWaitMs: speechEndedAt - lastVoiceAtRef.current,
+      targetSilenceWaitMs: captureTiming.speechEndSilenceMs,
       peakVolume: Number(speechPeakVolume.toFixed(3)),
       averageVolume: Number(stats.averageVolume.toFixed(3)),
       bytes: capture.blob.size,

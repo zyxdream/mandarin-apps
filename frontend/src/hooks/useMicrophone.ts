@@ -40,7 +40,7 @@ interface VolumeSample {
 }
 
 const RECENT_AUDIO_WINDOW_MS = 1800;
-const MAX_AUDIO_BUFFER_MS = 3200;
+const MAX_AUDIO_BUFFER_MS = 5000;
 const TARGET_SAMPLE_RATE = 16000;
 const METER_SENSITIVITY = {
   rmsFloor: 0.0065,

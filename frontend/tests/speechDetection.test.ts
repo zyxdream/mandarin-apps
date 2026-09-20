@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  advanceSpeechEndpoint,
   blendNoiseFloor,
   computeSpeechThresholds,
+  resolveSpeechCaptureTiming,
   shouldSkipCaptureQuality,
   shouldSkipWeakUtterance,
 } from '../src/engine/speechDetection.js';
@@ -57,4 +59,71 @@ test('quiet but clear capture passes quality gate', () => {
     thresholds,
   );
   assert.equal(shouldSkip, false);
+});
+
+test('speech capture timing uses a shorter endpoint for one syllable', () => {
+  assert.deepEqual(resolveSpeechCaptureTiming('si4'), {
+    speechEndSilenceMs: 350,
+    preRollMs: 220,
+    postRollMs: 150,
+  });
+});
+
+test('speech capture timing gives two and three syllables more pause time', () => {
+  for (const pinyinRaw of ['pa2 shu4', 'yi1 er4 san1']) {
+    assert.deepEqual(resolveSpeechCaptureTiming(pinyinRaw), {
+      speechEndSilenceMs: 600,
+      preRollMs: 220,
+      postRollMs: 150,
+    });
+  }
+});
+
+test('speech capture timing normalizes whitespace between valid syllables', () => {
+  assert.equal(
+    resolveSpeechCaptureTiming('  pa2\t\n shu4  ').speechEndSilenceMs,
+    600,
+  );
+});
+
+test('speech capture timing safely falls back for missing or malformed pinyin', () => {
+  for (const pinyinRaw of [undefined, null, '', '   ', 'si', 'pa2-shu4']) {
+    assert.equal(resolveSpeechCaptureTiming(pinyinRaw).speechEndSilenceMs, 600);
+  }
+});
+
+test('multi-syllable endpoint stays open at 500 ms and ends at 600 ms', () => {
+  const stillWaiting = advanceSpeechEndpoint(1_000, 1_500, 0.01, 0.028, 600);
+  assert.deepEqual(stillWaiting, {
+    lastVoiceAtMs: 1_000,
+    hasEnded: false,
+  });
+
+  const ended = advanceSpeechEndpoint(1_000, 1_600, 0.01, 0.028, 600);
+  assert.deepEqual(ended, {
+    lastVoiceAtMs: 1_000,
+    hasEnded: true,
+  });
+});
+
+test('single-syllable endpoint ends exactly at its 350 ms boundary', () => {
+  assert.equal(advanceSpeechEndpoint(2_000, 2_349, 0.01, 0.028, 350).hasEnded, false);
+  assert.equal(advanceSpeechEndpoint(2_000, 2_350, 0.01, 0.028, 350).hasEnded, true);
+});
+
+test('quiet active speech refreshes the endpoint before silence is counted', () => {
+  const quietSpeech = advanceSpeechEndpoint(1_000, 1_400, 0.04, 0.028, 350);
+  assert.deepEqual(quietSpeech, {
+    lastVoiceAtMs: 1_400,
+    hasEnded: false,
+  });
+
+  assert.equal(
+    advanceSpeechEndpoint(quietSpeech.lastVoiceAtMs, 1_749, 0.01, 0.028, 350).hasEnded,
+    false,
+  );
+  assert.equal(
+    advanceSpeechEndpoint(quietSpeech.lastVoiceAtMs, 1_750, 0.01, 0.028, 350).hasEnded,
+    true,
+  );
 });

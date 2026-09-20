@@ -8,7 +8,6 @@ export interface SpeechDetectionConfig {
   readonly speechEndBase: number;
   readonly speechEndNoiseMultiple: number;
   readonly speechStartHoldMs: number;
-  readonly speechEndSilenceMs: number;
   readonly strikeCooldownMs: number;
   readonly minSpeechDurationMs: number;
   readonly minSpeechPeakBase: number;
@@ -29,7 +28,6 @@ export const HIGH_SENSITIVITY_SPEECH_CONFIG: SpeechDetectionConfig = {
   speechEndBase: 0.028,
   speechEndNoiseMultiple: 1.15,
   speechStartHoldMs: 120,
-  speechEndSilenceMs: 220,
   strikeCooldownMs: 1050,
   minSpeechDurationMs: 320,
   minSpeechPeakBase: 0.082,
@@ -47,10 +45,26 @@ export interface SpeechThresholds {
   readonly minSpeechAverageVolume: number;
   readonly minSpeechRiseOverNoise: number;
   readonly speechStartHoldMs: number;
-  readonly speechEndSilenceMs: number;
   readonly strikeCooldownMs: number;
   readonly minSpeechDurationMs: number;
 }
+
+export interface SpeechCaptureTiming {
+  readonly speechEndSilenceMs: number;
+  readonly preRollMs: number;
+  readonly postRollMs: number;
+}
+
+export interface ActiveSpeechEndpoint {
+  readonly lastVoiceAtMs: number;
+  readonly hasEnded: boolean;
+}
+
+const SINGLE_SYLLABLE_END_SILENCE_MS = 350;
+const MULTI_SYLLABLE_END_SILENCE_MS = 600;
+const SPEECH_PRE_ROLL_MS = 220;
+const SPEECH_POST_ROLL_MS = 150;
+const NUMBERED_PINYIN_SYLLABLE = /^[a-züv:]+[1-5]$/i;
 
 export interface SpeechCaptureStats {
   readonly durationMs: number;
@@ -84,9 +98,42 @@ export function computeSpeechThresholds(
     minSpeechAverageVolume,
     minSpeechRiseOverNoise,
     speechStartHoldMs: config.speechStartHoldMs,
-    speechEndSilenceMs: config.speechEndSilenceMs,
     strikeCooldownMs: config.strikeCooldownMs,
     minSpeechDurationMs: config.minSpeechDurationMs,
+  };
+}
+
+export function resolveSpeechCaptureTiming(pinyinRaw?: string | null): SpeechCaptureTiming {
+  const syllables = (pinyinRaw ?? '').trim().split(/\s+/).filter(Boolean);
+  const hasValidSyllables = syllables.length > 0 && syllables.every(syllable => NUMBERED_PINYIN_SYLLABLE.test(syllable));
+  const isSingleSyllable = hasValidSyllables && syllables.length === 1;
+
+  return {
+    speechEndSilenceMs: isSingleSyllable
+      ? SINGLE_SYLLABLE_END_SILENCE_MS
+      : MULTI_SYLLABLE_END_SILENCE_MS,
+    preRollMs: SPEECH_PRE_ROLL_MS,
+    postRollMs: SPEECH_POST_ROLL_MS,
+  };
+}
+
+export function advanceSpeechEndpoint(
+  currentLastVoiceAtMs: number,
+  nowMs: number,
+  volume: number,
+  speechEndThreshold: number,
+  speechEndSilenceMs: number,
+): ActiveSpeechEndpoint {
+  if (volume > speechEndThreshold) {
+    return {
+      lastVoiceAtMs: nowMs,
+      hasEnded: false,
+    };
+  }
+
+  return {
+    lastVoiceAtMs: currentLastVoiceAtMs,
+    hasEnded: nowMs - currentLastVoiceAtMs >= speechEndSilenceMs,
   };
 }
 
