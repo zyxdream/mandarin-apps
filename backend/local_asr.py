@@ -41,6 +41,26 @@ class SenseVoiceAsr:
         sample_rate, waveform = self.load_webm_waveform(audio_bytes, filename, denoise=denoise)
         return self.transcribe_waveform(sample_rate, waveform)
 
+    def transcribe_webm_with_timings(
+        self,
+        audio_bytes: bytes,
+        filename: str = "speech.webm",
+        denoise: bool = False,
+    ) -> tuple[str, dict[str, int]]:
+        started_at = time.perf_counter()
+        decode_started_at = time.perf_counter()
+        sample_rate, waveform = self.load_webm_waveform(audio_bytes, filename, denoise=denoise)
+        decode_ms = self._elapsed_ms(decode_started_at)
+        transcript, timings = self.transcribe_waveform_with_timings(sample_rate, waveform)
+        timings = {
+            **timings,
+            "audio_decode_ms": decode_ms,
+            "total_ms": self._elapsed_ms(started_at),
+            "sample_rate": sample_rate,
+            "samples": int(waveform.size),
+        }
+        return transcript, timings
+
     def load_webm_waveform(self, audio_bytes: bytes, filename: str = "speech.webm", denoise: bool = False) -> tuple[int, np.ndarray]:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
@@ -51,11 +71,27 @@ class SenseVoiceAsr:
             return self._read_wav(wav_path)
 
     def transcribe_waveform(self, sample_rate: int, waveform: np.ndarray) -> str:
+        transcript, _ = self.transcribe_waveform_with_timings(sample_rate, waveform)
+        return transcript
+
+    def transcribe_waveform_with_timings(self, sample_rate: int, waveform: np.ndarray) -> tuple[str, dict[str, int]]:
+        started_at = time.perf_counter()
+        model_started_at = time.perf_counter()
         model = self._get_model()
+        timings = {
+            "model_ready_ms": self._elapsed_ms(model_started_at),
+            "sample_rate": sample_rate,
+            "samples": int(waveform.size),
+        }
         with tempfile.TemporaryDirectory() as tmpdir:
             wav_path = Path(tmpdir) / "speech.wav"
+            write_started_at = time.perf_counter()
             self._write_wav(wav_path, sample_rate, waveform)
+            timings["write_wav_ms"] = self._elapsed_ms(write_started_at)
+            lock_wait_started_at = time.perf_counter()
             with self._lock:
+                timings["lock_wait_ms"] = self._elapsed_ms(lock_wait_started_at)
+                generate_started_at = time.perf_counter()
                 result = model.generate(
                     input=str(wav_path),
                     cache={},
@@ -67,7 +103,12 @@ class SenseVoiceAsr:
                     merge_vad=True,
                     merge_length_s=int(os.getenv("SENSEVOICE_MERGE_LENGTH_S", "15")),
                 )
-        return self._extract_text(result)
+                timings["generate_ms"] = self._elapsed_ms(generate_started_at)
+        postprocess_started_at = time.perf_counter()
+        transcript = self._extract_text(result)
+        timings["postprocess_ms"] = self._elapsed_ms(postprocess_started_at)
+        timings["total_ms"] = self._elapsed_ms(started_at)
+        return transcript, timings
 
     def ensure_ready(self) -> dict[str, bool | int | str]:
         already_loaded = self._model is not None
@@ -192,6 +233,10 @@ class SenseVoiceAsr:
         if self._postprocess:
             return str(self._postprocess(text))
         return text
+
+    def _elapsed_ms(self, started_at: float, ended_at: float | None = None) -> int:
+        ended = ended_at if ended_at is not None else time.perf_counter()
+        return int((ended - started_at) * 1000)
 
 
 local_asr = SenseVoiceAsr()

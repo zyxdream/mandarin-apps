@@ -341,6 +341,36 @@ def debug_log(request_id: str, stage: str, payload: dict, started_at: float | No
     print("[evaluate][debug]", event, flush=True)
 
 
+def elapsed_ms(started_at: float, ended_at: float | None = None) -> int:
+    ended = ended_at if ended_at is not None else time.perf_counter()
+    return int((ended - started_at) * 1000)
+
+
+def timing_ms(timings: dict[str, float], start_key: str, end_key: str) -> int:
+    started_at = timings.get(start_key)
+    ended_at = timings.get(end_key)
+    if started_at is None or ended_at is None:
+        return 0
+    return elapsed_ms(started_at, ended_at)
+
+
+def waveform_duration_ms(sample_rate: int, waveform: np.ndarray) -> int:
+    if sample_rate <= 0:
+        return 0
+    return int((waveform.size / sample_rate) * 1000)
+
+
+def local_latency_summary_payload(timings: dict[str, float]) -> dict[str, int]:
+    return {
+        "total_ms": timing_ms(timings, "request_start", "response_end"),
+        "audio_decode_ms": timing_ms(timings, "audio_decode_start", "audio_decode_end"),
+        "vad_ms": timing_ms(timings, "vad_start", "vad_end"),
+        "asr_ms": timing_ms(timings, "asr_start", "asr_end"),
+        "asr_denoise_ms": timing_ms(timings, "asr_denoise_start", "asr_denoise_end"),
+        "scoring_ms": timing_ms(timings, "scoring_start", "scoring_end"),
+    }
+
+
 def should_run_acoustic(eval_mode: str, request_id: str) -> bool:
     if eval_mode == "practice":
         return True
@@ -1058,6 +1088,18 @@ async def evaluate_pronunciation_local(
                 audio.filename or "speech.webm",
             )
         timings["audio_decode_end"] = time.perf_counter()
+        debug_log(
+            request_id,
+            "local_audio_decode_complete",
+            {
+                "audio_decode_ms": timing_ms(timings, "audio_decode_start", "audio_decode_end"),
+                "audio_format": resolved_audio_format,
+                "sample_rate": sample_rate,
+                "samples": int(waveform.size),
+                "duration_ms": waveform_duration_ms(sample_rate, waveform),
+            },
+            started_at,
+        )
     except HTTPException:
         raise
     except LocalAsrUnavailable as exc:
@@ -1090,6 +1132,7 @@ async def evaluate_pronunciation_local(
                 started_at,
             )
         except LocalVadUnavailable as exc:
+            timings["vad_end"] = time.perf_counter()
             debug_log(
                 request_id,
                 "local_vad_unavailable",
@@ -1101,12 +1144,43 @@ async def evaluate_pronunciation_local(
                 started_at,
             )
         except Exception as exc:
+            timings["vad_end"] = time.perf_counter()
             debug_log(
                 request_id,
                 "local_vad_failed",
                 {"error": str(exc)},
                 started_at,
             )
+        debug_log(
+            request_id,
+            "local_vad_complete",
+            {
+                "vad_ms": timing_ms(timings, "vad_start", "vad_end"),
+                "enabled": local_vad.enabled,
+                "detected": vad_result.detected if vad_result else None,
+                "speech_ms": vad_result.speech_ms if vad_result else 0,
+                "speech_ratio": vad_result.speech_ratio if vad_result else 0,
+                "cropped_samples": int(vad_result.cropped_waveform.size) if vad_result else 0,
+                "segments": vad_result.segment_count if vad_result else 0,
+                "reason": vad_result.reason if vad_result else "unavailable_or_failed",
+            },
+            started_at,
+        )
+    else:
+        debug_log(
+            request_id,
+            "local_vad_complete",
+            {
+                "vad_ms": 0,
+                "skipped": True,
+                "eval_mode": eval_mode,
+                "detected": None,
+                "speech_ms": 0,
+                "speech_ratio": 0,
+                "cropped_samples": 0,
+            },
+            started_at,
+        )
 
     if eval_mode == "realtime" and should_reject_realtime_audio(activity, vad_result):
         timings["response_end"] = time.perf_counter()
@@ -1128,15 +1202,35 @@ async def evaluate_pronunciation_local(
         )
         debug_log(
             request_id,
-            "local_latency_summary",
+            "local_sensevoice_complete",
             {
-                "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
-                "audio_decode_ms": int((timings["audio_decode_end"] - timings["audio_decode_start"]) * 1000),
-                "vad_ms": int((timings.get("vad_end", timings["response_end"]) - timings.get("vad_start", timings.get("audio_decode_end", timings["response_end"]))) * 1000),
                 "asr_ms": 0,
-                "asr_denoise_ms": 0,
-                "scoring_ms": 0,
+                "skipped": True,
+                "reason": "no_speech_rejected",
+                "transcript": "",
+                "samples_for_asr": 0,
+                "used_vad_crop": False,
             },
+            started_at,
+        )
+        debug_log(
+            request_id,
+            "local_scoring_complete",
+            {
+                "scoring_ms": 0,
+                "skipped": True,
+                "reason": "no_speech_rejected",
+                "success": False,
+                "confidence": 0.0,
+                "hint_code": "too_quiet",
+                "transcript_pinyin": "",
+            },
+            started_at,
+        )
+        debug_log(
+            request_id,
+            "local_latency_summary",
+            local_latency_summary_payload(timings),
             started_at,
         )
         return EvaluateResponse(
@@ -1147,15 +1241,16 @@ async def evaluate_pronunciation_local(
             hint_text=hint_text_for_code("too_quiet"),
         )
 
+    used_vad_crop = bool(eval_mode == "realtime" and vad_result and vad_result.detected and vad_result.cropped_waveform.size)
     waveform_for_asr = waveform
-    if eval_mode == "realtime" and vad_result and vad_result.detected and vad_result.cropped_waveform.size:
+    if used_vad_crop and vad_result:
         waveform_for_asr = vad_result.cropped_waveform
     if eval_mode == "realtime":
         debug_log(
             request_id,
             "local_asr_input_selected",
             {
-                "used_vad_crop": bool(vad_result and vad_result.detected and vad_result.cropped_waveform.size),
+                "used_vad_crop": used_vad_crop,
                 "samples_original": int(waveform.size),
                 "samples_for_asr": int(waveform_for_asr.size),
             },
@@ -1164,7 +1259,11 @@ async def evaluate_pronunciation_local(
 
     try:
         timings["asr_start"] = time.perf_counter()
-        transcript = await asyncio.to_thread(local_asr.transcribe_waveform, sample_rate, waveform_for_asr)
+        transcript, asr_timings = await asyncio.to_thread(
+            local_asr.transcribe_waveform_with_timings,
+            sample_rate,
+            waveform_for_asr,
+        )
         timings["asr_end"] = time.perf_counter()
     except LocalAsrUnavailable as exc:
         debug_log(request_id, "local_asr_unavailable", {"error": str(exc)}, started_at)
@@ -1173,6 +1272,24 @@ async def evaluate_pronunciation_local(
         debug_log(request_id, "local_asr_failed", {"error": str(exc)}, started_at)
         raise HTTPException(status_code=502, detail="Local FunASR transcription failed") from exc
 
+    debug_log(
+        request_id,
+        "local_sensevoice_complete",
+        {
+            "asr_ms": timing_ms(timings, "asr_start", "asr_end"),
+            "transcript": transcript,
+            "samples_for_asr": int(waveform_for_asr.size),
+            "duration_ms": waveform_duration_ms(sample_rate, waveform_for_asr),
+            "used_vad_crop": used_vad_crop,
+            "model_ready_ms": asr_timings.get("model_ready_ms", 0),
+            "write_wav_ms": asr_timings.get("write_wav_ms", 0),
+            "lock_wait_ms": asr_timings.get("lock_wait_ms", 0),
+            "generate_ms": asr_timings.get("generate_ms", 0),
+            "postprocess_ms": asr_timings.get("postprocess_ms", 0),
+            "internal_total_ms": asr_timings.get("total_ms", 0),
+        },
+        started_at,
+    )
     debug_log(request_id, "local_asr_transcript", {"transcript": transcript}, started_at)
     transcript_usable = is_transcript_usable(transcript, pinyin_raw, eval_mode=eval_mode)
     if should_attempt_local_denoise_retry(resolved_audio_format, transcript_usable, vad_result, eval_mode):
@@ -1184,13 +1301,31 @@ async def evaluate_pronunciation_local(
         )
         try:
             timings["asr_denoise_start"] = time.perf_counter()
-            retry_transcript = await asyncio.to_thread(
-                local_asr.transcribe_webm,
+            retry_transcript, retry_asr_timings = await asyncio.to_thread(
+                local_asr.transcribe_webm_with_timings,
                 audio_bytes,
                 audio.filename or "speech.webm",
                 True,
             )
             timings["asr_denoise_end"] = time.perf_counter()
+            debug_log(
+                request_id,
+                "local_asr_denoise_retry_complete",
+                {
+                    "asr_denoise_ms": timing_ms(timings, "asr_denoise_start", "asr_denoise_end"),
+                    "retry_transcript": retry_transcript,
+                    "audio_decode_ms": retry_asr_timings.get("audio_decode_ms", 0),
+                    "model_ready_ms": retry_asr_timings.get("model_ready_ms", 0),
+                    "write_wav_ms": retry_asr_timings.get("write_wav_ms", 0),
+                    "lock_wait_ms": retry_asr_timings.get("lock_wait_ms", 0),
+                    "generate_ms": retry_asr_timings.get("generate_ms", 0),
+                    "postprocess_ms": retry_asr_timings.get("postprocess_ms", 0),
+                    "internal_total_ms": retry_asr_timings.get("total_ms", 0),
+                    "sample_rate": retry_asr_timings.get("sample_rate", 0),
+                    "samples": retry_asr_timings.get("samples", 0),
+                },
+                started_at,
+            )
             debug_log(
                 request_id,
                 "local_asr_denoise_retry_transcript",
@@ -1207,10 +1342,14 @@ async def evaluate_pronunciation_local(
                     started_at,
                 )
         except Exception as retry_exc:
+            timings["asr_denoise_end"] = time.perf_counter()
             debug_log(
                 request_id,
                 "local_asr_denoise_retry_failed",
-                {"error": str(retry_exc)},
+                {
+                    "error": str(retry_exc),
+                    "asr_denoise_ms": timing_ms(timings, "asr_denoise_start", "asr_denoise_end"),
+                },
                 started_at,
             )
 
@@ -1229,15 +1368,22 @@ async def evaluate_pronunciation_local(
         )
         debug_log(
             request_id,
-            "local_latency_summary",
+            "local_scoring_complete",
             {
-                "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
-                "audio_decode_ms": int((timings["audio_decode_end"] - timings["audio_decode_start"]) * 1000),
-                "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
-                "asr_denoise_ms": int((timings.get("asr_denoise_end", timings.get("asr_denoise_start", timings["response_end"])) - timings.get("asr_denoise_start", timings["response_end"])) * 1000),
-                "vad_ms": int((timings.get("vad_end", timings["response_end"]) - timings.get("vad_start", timings.get("audio_decode_end", timings["response_end"]))) * 1000),
                 "scoring_ms": 0,
+                "skipped": True,
+                "reason": "unusable_transcript",
+                "success": False,
+                "confidence": 0.0,
+                "hint_code": "try_again_clearer",
+                "transcript_pinyin": "",
             },
+            started_at,
+        )
+        debug_log(
+            request_id,
+            "local_latency_summary",
+            local_latency_summary_payload(timings),
             started_at,
         )
         return EvaluateResponse(
@@ -1261,18 +1407,23 @@ async def evaluate_pronunciation_local(
         started_at=started_at,
     )
     timings["scoring_end"] = time.perf_counter()
+    debug_log(
+        request_id,
+        "local_scoring_complete",
+        {
+            "scoring_ms": timing_ms(timings, "scoring_start", "scoring_end"),
+            "success": success,
+            "confidence": round(confidence, 3),
+            "hint_code": hint_code,
+            "transcript_pinyin": transcript_pinyin,
+        },
+        started_at,
+    )
     timings["response_end"] = time.perf_counter()
     debug_log(
         request_id,
         "local_latency_summary",
-        {
-            "total_ms": int((timings["response_end"] - timings["request_start"]) * 1000),
-            "audio_decode_ms": int((timings["audio_decode_end"] - timings["audio_decode_start"]) * 1000),
-            "asr_ms": int((timings.get("asr_end", timings["response_end"]) - timings.get("asr_start", timings["request_start"])) * 1000),
-            "asr_denoise_ms": int((timings.get("asr_denoise_end", timings.get("asr_denoise_start", timings["response_end"])) - timings.get("asr_denoise_start", timings["response_end"])) * 1000),
-            "vad_ms": int((timings.get("vad_end", timings["response_end"]) - timings.get("vad_start", timings.get("audio_decode_end", timings["response_end"]))) * 1000),
-            "scoring_ms": int((timings["scoring_end"] - timings["scoring_start"]) * 1000),
-        },
+        local_latency_summary_payload(timings),
         started_at,
     )
 
