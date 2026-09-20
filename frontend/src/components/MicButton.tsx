@@ -5,6 +5,7 @@ import { pinyinUnitAudioUrl } from '../data/session';
 import { REWARD_FOODS, type RewardFood } from '../data/rewards';
 import type { ScriptSession, ScriptToken } from '../data/scriptSessions';
 import { referenceAudioUrl } from '../audio/referenceAudio';
+import type { DeepWarmupStatus } from '../warmup/backendWarmup';
 
 const HANZI_TOKEN_WEIGHT = 1;
 const SENTENCE_PAUSE_WEIGHT = 1.6;
@@ -27,6 +28,8 @@ interface VoiceMeterProps {
   selectedFood: RewardFood;
   onSelectFood: (food: RewardFood) => void;
   onEnableMic: () => void | Promise<void>;
+  isPreparingGame: boolean;
+  asrWarmupStatus: DeepWarmupStatus;
 }
 
 interface ReadyPanelSize {
@@ -267,6 +270,8 @@ export function VoiceMeter({
   selectedFood,
   onSelectFood,
   onEnableMic,
+  isPreparingGame,
+  asrWarmupStatus,
 }: VoiceMeterProps) {
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const [playingUnitId, setPlayingUnitId] = useState<string | null>(null);
@@ -275,6 +280,7 @@ export function VoiceMeter({
   const [scriptCurrentTime, setScriptCurrentTime] = useState(0);
   const [scriptDuration, setScriptDuration] = useState(0);
   const needsEnable = micState === 'idle' || micState === 'requesting';
+  const showReadyPanel = needsEnable || isPreparingGame;
   const [readyPanelSize, setReadyPanelSize] = useState<ReadyPanelSize>(() => getDefaultReadyPanelSize());
   const [isResizingReadyPanel, setIsResizingReadyPanel] = useState(false);
   const readyPanelDragRef = useRef<{
@@ -285,7 +291,7 @@ export function VoiceMeter({
     startMaxHeight: number;
     bounds: ReadyPanelBounds;
   } | null>(null);
-  const wasNeedsEnableRef = useRef(needsEnable);
+  const wasReadyPanelVisibleRef = useRef(showReadyPanel);
   const currentScriptTokenIndex = isScriptPlaying
     ? activeScriptTokenIndex(scriptSession.scriptTokens, scriptCurrentTime, scriptDuration)
     : null;
@@ -484,7 +490,7 @@ export function VoiceMeter({
   }, []);
 
   const handleResizeStart = useCallback((anchor: ReadyPanelResizeAnchor, event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!needsEnable || typeof window === 'undefined') return;
+    if (!showReadyPanel || typeof window === 'undefined') return;
     event.preventDefault();
     event.stopPropagation();
 
@@ -499,24 +505,24 @@ export function VoiceMeter({
 
     setIsResizingReadyPanel(true);
     event.currentTarget.setPointerCapture(event.pointerId);
-  }, [needsEnable, readyPanelSize.maxHeightPx, readyPanelSize.widthPx]);
+  }, [readyPanelSize.maxHeightPx, readyPanelSize.widthPx, showReadyPanel]);
 
   useEffect(() => {
-    if (needsEnable && !wasNeedsEnableRef.current) {
+    if (showReadyPanel && !wasReadyPanelVisibleRef.current) {
       setReadyPanelSize(getDefaultReadyPanelSize());
     }
-    wasNeedsEnableRef.current = needsEnable;
-  }, [needsEnable]);
+    wasReadyPanelVisibleRef.current = showReadyPanel;
+  }, [showReadyPanel]);
 
   useEffect(() => {
-    if (!needsEnable) return undefined;
+    if (!showReadyPanel) return undefined;
     const handleViewportResize = () => {
       setReadyPanelSize(current => clampReadyPanelSizeToViewport(current));
     };
 
     window.addEventListener('resize', handleViewportResize);
     return () => window.removeEventListener('resize', handleViewportResize);
-  }, [clampReadyPanelSizeToViewport, needsEnable]);
+  }, [clampReadyPanelSizeToViewport, showReadyPanel]);
 
   useEffect(() => {
     if (!isResizingReadyPanel) return undefined;
@@ -565,23 +571,32 @@ export function VoiceMeter({
   const readyPanelStyle: (CSSProperties & {
     '--ready-panel-width': string;
     '--ready-panel-max-height': string;
-  }) | undefined = needsEnable
+  }) | undefined = showReadyPanel
     ? {
       '--ready-panel-width': `${readyPanelSize.widthPx}px`,
       '--ready-panel-max-height': `${readyPanelSize.maxHeightPx}px`,
     }
     : undefined;
   const volumePercent = Math.round(Math.max(0, Math.min(100, volume * 100)));
+  const isWarmupPending = isPreparingGame && asrWarmupStatus !== 'ready' && asrWarmupStatus !== 'failed';
+  const readyButtonDisabled = micState === 'requesting' || (isPreparingGame && asrWarmupStatus !== 'failed');
+  const readyButtonLabel = (() => {
+    if (micState === 'requesting') return 'Opening mic...';
+    if (isPreparingGame && asrWarmupStatus === 'failed') return 'Try again';
+    if (isPreparingGame && asrWarmupStatus === 'ready' && micState === 'listening') return 'Starting...';
+    if (isWarmupPending) return 'Loading pronunciation...';
+    return 'Ready? Set, Go!';
+  })();
 
   return (
     <div
-      className={`voice-meter voice-meter--${micState}${needsEnable ? ' voice-meter--ready' : ''}${isResizingReadyPanel ? ' voice-meter--resizing' : ''}`}
+      className={`voice-meter voice-meter--${micState}${showReadyPanel ? ' voice-meter--ready' : ''}${isResizingReadyPanel ? ' voice-meter--resizing' : ''}`}
       style={readyPanelStyle}
     >
       <div className="voice-meter-header">
-        <span>{needsEnable ? 'Practice before the game' : 'Voice meter'}</span>
+        <span>{showReadyPanel ? 'Practice before the game' : 'Voice meter'}</span>
       </div>
-      {needsEnable && (
+      {showReadyPanel && (
         <div className="session-practice">
           <button
             type="button"
@@ -656,7 +671,7 @@ export function VoiceMeter({
           </div>
         </div>
       )}
-      {needsEnable && (
+      {showReadyPanel && (
         <>
           <button
             type="button"
@@ -674,9 +689,9 @@ export function VoiceMeter({
           />
         </>
       )}
-      {needsEnable ? (
-        <button className="voice-meter-button" onClick={handleEnableMic} disabled={micState === 'requesting'}>
-          {micState === 'requesting' ? 'Opening mic...' : 'Ready? Set, Go!'}
+      {showReadyPanel ? (
+        <button className="voice-meter-button" onClick={handleEnableMic} disabled={readyButtonDisabled}>
+          {readyButtonLabel}
         </button>
       ) : (
         <>

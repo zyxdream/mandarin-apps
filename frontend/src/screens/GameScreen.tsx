@@ -22,7 +22,13 @@ import { DevEvalCenterPanel, PedagogyHint } from '../components/PronunciationHin
 import type { UiDockLayout } from '../engine/uiDockLayout';
 import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
-import { pingHealthWarmup, warmupDeepIfStaleOrFailed } from '../warmup/backendWarmup';
+import {
+  getDeepWarmupSnapshot,
+  pingHealthWarmup,
+  subscribeDeepWarmup,
+  warmupDeepIfStaleOrFailed,
+  type DeepWarmupSnapshot,
+} from '../warmup/backendWarmup';
 import type { ActiveMoleOverlayLayout, ResolveIncorrectHintPlacementResult } from '../engine/overlayPlacement';
 import {
   estimateBaoziOverlaySizes,
@@ -367,6 +373,8 @@ export function GameScreen({
   const dockRef = useRef<HTMLDivElement | null>(null);
   const [dockLayout, setDockLayout] = useState<UiDockLayout>({ dockHeightPx: 0, safeBottomPx: 0 });
   const [hasRoundStarted, setHasRoundStarted] = useState(false);
+  const [hasStartBeenRequested, setHasStartBeenRequested] = useState(false);
+  const [deepWarmupSnapshot, setDeepWarmupSnapshot] = useState<DeepWarmupSnapshot>(() => getDeepWarmupSnapshot());
   const [comboPopupState, setComboPopupState] = useState<RewardComboPopupState | null>(null);
   const comboPopupTriggerRef = useRef(0);
   const previousHitCountRef = useRef(0);
@@ -383,11 +391,15 @@ export function GameScreen({
   }, []);
 
   useEffect(() => {
-    if (micState !== 'listening' || startedRoundRef.current) return;
+    return subscribeDeepWarmup(setDeepWarmupSnapshot);
+  }, []);
+
+  useEffect(() => {
+    if (!hasStartBeenRequested || micState !== 'listening' || !deepWarmupSnapshot.ready || startedRoundRef.current) return;
     startedRoundRef.current = true;
     setHasRoundStarted(true);
     startGame();
-  }, [micState, startGame]);
+  }, [deepWarmupSnapshot.ready, hasStartBeenRequested, micState, startGame]);
 
   useEffect(() => {
     if (gameState?.screen === 'result' && !calledGameOverRef.current) {
@@ -683,7 +695,8 @@ export function GameScreen({
     return undefined;
   })();
   const pedagogyHintClassName = buildPedagogyHintClassName(hintPlacementMode);
-  const isMicStartScreen = !hasRoundStarted && micState !== 'listening';
+  const isMicStartScreen = !hasRoundStarted;
+  const isPreparingGame = hasStartBeenRequested && !hasRoundStarted;
   const showPauseButton = hasRoundStarted && micState === 'listening';
   const isGamePaused = Boolean(gameState?.isPaused);
   const pauseControlLabel = isGamePaused ? '▶' : '||';
@@ -692,9 +705,14 @@ export function GameScreen({
     togglePause();
   }, [togglePause]);
   const handleEnableMic = useCallback(async () => {
-    void warmupDeepIfStaleOrFailed('ready_click');
-    await startListening();
-  }, [startListening]);
+    setHasStartBeenRequested(true);
+    const warmupPromise = warmupDeepIfStaleOrFailed('ready_click');
+    if (micState === 'listening') {
+      await warmupPromise;
+      return;
+    }
+    await Promise.all([startListening(), warmupPromise]);
+  }, [micState, startListening]);
 
   useGameAudio(gameState, micState === 'listening' && gameState?.screen === 'game');
 
@@ -944,6 +962,8 @@ export function GameScreen({
             selectedFood={selectedFood}
             onSelectFood={onSelectFood}
             onEnableMic={handleEnableMic}
+            isPreparingGame={isPreparingGame}
+            asrWarmupStatus={deepWarmupSnapshot.status}
           />
         </div>
         {!isMicStartScreen ? (

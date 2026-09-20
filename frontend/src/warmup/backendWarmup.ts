@@ -4,10 +4,11 @@ const HEALTH_TIMEOUT_MS = 5000;
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
-type WarmupPhase = 'session_list' | 'ready_click' | 'game_session_start' | 'game_keepalive';
+export type WarmupPhase = 'session_list' | 'ready_click' | 'game_session_start' | 'game_keepalive';
 type WarmupEndpoint = 'deep' | 'health';
+export type DeepWarmupStatus = 'stale' | 'warming' | 'ready' | 'failed';
 
-interface WarmupResult {
+export interface WarmupResult {
   phase: WarmupPhase;
   endpoint: WarmupEndpoint;
   elapsedMs: number;
@@ -16,10 +17,22 @@ interface WarmupResult {
   skipped?: boolean;
 }
 
+export interface DeepWarmupSnapshot {
+  status: DeepWarmupStatus;
+  ready: boolean;
+  warming: boolean;
+  stale: boolean;
+  failed: boolean;
+  lastSuccessAt: number;
+  lastResult: WarmupResult | null;
+}
+
 let deepInFlight: Promise<WarmupResult> | null = null;
 let healthInFlight: Promise<WarmupResult> | null = null;
 let lastDeepSuccessAt = 0;
 let lastDeepFailed = false;
+let lastDeepResult: WarmupResult | null = null;
+const deepWarmupListeners = new Set<(snapshot: DeepWarmupSnapshot) => void>();
 
 function buildUrl(path: string): string {
   try {
@@ -39,6 +52,42 @@ function isDeepWarmupStale(now = Date.now()): boolean {
 
 function shouldRunDeepWarmup(now = Date.now()): boolean {
   return lastDeepFailed || isDeepWarmupStale(now);
+}
+
+export function getDeepWarmupSnapshot(now = Date.now()): DeepWarmupSnapshot {
+  const warming = Boolean(deepInFlight);
+  const stale = isDeepWarmupStale(now);
+  let status: DeepWarmupStatus = 'stale';
+  if (warming) {
+    status = 'warming';
+  } else if (lastDeepFailed) {
+    status = 'failed';
+  } else if (!stale) {
+    status = 'ready';
+  }
+
+  return {
+    status,
+    ready: status === 'ready',
+    warming,
+    stale,
+    failed: status === 'failed',
+    lastSuccessAt: lastDeepSuccessAt,
+    lastResult: lastDeepResult,
+  };
+}
+
+function notifyDeepWarmupListeners(): void {
+  const snapshot = getDeepWarmupSnapshot();
+  deepWarmupListeners.forEach(listener => listener(snapshot));
+}
+
+export function subscribeDeepWarmup(listener: (snapshot: DeepWarmupSnapshot) => void): () => void {
+  deepWarmupListeners.add(listener);
+  listener(getDeepWarmupSnapshot());
+  return () => {
+    deepWarmupListeners.delete(listener);
+  };
 }
 
 async function runWarmupFetch(
@@ -92,7 +141,9 @@ export async function warmupDeep(phase: WarmupPhase, options?: { force?: boolean
       status: null,
       skipped: true,
     };
+    lastDeepResult = result;
     console.log('[warmup]', result);
+    notifyDeepWarmupListeners();
     return result;
   }
 
@@ -100,15 +151,18 @@ export async function warmupDeep(phase: WarmupPhase, options?: { force?: boolean
     deepInFlight = runWarmupFetch('deep', phase, deepWarmupUrl, DEEP_TIMEOUT_MS).finally(() => {
       deepInFlight = null;
     });
+    notifyDeepWarmupListeners();
   }
 
   const result = await deepInFlight;
+  lastDeepResult = result;
   if (result.ok) {
     lastDeepSuccessAt = Date.now();
     lastDeepFailed = false;
   } else {
     lastDeepFailed = true;
   }
+  notifyDeepWarmupListeners();
   return result;
 }
 

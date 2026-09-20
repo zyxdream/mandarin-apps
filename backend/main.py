@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
+import asyncio
 import os
+import time
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -26,6 +28,14 @@ def get_cors_origins() -> list[str]:
 
 
 RESOLVED_CORS_ORIGINS = get_cors_origins()
+FALSE_ENV_VALUES = {"0", "false", "no", "off"}
+
+
+def env_flag(name: str, default: bool) -> bool:
+    configured = os.getenv(name)
+    if configured is None:
+        return default
+    return configured.strip().lower() not in FALSE_ENV_VALUES
 
 
 @asynccontextmanager
@@ -38,9 +48,26 @@ async def lifespan(app: FastAPI):
         },
         flush=True,
     )
-    # Future: load pronunciation model here
+    if env_flag("LOCAL_ASR_PRELOAD", True):
+        started_at = time.perf_counter()
+        print(
+            "[warmup][asr] startup preload start",
+            {"model_dir": str(evaluate.local_asr.model_dir)},
+            flush=True,
+        )
+        try:
+            warmup = await asyncio.to_thread(evaluate.local_asr.ensure_ready)
+        except Exception as exc:
+            print(
+                "[warmup][asr] startup preload failed",
+                {"error": str(exc), "elapsed_ms": int((time.perf_counter() - started_at) * 1000)},
+                flush=True,
+            )
+            raise RuntimeError(f"Local ASR preload failed: {exc}") from exc
+        print("[warmup][asr] startup preload complete", warmup, flush=True)
+    else:
+        print("[warmup][asr] startup preload skipped", {"LOCAL_ASR_PRELOAD": "false"}, flush=True)
     yield
-    # Future: clean up model resources here
 
 
 app = FastAPI(
