@@ -222,6 +222,9 @@ PRACTICE_THRESHOLDS = {
 LOCAL_ASR_DENOISE_RETRY_ENABLED = os.getenv("LOCAL_ASR_DENOISE_RETRY", "true").lower() == "true"
 PCM_AUDIO_FORMAT = "pcm_s16le"
 WEBM_AUDIO_FORMAT = "webm_opus"
+TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR = 0.82
+TARGET_AWARE_MISSING_BASE_CONFIDENCE_FLOOR = 0.78
+TARGET_AWARE_EXTRA_SYLLABLE_CONFIDENCE_CEILING = 0.45
 
 
 def normalize_audio_format(audio_format: str | None) -> str:
@@ -435,20 +438,31 @@ def parse_pinyin_syllable(raw: str) -> PinyinSyllable:
     return PinyinSyllable(raw=raw, base=base, initial=initial, final=final, tone=tone)
 
 
-def looks_like_pinyin_text(text: str, expected_syllable_count: int) -> bool:
+def looks_like_pinyin_text(text: str, expected_syllable_count: int, min_syllable_count: int | None = None) -> bool:
     syllables = split_numbered_pinyin(text)
-    if len(syllables) < expected_syllable_count:
+    required_syllable_count = min_syllable_count if min_syllable_count is not None else expected_syllable_count
+    if len(syllables) < required_syllable_count:
         return False
 
-    parsed = [parse_pinyin_syllable(s) for s in syllables[:expected_syllable_count]]
+    parsed = [parse_pinyin_syllable(s) for s in syllables]
     return all(s.base and s.final for s in parsed)
 
 
-def is_transcript_usable(text: str, expected_pinyin_raw: str) -> bool:
+def realtime_pinyin_usable_syllable_floor(expected_syllable_count: int, eval_mode: str = "realtime") -> int:
+    if eval_mode == "realtime" and expected_syllable_count >= 3:
+        return expected_syllable_count - 1
+    return expected_syllable_count
+
+
+def is_transcript_usable(text: str, expected_pinyin_raw: str, eval_mode: str = "realtime") -> bool:
     if has_hanzi(text):
         return True
     expected_syllable_count = len(split_numbered_pinyin(expected_pinyin_raw))
-    return looks_like_pinyin_text(text, expected_syllable_count)
+    return looks_like_pinyin_text(
+        text,
+        expected_syllable_count,
+        realtime_pinyin_usable_syllable_floor(expected_syllable_count, eval_mode),
+    )
 
 
 def pinyin_syllables_from_text(text: str) -> list[str]:
@@ -512,6 +526,64 @@ def syllable_similarity(expected: PinyinSyllable, actual: PinyinSyllable | None)
         "tone_match": tone_match,
         "issue": issue,
     }
+
+
+def pinyin_bases_for_target_match(syllables: list[PinyinSyllable]) -> list[str] | None:
+    bases: list[str] = []
+    for syllable in syllables:
+        if not syllable.base or not syllable.final:
+            return None
+        bases.append(syllable.base)
+    return bases
+
+
+def is_ordered_base_subsequence(candidate_bases: list[str], expected_bases: list[str]) -> bool:
+    expected_index = 0
+    for candidate_base in candidate_bases:
+        while expected_index < len(expected_bases) and expected_bases[expected_index] != candidate_base:
+            expected_index += 1
+        if expected_index >= len(expected_bases):
+            return False
+        expected_index += 1
+    return True
+
+
+def target_aware_realtime_acceptance(
+    expected_syllables: list[PinyinSyllable],
+    transcript_syllables: list[PinyinSyllable],
+    eval_mode: str,
+) -> tuple[bool, float | None, str]:
+    # Keep this in sync with backend/docs/realtime-pronunciation-acceptance-rules.md.
+    if eval_mode != "realtime":
+        return False, None, "disabled_non_realtime"
+
+    expected_bases = pinyin_bases_for_target_match(expected_syllables)
+    transcript_bases = pinyin_bases_for_target_match(transcript_syllables)
+    if not expected_bases or not transcript_bases:
+        return False, None, "missing_valid_bases"
+
+    expected_count = len(expected_bases)
+    transcript_count = len(transcript_bases)
+    if transcript_count > expected_count:
+        return False, None, "extra_syllable"
+
+    if expected_count == 1:
+        if transcript_count == 1 and transcript_bases == expected_bases:
+            return True, TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR, "one_syllable_base_match"
+        return False, None, "one_syllable_base_mismatch"
+
+    if expected_count == 2:
+        if transcript_count == 2 and transcript_bases == expected_bases:
+            return True, TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR, "two_syllable_base_match"
+        return False, None, "two_syllable_base_mismatch"
+
+    if transcript_count == expected_count and transcript_bases == expected_bases:
+        return True, TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR, "full_base_match"
+
+    if transcript_count == expected_count - 1 and is_ordered_base_subsequence(transcript_bases, expected_bases):
+        return True, TARGET_AWARE_MISSING_BASE_CONFIDENCE_FLOOR, "one_missing_ordered_base_subsequence"
+
+    return False, None, "long_base_mismatch"
 
 
 def tone_hint_code(tone: int) -> str:
@@ -833,18 +905,33 @@ def score_transcript(
     thresholds = get_thresholds(eval_mode)
     lexical_score = 1.0 if normalized_expected_hanzi and normalized_expected_hanzi == normalized_transcript_hanzi else hanzi_score
     confidence = (lexical_score * 0.40) + (syllable_score * 0.35) + (tone_score * 0.25)
+    matching_syllable_count = len(transcript_syllables) == len(expected_syllables)
     pinyin_perfect = (
         expected_pinyin == transcript_pinyin and
-        len(transcript_syllables) == len(expected_syllables) and
+        matching_syllable_count and
         syllable_score >= 0.999 and
         tone_text_score >= 0.999
     )
-    success = lexical_score >= thresholds["lexical_exact"] or pinyin_perfect or (
+    lexical_exact = normalized_expected_hanzi and normalized_expected_hanzi == normalized_transcript_hanzi
+    success = bool(lexical_exact) or pinyin_perfect or (
+        matching_syllable_count and
         lexical_score >= thresholds["lexical_floor"] and
         syllable_score >= thresholds["syllable_floor"] and
         tone_score >= thresholds["tone_floor"] and
         confidence >= thresholds["confidence_floor"]
     )
+    target_accepted, target_confidence_floor, target_acceptance_reason = target_aware_realtime_acceptance(
+        expected_syllables,
+        transcript_syllables,
+        eval_mode,
+    )
+    target_rescue_applied = target_accepted and not success
+    if target_accepted:
+        success = True
+        if target_confidence_floor is not None:
+            confidence = max(confidence, target_confidence_floor)
+    elif len(transcript_syllables) > len(expected_syllables):
+        confidence = min(confidence, TARGET_AWARE_EXTRA_SYLLABLE_CONFIDENCE_CEILING)
     scores: dict[str, float | None] = {
         "lexical": round(lexical_score, 3),
         "syllable": round(syllable_score, 3),
@@ -875,6 +962,13 @@ def score_transcript(
                 "confidence": round(confidence, 3),
                 "success": success,
                 "pinyin_perfect": pinyin_perfect,
+                "matching_syllable_count": matching_syllable_count,
+                "target_aware_acceptance": {
+                    "accepted": target_accepted,
+                    "rescue_applied": target_rescue_applied,
+                    "reason": target_acceptance_reason,
+                    "confidence_floor": target_confidence_floor,
+                },
                 "hint_code": hint_code,
                 "hint_text": hint_text,
                 "eval_mode": eval_mode,
@@ -893,6 +987,11 @@ def score_transcript(
             "diagnostics": diagnostics,
             "confidence": round(confidence, 3),
             "success": success,
+            "target_aware_acceptance": {
+                "accepted": target_accepted,
+                "rescue_applied": target_rescue_applied,
+                "reason": target_acceptance_reason,
+            },
             "hint_code": hint_code,
         },
         flush=True,
@@ -1075,7 +1174,7 @@ async def evaluate_pronunciation_local(
         raise HTTPException(status_code=502, detail="Local FunASR transcription failed") from exc
 
     debug_log(request_id, "local_asr_transcript", {"transcript": transcript}, started_at)
-    transcript_usable = is_transcript_usable(transcript, pinyin_raw)
+    transcript_usable = is_transcript_usable(transcript, pinyin_raw, eval_mode=eval_mode)
     if should_attempt_local_denoise_retry(resolved_audio_format, transcript_usable, vad_result, eval_mode):
         debug_log(
             request_id,
@@ -1098,7 +1197,7 @@ async def evaluate_pronunciation_local(
                 {"retry_transcript": retry_transcript},
                 started_at,
             )
-            if retry_transcript and is_transcript_usable(retry_transcript, pinyin_raw):
+            if retry_transcript and is_transcript_usable(retry_transcript, pinyin_raw, eval_mode=eval_mode):
                 transcript = retry_transcript
                 transcript_usable = True
                 debug_log(
@@ -1124,7 +1223,7 @@ async def evaluate_pronunciation_local(
                 "transcript": transcript,
                 "expected_pinyin_raw": pinyin_raw,
                 "has_hanzi": has_hanzi(transcript),
-                "pinyin_like": looks_like_pinyin_text(transcript, len(split_numbered_pinyin(pinyin_raw))),
+                "pinyin_like": is_transcript_usable(transcript, pinyin_raw, eval_mode=eval_mode),
             },
             started_at,
         )
@@ -1372,7 +1471,7 @@ async def evaluate_pronunciation(
     transcript = getattr(transcription, "text", "") or ""
     print("[evaluate] transcript", {"text": transcript}, flush=True)
     debug_log(request_id, "asr_transcript", {"transcript": transcript}, started_at)
-    if not is_transcript_usable(transcript, pinyin_raw):
+    if not is_transcript_usable(transcript, pinyin_raw, eval_mode=eval_mode):
         debug_log(
             request_id,
             "asr_rejected_unusable_transcript",
@@ -1380,7 +1479,7 @@ async def evaluate_pronunciation(
                 "transcript": transcript,
                 "expected_pinyin_raw": pinyin_raw,
                 "has_hanzi": has_hanzi(transcript),
-                "pinyin_like": looks_like_pinyin_text(transcript, len(split_numbered_pinyin(pinyin_raw))),
+                "pinyin_like": is_transcript_usable(transcript, pinyin_raw, eval_mode=eval_mode),
             },
             started_at,
         )
