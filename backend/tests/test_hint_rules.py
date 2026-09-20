@@ -102,6 +102,48 @@ class PronunciationHintRuleTests(unittest.TestCase):
         self.assertIsNone(hint_code)
         self.assertIsNone(hint_text)
 
+    def test_numeric_hanzi_transcripts_are_usable_and_score_successfully(self) -> None:
+        cases = [
+            ("四", "四", "si4"),
+            ("十", "十", "shi2"),
+            ("十四", "十四", "shi2 si4"),
+            ("四十", "四十", "si4 shi2"),
+            ("一二三", "一二三", "yi1 er4 san1"),
+            ("四五", "四五", "si4 wu3"),
+            ("五只", "五只", "wu3 zhi3"),
+        ]
+        for transcript, hanzi, pinyin_raw in cases:
+            with self.subTest(transcript=transcript, hanzi=hanzi):
+                self.assertTrue(is_transcript_usable(transcript, pinyin_raw, eval_mode="realtime"))
+
+                success, _, _, _, _, _, _ = score_transcript(
+                    transcript,
+                    hanzi,
+                    pinyin_raw,
+                    eval_mode="realtime",
+                )
+
+                self.assertTrue(success)
+
+    def test_numeric_transcript_safety_rejects_digits_mismatches_and_extras(self) -> None:
+        self.assertFalse(is_transcript_usable("4", "si4", eval_mode="realtime"))
+
+        cases = [
+            ("4", "四", "si4"),
+            ("十", "四", "si4"),
+            ("四十", "四", "si4"),
+        ]
+        for transcript, hanzi, pinyin_raw in cases:
+            with self.subTest(transcript=transcript, hanzi=hanzi):
+                success, _, _, _, _, _, _ = score_transcript(
+                    transcript,
+                    hanzi,
+                    pinyin_raw,
+                    eval_mode="realtime",
+                )
+
+                self.assertFalse(success)
+
     def test_target_aware_accepts_one_syllable_base_matches(self) -> None:
         cases = [
             ("kou", "口", "kou3"),

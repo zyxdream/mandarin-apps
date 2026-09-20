@@ -60,7 +60,9 @@ class SenseVoiceAsr:
                     input=str(wav_path),
                     cache={},
                     language=os.getenv("SENSEVOICE_LANGUAGE", "zh"),
-                    use_itn=True,
+                    # Pronunciation scoring needs the spoken lexical form. ITN is
+                    # lossy here (for example, 四/十四/一二三 become 4/14/123).
+                    use_itn=False,
                     batch_size_s=int(os.getenv("SENSEVOICE_BATCH_SIZE_S", "60")),
                     merge_vad=True,
                     merge_length_s=int(os.getenv("SENSEVOICE_MERGE_LENGTH_S", "15")),
