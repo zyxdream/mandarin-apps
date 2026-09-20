@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Local generated output and source-asset archives
+.tmp-tests/
+assets_source/
+scripts/__pycache__/
+public/audio/sound_effects/hint_voice_preview/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
