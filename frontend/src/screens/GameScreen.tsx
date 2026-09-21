@@ -389,6 +389,10 @@ export function GameScreen({
   const handleOverlayLayout = useCallback((layout: ActiveMoleOverlayLayout | null) => {
     activeOverlayLayoutRef.current = layout;
   }, []);
+  const { updateSpeechDucking } = useGameAudio(
+    gameState,
+    micState === 'listening' && gameState?.screen === 'game',
+  );
 
   useEffect(() => {
     return subscribeDeepWarmup(setDeepWarmupSnapshot);
@@ -452,8 +456,9 @@ export function GameScreen({
     isSpeakingRef.current = false;
     voiceCandidateStartedAtRef.current = 0;
     speechPeakVolumeRef.current = 0;
+    updateSpeechDucking(false);
     resetCaptureBuffer();
-  }, [activeWordId, resetCaptureBuffer]);
+  }, [activeWordId, resetCaptureBuffer, updateSpeechDucking]);
 
   useEffect(() => {
     if (!gameState) return;
@@ -714,7 +719,16 @@ export function GameScreen({
     await Promise.all([startListening(), warmupPromise]);
   }, [micState, startListening]);
 
-  useGameAudio(gameState, micState === 'listening' && gameState?.screen === 'game');
+  useEffect(() => {
+    const canUseSpeechDucking =
+      micState === 'listening' &&
+      gameState?.screen === 'game' &&
+      Boolean(activeWordId) &&
+      !isGamePaused;
+    if (!canUseSpeechDucking) {
+      updateSpeechDucking(false);
+    }
+  }, [activeWordId, gameState?.screen, isGamePaused, micState, updateSpeechDucking]);
 
   useEffect(() => {
     const isWarmupActive =
@@ -735,6 +749,7 @@ export function GameScreen({
       isSpeakingRef.current = false;
       voiceCandidateStartedAtRef.current = 0;
       speechPeakVolumeRef.current = 0;
+      updateSpeechDucking(false);
       resetCaptureBuffer();
       return;
     }
@@ -769,6 +784,7 @@ export function GameScreen({
     if (volume >= speechStartThreshold) {
       if (!voiceCandidateStartedAtRef.current) {
         voiceCandidateStartedAtRef.current = now;
+        updateSpeechDucking(true);
       }
       if (!isSpeakingRef.current && now - voiceCandidateStartedAtRef.current < speechStartHoldMs) {
         return;
@@ -788,7 +804,12 @@ export function GameScreen({
       return;
     }
 
-    voiceCandidateStartedAtRef.current = 0;
+    if (voiceCandidateStartedAtRef.current) {
+      voiceCandidateStartedAtRef.current = 0;
+      if (!isSpeakingRef.current) {
+        updateSpeechDucking(false);
+      }
+    }
     if (!isSpeakingRef.current) return;
 
     const endpoint = advanceSpeechEndpoint(
@@ -803,6 +824,7 @@ export function GameScreen({
     if (now - lastStrikeRef.current < strikeCooldownMs) return;
 
     isSpeakingRef.current = false;
+    updateSpeechDucking(false);
     lastStrikeRef.current = now;
     const speechDurationMs = now - speechStartedAtRef.current;
     const speechPeakVolume = speechPeakVolumeRef.current;
@@ -883,7 +905,7 @@ export function GameScreen({
       elapsedMs: Math.max(0, Date.now() - speechEndedAt),
     });
     submitEvaluation(capture);
-  }, [captureRecentAudio, gameState?.activeMole, isGamePaused, micState, resetCaptureBuffer, submitEvaluation, volume]);
+  }, [captureRecentAudio, gameState?.activeMole, isGamePaused, micState, resetCaptureBuffer, updateSpeechDucking, submitEvaluation, volume]);
 
   return (
     <div

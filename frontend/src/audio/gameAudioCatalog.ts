@@ -59,6 +59,7 @@ export const GAME_AUDIO = {
     // Guard window: duck BGM while user is expected to speak.
     bgmGuard: 0.04,
     bgmEvaluating: 0.03,
+    bgmSpeaking: 0.02,
     sfx: 0.35,
     hintVoice: 0.32,
   },

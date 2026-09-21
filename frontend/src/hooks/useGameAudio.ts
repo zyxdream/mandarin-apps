@@ -14,8 +14,9 @@ function clampVolume(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
-function getTargetBgmVolume(state: GameState | null): number {
+function getTargetBgmVolume(state: GameState | null, isSpeechDucking: boolean): number {
   if (!state) return GAME_AUDIO.volume.bgmBase;
+  if (isSpeechDucking) return GAME_AUDIO.volume.bgmSpeaking;
 
   const animState = state.activeMole?.animState;
   if (state.isEvaluating || animState === 'listening') {
@@ -34,11 +35,14 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const collectDelayRef = useRef<number | null>(null);
   const hintVoiceDelayRef = useRef<number | null>(null);
   const activeHintVoiceRef = useRef<HTMLAudioElement | null>(null);
+  const speechDuckingRef = useRef(false);
+  const enabledRef = useRef(enabled);
+  const gameStateRef = useRef<GameState | null>(gameState);
 
   const lastAnimStateRef = useRef<string | null>(null);
   const lastHitCountRef = useRef(0);
   const lastHintVoiceSourceRef = useRef<GameState['lastHint'] | null>(null);
-  const targetBgmVolume = getTargetBgmVolume(gameState);
+  const baselineBgmVolume = getTargetBgmVolume(gameState, false);
 
   const clearDelayedAudio = useCallback(() => {
     if (collectDelayRef.current !== null) {
@@ -115,6 +119,15 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     bgmFadeRafRef.current = requestAnimationFrame(tick);
   }, [cancelBgmFade]);
 
+  const updateSpeechDucking = useCallback((shouldDuck: boolean) => {
+    if (speechDuckingRef.current === shouldDuck) return;
+
+    speechDuckingRef.current = shouldDuck;
+    if (!enabledRef.current) return;
+
+    fadeBgmTo(getTargetBgmVolume(gameStateRef.current, shouldDuck));
+  }, [fadeBgmTo]);
+
   const playAudioUrl = useCallback((url: string, volume: number, label: string) => {
     const template = ensureAudioTemplate(url);
     const instance = template.cloneNode(true) as HTMLAudioElement;
@@ -162,7 +175,13 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   }, [playHintVoice, stopActiveHintVoice]);
 
   useEffect(() => {
+    enabledRef.current = enabled;
+    gameStateRef.current = gameState;
+  }, [enabled, gameState]);
+
+  useEffect(() => {
     if (!enabled) {
+      speechDuckingRef.current = false;
       cancelBgmFade();
       clearDelayedAudio();
       stopActiveHintVoice();
@@ -201,8 +220,13 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
       });
     }
 
-    fadeBgmTo(targetBgmVolume);
-  }, [enabled, targetBgmVolume, ensureBgm, fadeBgmTo]);
+    fadeBgmTo(speechDuckingRef.current ? GAME_AUDIO.volume.bgmSpeaking : baselineBgmVolume);
+  }, [
+    enabled,
+    baselineBgmVolume,
+    ensureBgm,
+    fadeBgmTo,
+  ]);
 
   useEffect(() => {
     if (!gameState) return;
@@ -279,4 +303,6 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     bgmRef.current = null;
     sfxTemplatesRef.current = {};
   }, [cancelBgmFade, clearDelayedAudio, stopActiveHintVoice]);
+
+  return { updateSpeechDucking };
 }
