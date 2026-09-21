@@ -92,11 +92,6 @@ interface BaoziUnitPlacement {
   hintTop: number;
 }
 
-interface LockedIncorrectHintPlacement {
-  key: string;
-  placement: ResolveIncorrectHintPlacementResult;
-}
-
 function clampToRange(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   if (max < min) return (min + max) / 2;
@@ -116,23 +111,6 @@ function estimatePedagogyHintSize(viewportWidth: number): { width: number; heigh
     ),
     height: INCORRECT_HINT_HEIGHT_PX,
   };
-}
-
-function buildIncorrectHintLockKey(
-  hint: GameState['lastHint'] | null,
-  activeWordId: string | null,
-  activeSlotIndex: number | null,
-): string | null {
-  if (!hint || hint.code === 'heard_correct') return null;
-  const confidence = Number.isFinite(hint.confidence) ? Math.round(hint.confidence * 1000) : -1;
-  return [
-    activeWordId ?? 'none',
-    String(activeSlotIndex ?? -1),
-    hint.code,
-    hint.text,
-    hint.transcriptPinyin ?? '',
-    confidence,
-  ].join('|');
 }
 
 function resolveRightmostIncorrectHintPlacement({
@@ -380,7 +358,7 @@ export function GameScreen({
   const previousHitCountRef = useRef(0);
   const previousFoodUnitsRef = useRef(0);
   const activeOverlayLayoutRef = useRef<ActiveMoleOverlayLayout | null>(null);
-  const lockedIncorrectHintPlacementRef = useRef<LockedIncorrectHintPlacement | null>(null);
+  const [activeOverlayLayout, setActiveOverlayLayout] = useState<ActiveMoleOverlayLayout | null>(null);
   const activeWordId = gameState?.activeMole?.word.id ?? null;
   const handleCanvasHostRef = useCallback((node: HTMLDivElement | null) => {
     canvasHostRef.current = node;
@@ -388,6 +366,7 @@ export function GameScreen({
   }, []);
   const handleOverlayLayout = useCallback((layout: ActiveMoleOverlayLayout | null) => {
     activeOverlayLayoutRef.current = layout;
+    setActiveOverlayLayout(layout);
   }, []);
   const { updateSpeechDucking } = useGameAudio(
     gameState,
@@ -546,7 +525,6 @@ export function GameScreen({
     : null;
   const isCorrectPedagogyHint = currentPedagogyHint?.code === 'heard_correct';
   const isIncorrectPedagogyHint = Boolean(currentPedagogyHint && !isCorrectPedagogyHint);
-  const activeOverlayLayout = activeOverlayLayoutRef.current;
   const hasMatchingOverlayLayout = Boolean(
     activeOverlayLayout &&
     activeWordId &&
@@ -637,26 +615,7 @@ export function GameScreen({
       })
     : null;
   const resolvedIncorrectHintPlacement = rightmostIncorrectHintPlacement ?? resolvedIncorrectHintPlacementBase;
-  const incorrectHintLockKey = buildIncorrectHintLockKey(currentPedagogyHint, activeWordId, activeSlotIndex);
-  const currentIncorrectHintLock = lockedIncorrectHintPlacementRef.current;
-  if (!incorrectHintLockKey) {
-    if (currentIncorrectHintLock) {
-      lockedIncorrectHintPlacementRef.current = null;
-    }
-  } else if (resolvedIncorrectHintPlacement) {
-    if (!currentIncorrectHintLock || currentIncorrectHintLock.key !== incorrectHintLockKey) {
-      lockedIncorrectHintPlacementRef.current = {
-        key: incorrectHintLockKey,
-        placement: resolvedIncorrectHintPlacement,
-      };
-    }
-  }
-  const stableIncorrectHintPlacement = (
-    incorrectHintLockKey &&
-    lockedIncorrectHintPlacementRef.current?.key === incorrectHintLockKey
-  )
-    ? lockedIncorrectHintPlacementRef.current.placement
-    : resolvedIncorrectHintPlacement;
+  const stableIncorrectHintPlacement = resolvedIncorrectHintPlacement;
   const hasIncorrectHintPlacement = Boolean(stableIncorrectHintPlacement);
   const hintPlacementMode = resolveHintPlacementMode({
     hasIncorrectPlacement: hasIncorrectHintPlacement,
