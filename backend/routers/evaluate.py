@@ -8,7 +8,6 @@ import tempfile
 import time
 import uuid
 import wave
-from difflib import SequenceMatcher
 from pathlib import Path
 from statistics import mean
 
@@ -20,6 +19,16 @@ from pypinyin import Style, lazy_pinyin
 
 from local_asr import LocalAsrUnavailable, local_asr
 from local_vad import LocalVadUnavailable, VadResult, local_vad
+from pronunciation_scoring import (
+    FINAL_WEIGHT,
+    INITIAL_WEIGHT,
+    MIN_SYLLABLE_SCORE,
+    PRONUNCIATION_PASS_THRESHOLD,
+    TONE_WEIGHT,
+    PronunciationScore,
+    parse_pinyin_phrase,
+    score_pronunciation,
+)
 
 try:
     from opencc import OpenCC  # type: ignore[import-not-found]
@@ -73,7 +82,7 @@ class EvaluateResponse(BaseModel):
     transcript: str = ""
     transcript_pinyin: str = ""
     scores: dict[str, float | None] = {}
-    diagnostics: list[dict[str, str | int | bool]] = []
+    diagnostics: list[dict[str, str | int | float | bool]] = []
     hint_code: str | None = None
     hint_text: str | None = None
 
@@ -92,40 +101,6 @@ class LocalAsrWarmupResponse(BaseModel):
     elapsed_ms: int
     model_dir: str
 
-
-class PinyinSyllable(BaseModel):
-    raw: str
-    base: str
-    initial: str
-    final: str
-    tone: int
-
-
-INITIALS = (
-    "zh",
-    "ch",
-    "sh",
-    "b",
-    "p",
-    "m",
-    "f",
-    "d",
-    "t",
-    "n",
-    "l",
-    "g",
-    "k",
-    "h",
-    "j",
-    "q",
-    "x",
-    "r",
-    "z",
-    "c",
-    "s",
-    "y",
-    "w",
-)
 
 GENERIC_HINT_CODE = "nice_try_again"
 GENERIC_RETRY_HINTS = ("Try again", "So close")
@@ -188,14 +163,6 @@ def hint_text_for_code(code: str) -> str:
     body = random.choice(GENERIC_RETRY_HINTS) if code == GENERIC_HINT_CODE else HINTS[code]
     return hint_display_text(code, body)
 
-ISSUE_SEVERITY = {
-    "tone_mismatch": 1,
-    "final_mismatch": 2,
-    "initial_mismatch": 3,
-    "extra_syllable": 4,
-    "missing_syllable": 4,
-}
-
 MIN_REALTIME_AUDIO_BYTES = int(os.getenv("MIN_REALTIME_AUDIO_BYTES", "9000"))
 MIN_REALTIME_AUDIO_DURATION_MS = int(os.getenv("MIN_REALTIME_AUDIO_DURATION_MS", "300"))
 MIN_REALTIME_AUDIO_RMS = float(os.getenv("MIN_REALTIME_AUDIO_RMS", "0.006"))
@@ -203,28 +170,9 @@ MIN_REALTIME_AUDIO_PEAK = float(os.getenv("MIN_REALTIME_AUDIO_PEAK", "0.045"))
 MIN_REALTIME_ACTIVE_RATIO = float(os.getenv("MIN_REALTIME_ACTIVE_RATIO", "0.025"))
 MIN_REALTIME_ACTIVE_MS = int(os.getenv("MIN_REALTIME_ACTIVE_MS", "120"))
 
-REALTIME_THRESHOLDS = {
-    "lexical_exact": 0.98,
-    "lexical_floor": 0.72,
-    "syllable_floor": 0.82,
-    "tone_floor": 0.65,
-    "confidence_floor": 0.78,
-}
-
-PRACTICE_THRESHOLDS = {
-    "lexical_exact": 0.98,
-    "lexical_floor": 0.68,
-    "syllable_floor": 0.76,
-    "tone_floor": 0.60,
-    "confidence_floor": 0.72,
-}
-
 LOCAL_ASR_DENOISE_RETRY_ENABLED = os.getenv("LOCAL_ASR_DENOISE_RETRY", "true").lower() == "true"
 PCM_AUDIO_FORMAT = "pcm_s16le"
 WEBM_AUDIO_FORMAT = "webm_opus"
-TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR = 0.82
-TARGET_AWARE_MISSING_BASE_CONFIDENCE_FLOOR = 0.78
-TARGET_AWARE_EXTRA_SYLLABLE_CONFIDENCE_CEILING = 0.45
 
 
 def normalize_audio_format(audio_format: str | None) -> str:
@@ -379,12 +327,6 @@ def should_run_acoustic(eval_mode: str, request_id: str) -> bool:
     return False
 
 
-def get_thresholds(eval_mode: str) -> dict[str, float]:
-    if eval_mode == "practice":
-        return PRACTICE_THRESHOLDS
-    return REALTIME_THRESHOLDS
-
-
 @router.get("/local/status", response_model=LocalAsrStatusResponse)
 async def local_asr_status() -> LocalAsrStatusResponse:
     model_dir = local_asr.model_dir
@@ -447,52 +389,30 @@ def has_hanzi(text: str) -> bool:
 
 
 def normalize_pinyin(text: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "", text.lower().replace("ü", "v"))
+    ascii_pinyin = text.lower().replace("u:", "v").replace("ü", "v")
+    return re.sub(r"[^a-z0-9]+", "", ascii_pinyin)
 
 
 def split_numbered_pinyin(text: str) -> list[str]:
-    return re.findall(r"[a-züv]+[1-5]?", text.lower().replace("ü", "v"))
+    return [syllable.raw for syllable in parse_pinyin_phrase(text)]
 
 
-def parse_pinyin_syllable(raw: str) -> PinyinSyllable:
-    normalized = normalize_pinyin(raw)
-    tone_match = re.search(r"([1-5])$", normalized)
-    tone = int(tone_match.group(1)) if tone_match else 5
-    base = re.sub(r"[1-5]$", "", normalized)
-    initial = ""
-    for candidate in INITIALS:
-        if base.startswith(candidate):
-            initial = candidate
-            break
-    final = base[len(initial):]
-    return PinyinSyllable(raw=raw, base=base, initial=initial, final=final, tone=tone)
-
-
-def looks_like_pinyin_text(text: str, expected_syllable_count: int, min_syllable_count: int | None = None) -> bool:
-    syllables = split_numbered_pinyin(text)
-    required_syllable_count = min_syllable_count if min_syllable_count is not None else expected_syllable_count
-    if len(syllables) < required_syllable_count:
-        return False
-
-    parsed = [parse_pinyin_syllable(s) for s in syllables]
-    return all(s.base and s.final for s in parsed)
-
-
-def realtime_pinyin_usable_syllable_floor(expected_syllable_count: int, eval_mode: str = "realtime") -> int:
-    if eval_mode == "realtime" and expected_syllable_count >= 3:
-        return expected_syllable_count - 1
-    return expected_syllable_count
+def looks_like_pinyin_text(
+    text: str,
+    expected_syllable_count: int = 0,
+    min_syllable_count: int | None = None,
+) -> bool:
+    # Syllable count belongs to scoring/alignment, not transcript usability.
+    # Keep the optional arguments for internal call compatibility.
+    _ = expected_syllable_count, min_syllable_count
+    return bool(parse_pinyin_phrase(text))
 
 
 def is_transcript_usable(text: str, expected_pinyin_raw: str, eval_mode: str = "realtime") -> bool:
+    _ = expected_pinyin_raw, eval_mode
     if has_hanzi(text):
         return True
-    expected_syllable_count = len(split_numbered_pinyin(expected_pinyin_raw))
-    return looks_like_pinyin_text(
-        text,
-        expected_syllable_count,
-        realtime_pinyin_usable_syllable_floor(expected_syllable_count, eval_mode),
-    )
+    return looks_like_pinyin_text(text)
 
 
 def pinyin_syllables_from_text(text: str) -> list[str]:
@@ -506,117 +426,19 @@ def transcript_to_pinyin(text: str) -> str:
     return normalize_pinyin(" ".join(pinyin_syllables_from_text(text)))
 
 
-def similarity(a: str, b: str) -> float:
-    if not a or not b:
-        return 0.0
-    return SequenceMatcher(None, a, b).ratio()
-
-
 def final_family(final: str) -> str:
     if final.endswith("ng"):
         return "ng"
     if final.endswith("n"):
         return "n"
-    if final in {"u", "uo", "ou", "ong", "iong", "v", "ve", "ue"}:
+    if final.startswith(("u", "ü")) or final in {"o", "ou", "ong", "iong", "iou"}:
         return "rounded"
-    if final in {"a", "ai", "an", "ang", "ao"}:
+    if "a" in final:
         return "open"
     return final
 
 
-def syllable_similarity(expected: PinyinSyllable, actual: PinyinSyllable | None) -> tuple[float, dict[str, str | int | bool]]:
-    if actual is None:
-        return 0.0, {
-            "expected": expected.raw,
-            "actual": "",
-            "initial_match": False,
-            "final_match": False,
-            "tone_match": False,
-            "issue": "missing_syllable",
-        }
-
-    initial_match = expected.initial == actual.initial
-    final_match = expected.final == actual.final
-    tone_match = expected.tone == actual.tone
-    score = (0.35 if initial_match else 0.0) + (0.45 if final_match else 0.0) + (0.20 if tone_match else 0.0)
-
-    issue = ""
-    if not initial_match:
-        issue = "initial_mismatch"
-    elif not final_match:
-        issue = "final_mismatch"
-    elif not tone_match:
-        issue = "tone_mismatch"
-
-    return score, {
-        "expected": expected.raw,
-        "actual": actual.raw,
-        "initial_match": initial_match,
-        "final_match": final_match,
-        "tone_match": tone_match,
-        "issue": issue,
-    }
-
-
-def pinyin_bases_for_target_match(syllables: list[PinyinSyllable]) -> list[str] | None:
-    bases: list[str] = []
-    for syllable in syllables:
-        if not syllable.base or not syllable.final:
-            return None
-        bases.append(syllable.base)
-    return bases
-
-
-def is_ordered_base_subsequence(candidate_bases: list[str], expected_bases: list[str]) -> bool:
-    expected_index = 0
-    for candidate_base in candidate_bases:
-        while expected_index < len(expected_bases) and expected_bases[expected_index] != candidate_base:
-            expected_index += 1
-        if expected_index >= len(expected_bases):
-            return False
-        expected_index += 1
-    return True
-
-
-def target_aware_realtime_acceptance(
-    expected_syllables: list[PinyinSyllable],
-    transcript_syllables: list[PinyinSyllable],
-    eval_mode: str,
-) -> tuple[bool, float | None, str]:
-    # Keep this in sync with backend/docs/realtime-pronunciation-acceptance-rules.md.
-    if eval_mode != "realtime":
-        return False, None, "disabled_non_realtime"
-
-    expected_bases = pinyin_bases_for_target_match(expected_syllables)
-    transcript_bases = pinyin_bases_for_target_match(transcript_syllables)
-    if not expected_bases or not transcript_bases:
-        return False, None, "missing_valid_bases"
-
-    expected_count = len(expected_bases)
-    transcript_count = len(transcript_bases)
-    if transcript_count > expected_count:
-        return False, None, "extra_syllable"
-
-    if expected_count == 1:
-        if transcript_count == 1 and transcript_bases == expected_bases:
-            return True, TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR, "one_syllable_base_match"
-        return False, None, "one_syllable_base_mismatch"
-
-    if expected_count == 2:
-        if transcript_count == 2 and transcript_bases == expected_bases:
-            return True, TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR, "two_syllable_base_match"
-        return False, None, "two_syllable_base_mismatch"
-
-    if transcript_count == expected_count and transcript_bases == expected_bases:
-        return True, TARGET_AWARE_EXACT_BASE_CONFIDENCE_FLOOR, "full_base_match"
-
-    if transcript_count == expected_count - 1 and is_ordered_base_subsequence(transcript_bases, expected_bases):
-        return True, TARGET_AWARE_MISSING_BASE_CONFIDENCE_FLOOR, "one_missing_ordered_base_subsequence"
-
-    return False, None, "long_base_mismatch"
-
-
-def tone_hint_code(tone: int) -> str:
+def tone_hint_code(tone: int | None) -> str:
     return {
         1: "tone_flat",
         2: "tone_rise",
@@ -646,7 +468,7 @@ def final_hint_code(final: str) -> str | None:
         return "final_nose_ng"
     if family == "n":
         return "final_n"
-    if final in {"v", "ve", "ue"}:
+    if final.startswith("ü"):
         return "final_round_lips"
     if family == "open":
         return "final_open"
@@ -655,115 +477,65 @@ def final_hint_code(final: str) -> str | None:
     return None
 
 
-def is_detailed_hint_clear(
-    issue: str,
-    diagnostic: dict[str, str | int | bool],
-    *,
-    confidence: float,
-    lexical_score: float,
-    syllable_score: float,
-    tone_score: float,
-) -> bool:
-    actual = str(diagnostic.get("actual", ""))
-    if issue in {"missing_syllable", "extra_syllable"}:
-        return True
-    if not actual:
-        return False
-
-    initial_match = bool(diagnostic.get("initial_match", False))
-    final_match = bool(diagnostic.get("final_match", False))
-    tone_match = bool(diagnostic.get("tone_match", False))
-
-    if issue == "tone_mismatch":
-        return initial_match and final_match and tone_score <= 0.75
-    if issue == "final_mismatch":
-        return initial_match and syllable_score <= 0.82
-    if issue == "initial_mismatch":
-        return (
-            confidence >= 0.18 or
-            lexical_score >= 0.35 or
-            final_match or
-            tone_match
-        )
-    return False
-
-
-def hint_for_issue(issue: str, expected: PinyinSyllable | None) -> str | None:
-    if issue == "missing_syllable":
-        return "missing_beat"
-    if issue == "extra_syllable":
-        return "extra_beat"
-    if expected is None:
-        return None
-    if issue == "tone_mismatch":
-        return tone_hint_code(expected.tone)
-    if issue == "final_mismatch":
-        return final_hint_code(expected.final)
-    if issue == "initial_mismatch":
-        return initial_hint_code(expected.initial)
-    return None
-
-
 def choose_hint(
-    expected_syllables: list[PinyinSyllable],
-    diagnostics: list[dict[str, str | int | bool]],
+    pronunciation_score: PronunciationScore,
     acoustic_hint: str | None,
     *,
     success: bool,
-    confidence: float,
-    lexical_score: float,
-    syllable_score: float,
-    tone_score: float,
-    transcript_syllable_count: int,
 ) -> tuple[str | None, str | None]:
+    # The effective per-syllable tone already includes any acoustic evidence.
+    # Retain the argument for compatibility with the existing route pipeline.
+    _ = acoustic_hint
     if success:
         return None, None
 
-    if acoustic_hint and acoustic_hint in HINTS and tone_score <= 0.75:
-        return acoustic_hint, hint_text_for_code(acoustic_hint)
+    if any(alignment.status == "missing" for alignment in pronunciation_score.alignments):
+        return "missing_beat", hint_text_for_code("missing_beat")
+    if any(alignment.status == "extra" for alignment in pronunciation_score.alignments):
+        return "extra_beat", hint_text_for_code("extra_beat")
 
-    candidates: list[tuple[int, int, str, PinyinSyllable | None, dict[str, str | int | bool]]] = []
-    for index, (expected, diagnostic) in enumerate(zip(expected_syllables, diagnostics)):
-        issue = str(diagnostic.get("issue", ""))
-        if not issue:
+    candidates: list[tuple[float, int, int, str | None]] = []
+    matched_index = 0
+    for index, alignment in enumerate(pronunciation_score.alignments):
+        comparison = alignment.comparison
+        expected = alignment.expected
+        if alignment.status != "matched" or comparison is None or expected is None:
             continue
-        candidates.append((ISSUE_SEVERITY.get(issue, 0), index, issue, expected, diagnostic))
-
-    if transcript_syllable_count > len(expected_syllables):
-        candidates.append((
-            ISSUE_SEVERITY["extra_syllable"],
-            len(expected_syllables),
-            "extra_syllable",
-            None,
-            {
-                "expected": "",
-                "actual": "extra",
-                "initial_match": False,
-                "final_match": False,
-                "tone_match": False,
-                "issue": "extra_syllable",
-            },
+        effective_tone = pronunciation_score.effective_tone_scores[matched_index]
+        matched_index += 1
+        candidates.extend((
+            (
+                INITIAL_WEIGHT * (1.0 - comparison.initial),
+                index,
+                0,
+                initial_hint_code(expected.initial),
+            ),
+            (
+                FINAL_WEIGHT * (1.0 - comparison.final),
+                index,
+                1,
+                final_hint_code(expected.final),
+            ),
         ))
 
+        if effective_tone is not None:
+            candidates.append((
+                TONE_WEIGHT * (1.0 - effective_tone),
+                index,
+                2,
+                tone_hint_code(expected.tone),
+            ))
+
     if not candidates:
-        return None, None
+        return GENERIC_HINT_CODE, hint_text_for_code(GENERIC_HINT_CODE)
 
-    candidates.sort(key=lambda item: (-item[0], item[1]))
-    for _, _, issue, expected, diagnostic in candidates:
-        if not is_detailed_hint_clear(
-            issue,
-            diagnostic,
-            confidence=confidence,
-            lexical_score=lexical_score,
-            syllable_score=syllable_score,
-            tone_score=tone_score,
-        ):
-            continue
-        hint_code = hint_for_issue(issue, expected)
-        if hint_code and hint_code in HINTS:
-            return hint_code, hint_text_for_code(hint_code)
-
-    return GENERIC_HINT_CODE, hint_text_for_code(GENERIC_HINT_CODE)
+    loss, _, _, hint_code = min(
+        candidates,
+        key=lambda item: (-item[0], item[1], item[2]),
+    )
+    if loss <= 0.0 or hint_code not in HINTS:
+        return GENERIC_HINT_CODE, hint_text_for_code(GENERIC_HINT_CODE)
+    return hint_code, hint_text_for_code(hint_code)
 
 
 def expected_tone_shape(tone: int) -> str:
@@ -825,17 +597,20 @@ def acoustic_hint_for_tone(expected_tone: int, actual_shape: str) -> str | None:
     return None
 
 
-def analyze_tone_contour(audio_bytes: bytes, expected_pinyin_raw: str) -> tuple[dict[str, float | None], str | None]:
-    expected_syllables = [parse_pinyin_syllable(s) for s in split_numbered_pinyin(expected_pinyin_raw)]
+def analyze_tone_contour(
+    audio_bytes: bytes,
+    expected_pinyin_raw: str,
+) -> tuple[dict[str, float | None | list[float | None]], str | None]:
+    expected_syllables = parse_pinyin_phrase(expected_pinyin_raw)
     if not expected_syllables:
-        return {"tone_contour": None}, None
+        return {"tone_contour": None, "tone_contours": []}, None
 
     try:
         import librosa  # type: ignore
         import numpy as np  # type: ignore
     except Exception as exc:
         print("[evaluate] acoustic unavailable", {"error": str(exc)}, flush=True)
-        return {"tone_contour": None}, None
+        return {"tone_contour": None, "tone_contours": []}, None
 
     with tempfile.TemporaryDirectory() as tmpdir:
         input_path = Path(tmpdir) / "input.webm"
@@ -851,177 +626,192 @@ def analyze_tone_contour(audio_bytes: bytes, expected_pinyin_raw: str) -> tuple[
             pitches, voiced_flag, _ = librosa.pyin(y, fmin=80, fmax=450, sr=sr)
         except Exception as exc:
             print("[evaluate] acoustic failed", {"error": str(exc)}, flush=True)
-            return {"tone_contour": None}, None
+            return {"tone_contour": None, "tone_contours": []}, None
 
     voiced = [float(p) for p, keep in zip(pitches, voiced_flag) if keep and not np.isnan(p)]
     if len(voiced) < 6:
         print("[evaluate] acoustic too sparse", {"voiced_frames": len(voiced)}, flush=True)
-        return {"tone_contour": None}, None
+        return {"tone_contour": None, "tone_contours": []}, None
 
     chunks = np.array_split(voiced, len(expected_syllables))
     shape_scores: list[float] = []
+    syllable_shape_scores: list[float | None] = []
     hint_code: str | None = None
     for expected, chunk in zip(expected_syllables, chunks):
+        if expected.tone is None:
+            syllable_shape_scores.append(None)
+            continue
         chunk_values = [float(value) for value in chunk]
         shape = contour_shape(chunk_values)
-        shape_scores.append(score_tone_shape(expected.tone, shape))
+        shape_score = score_tone_shape(expected.tone, shape)
+        shape_scores.append(shape_score)
+        syllable_shape_scores.append(shape_score)
         hint_code = hint_code or acoustic_hint_for_tone(expected.tone, shape)
 
     tone_contour = mean(shape_scores) if shape_scores else None
     print(
         "[evaluate] acoustic",
-        {"tone_contour": round(tone_contour, 3) if tone_contour is not None else None, "hint_code": hint_code},
+        {
+            "tone_contour": round(tone_contour, 3) if tone_contour is not None else None,
+            "tone_contours": [
+                round(score, 3) if score is not None else None
+                for score in syllable_shape_scores
+            ],
+            "hint_code": hint_code,
+        },
         flush=True,
     )
-    return {"tone_contour": tone_contour}, hint_code
+    return {
+        "tone_contour": tone_contour,
+        "tone_contours": syllable_shape_scores,
+    }, hint_code
+
+
+def pronunciation_diagnostics(
+    pronunciation_score: PronunciationScore,
+) -> list[dict[str, str | int | float | bool]]:
+    diagnostics: list[dict[str, str | int | float | bool]] = []
+    matched_index = 0
+    for alignment in pronunciation_score.alignments:
+        diagnostic: dict[str, str | int | float | bool] = {
+            "alignment": alignment.status,
+            "expected": alignment.expected.raw if alignment.expected else "",
+            "actual": alignment.actual.raw if alignment.actual else "",
+        }
+        if alignment.expected_index is not None:
+            diagnostic["expected_index"] = alignment.expected_index
+        if alignment.actual_index is not None:
+            diagnostic["actual_index"] = alignment.actual_index
+        if alignment.expected is not None:
+            diagnostic["expected_initial"] = alignment.expected.initial
+            diagnostic["expected_final"] = alignment.expected.final
+            if alignment.expected.tone is not None:
+                diagnostic["expected_tone"] = alignment.expected.tone
+        if alignment.actual is not None:
+            diagnostic["actual_initial"] = alignment.actual.initial
+            diagnostic["actual_final"] = alignment.actual.final
+            if alignment.actual.tone is not None:
+                diagnostic["actual_tone"] = alignment.actual.tone
+
+        comparison = alignment.comparison
+        if comparison is not None:
+            aligned_contour = pronunciation_score.aligned_tone_contour_scores[matched_index]
+            effective_tone = pronunciation_score.effective_tone_scores[matched_index]
+            effective_syllable = pronunciation_score.effective_syllable_scores[matched_index]
+            effective_issue = pronunciation_score.effective_issues[matched_index]
+            matched_index += 1
+            diagnostic["initial_similarity"] = round(comparison.initial, 3)
+            diagnostic["final_similarity"] = round(comparison.final, 3)
+            if comparison.tone is not None:
+                diagnostic["tone_text_similarity"] = round(comparison.tone, 3)
+            if aligned_contour is not None:
+                diagnostic["tone_contour_similarity"] = round(aligned_contour, 3)
+            if effective_tone is not None:
+                diagnostic["tone_similarity"] = round(effective_tone, 3)
+            diagnostic["syllable_score"] = round(effective_syllable, 3)
+            diagnostic["issue"] = effective_issue
+        elif alignment.status == "missing":
+            diagnostic["issue"] = "missing_syllable"
+        else:
+            diagnostic["issue"] = "extra_syllable"
+        diagnostics.append(diagnostic)
+    return diagnostics
 
 
 def score_transcript(
     transcript: str,
     expected_hanzi: str,
     expected_pinyin_raw: str,
-    acoustic_scores: dict[str, float | None] | None = None,
+    acoustic_scores: dict[str, float | None | list[float | None]] | None = None,
     acoustic_hint: str | None = None,
     eval_mode: str = "realtime",
     request_id: str | None = None,
     started_at: float | None = None,
-) -> tuple[bool, float, str, dict[str, float | None], list[dict[str, str | int | bool]], str | None, str | None]:
-    normalized_transcript_hanzi = normalize_hanzi(transcript)
-    normalized_expected_hanzi = normalize_hanzi(expected_hanzi)
-    expected_pinyin_syllables_raw = split_numbered_pinyin(expected_pinyin_raw)
+) -> tuple[bool, float, str, dict[str, float | None], list[dict[str, str | int | float | bool]], str | None, str | None]:
+    # Hanzi remains ASR/display context only. Pronunciation decisions use the
+    # canonical target and recognized pinyin exclusively.
+    _ = expected_hanzi
     transcript_pinyin_syllables_raw = pinyin_syllables_from_text(transcript)
-    expected_syllables = [parse_pinyin_syllable(s) for s in expected_pinyin_syllables_raw]
-    transcript_syllables = [parse_pinyin_syllable(s) for s in transcript_pinyin_syllables_raw]
-    expected_pinyin = normalize_pinyin(" ".join(expected_pinyin_syllables_raw))
-    transcript_pinyin = transcript_to_pinyin(transcript)
-
-    hanzi_score = 0.0
-    if normalized_expected_hanzi and normalized_transcript_hanzi:
-        if normalized_expected_hanzi in normalized_transcript_hanzi:
-            hanzi_score = 1.0
-        else:
-            hanzi_score = similarity(normalized_expected_hanzi, normalized_transcript_hanzi)
-
-    syllable_scores: list[float] = []
-    diagnostics: list[dict[str, str | int | bool]] = []
-    for index, expected in enumerate(expected_syllables):
-        syllable_score, diagnostic = syllable_similarity(
-            expected,
-            transcript_syllables[index] if index < len(transcript_syllables) else None,
-        )
-        syllable_scores.append(syllable_score)
-        diagnostics.append(diagnostic)
+    transcript_pinyin_raw = " ".join(transcript_pinyin_syllables_raw)
+    transcript_pinyin = normalize_pinyin(transcript_pinyin_raw)
+    expected_pinyin = normalize_pinyin(expected_pinyin_raw)
+    raw_acoustic_tone_score = (acoustic_scores or {}).get("tone_contour")
+    acoustic_tone_score = (
+        float(raw_acoustic_tone_score)
+        if isinstance(raw_acoustic_tone_score, (int, float))
+        else None
+    )
+    raw_acoustic_tone_scores = (acoustic_scores or {}).get("tone_contours")
+    acoustic_tone_scores = (
+        raw_acoustic_tone_scores
+        if isinstance(raw_acoustic_tone_scores, list)
+        else None
+    )
+    pronunciation_score = score_pronunciation(
+        expected_pinyin_raw,
+        transcript_pinyin_raw,
+        acoustic_tone_score=acoustic_tone_score,
+        acoustic_tone_scores=acoustic_tone_scores,
+    )
+    diagnostics = pronunciation_diagnostics(pronunciation_score)
+    transcript_usable = is_transcript_usable(transcript, expected_pinyin_raw, eval_mode=eval_mode)
+    success = pronunciation_score.passed and transcript_usable
+    confidence = pronunciation_score.confidence
+    scores: dict[str, float | None] = {
+        "initial": round(pronunciation_score.initial, 3),
+        "final": round(pronunciation_score.final, 3),
+        "tone_text": round(pronunciation_score.tone_text, 3) if pronunciation_score.tone_text is not None else None,
+        "tone_contour": round(pronunciation_score.tone_contour, 3) if pronunciation_score.tone_contour is not None else None,
+        "tone": round(pronunciation_score.tone, 3) if pronunciation_score.tone is not None else None,
+        "completeness": round(pronunciation_score.completeness, 3),
+        "pronunciation": round(pronunciation_score.pronunciation, 3),
+    }
+    hint_code, hint_text = choose_hint(
+        pronunciation_score,
+        acoustic_hint,
+        success=success,
+    )
 
     if request_id:
         debug_log(
             request_id,
             "pinyin_alignment",
             {
-                "expected_syllables": [s.model_dump() for s in expected_syllables],
-                "transcript_syllables": [s.model_dump() for s in transcript_syllables],
+                "expected_pinyin": expected_pinyin,
+                "transcript_pinyin": transcript_pinyin,
                 "diagnostics": diagnostics,
             },
             started_at,
         )
-
-    syllable_score = mean(syllable_scores) if syllable_scores else 0.0
-    tone_text_score = mean(
-        1.0 if d["tone_match"] else 0.0 for d in diagnostics
-    ) if diagnostics else 0.0
-    acoustic_tone_score = (acoustic_scores or {}).get("tone_contour")
-    tone_score = mean(
-        score for score in [tone_text_score, acoustic_tone_score] if score is not None
-    )
-    thresholds = get_thresholds(eval_mode)
-    lexical_score = 1.0 if normalized_expected_hanzi and normalized_expected_hanzi == normalized_transcript_hanzi else hanzi_score
-    confidence = (lexical_score * 0.40) + (syllable_score * 0.35) + (tone_score * 0.25)
-    matching_syllable_count = len(transcript_syllables) == len(expected_syllables)
-    pinyin_perfect = (
-        expected_pinyin == transcript_pinyin and
-        matching_syllable_count and
-        syllable_score >= 0.999 and
-        tone_text_score >= 0.999
-    )
-    lexical_exact = normalized_expected_hanzi and normalized_expected_hanzi == normalized_transcript_hanzi
-    success = bool(lexical_exact) or pinyin_perfect or (
-        matching_syllable_count and
-        lexical_score >= thresholds["lexical_floor"] and
-        syllable_score >= thresholds["syllable_floor"] and
-        tone_score >= thresholds["tone_floor"] and
-        confidence >= thresholds["confidence_floor"]
-    )
-    target_accepted, target_confidence_floor, target_acceptance_reason = target_aware_realtime_acceptance(
-        expected_syllables,
-        transcript_syllables,
-        eval_mode,
-    )
-    target_rescue_applied = target_accepted and not success
-    if target_accepted:
-        success = True
-        if target_confidence_floor is not None:
-            confidence = max(confidence, target_confidence_floor)
-    elif len(transcript_syllables) > len(expected_syllables):
-        confidence = min(confidence, TARGET_AWARE_EXTRA_SYLLABLE_CONFIDENCE_CEILING)
-    scores: dict[str, float | None] = {
-        "lexical": round(lexical_score, 3),
-        "syllable": round(syllable_score, 3),
-        "tone_text": round(tone_text_score, 3),
-        "tone_contour": round(acoustic_tone_score, 3) if acoustic_tone_score is not None else None,
-        "tone": round(tone_score, 3),
-    }
-    hint_code, hint_text = choose_hint(
-        expected_syllables,
-        diagnostics,
-        acoustic_hint,
-        success=success,
-        confidence=confidence,
-        lexical_score=lexical_score,
-        syllable_score=syllable_score,
-        tone_score=tone_score,
-        transcript_syllable_count=len(transcript_syllables),
-    )
     if request_id:
         debug_log(
             request_id,
             "weighted_scores",
             {
-                "lexical_formula": round(lexical_score * 0.40, 3),
-                "syllable_formula": round(syllable_score * 0.35, 3),
-                "tone_formula": round(tone_score * 0.25, 3),
                 "scores": scores,
                 "confidence": round(confidence, 3),
                 "success": success,
-                "pinyin_perfect": pinyin_perfect,
-                "matching_syllable_count": matching_syllable_count,
-                "target_aware_acceptance": {
-                    "accepted": target_accepted,
-                    "rescue_applied": target_rescue_applied,
-                    "reason": target_acceptance_reason,
-                    "confidence_floor": target_confidence_floor,
+                "pass_gates": {
+                    "transcript_usable": transcript_usable,
+                    "confidence_threshold_met": confidence >= PRONUNCIATION_PASS_THRESHOLD,
+                    "complete": pronunciation_score.completeness == 1.0,
+                    "minimum_syllable_met": pronunciation_score.minimum_syllable_score >= MIN_SYLLABLE_SCORE,
                 },
                 "hint_code": hint_code,
                 "hint_text": hint_text,
                 "eval_mode": eval_mode,
-                "thresholds": thresholds,
             },
             started_at,
         )
     print(
         "[evaluate] score",
         {
-            "normalized_transcript_hanzi": normalized_transcript_hanzi,
-            "normalized_expected_hanzi": normalized_expected_hanzi,
             "expected_pinyin": expected_pinyin,
             "transcript_pinyin": transcript_pinyin,
             "scores": scores,
             "diagnostics": diagnostics,
             "confidence": round(confidence, 3),
             "success": success,
-            "target_aware_acceptance": {
-                "accepted": target_accepted,
-                "rescue_applied": target_rescue_applied,
-                "reason": target_acceptance_reason,
-            },
             "hint_code": hint_code,
         },
         flush=True,
@@ -1044,7 +834,7 @@ async def evaluate_pronunciation_local(
     Prototype local evaluator:
     1. Convert uploaded browser audio to 16 kHz mono wav.
     2. Transcribe with local FunASR SenseVoiceSmall.
-    3. Reuse the same deterministic Hanzi/Pinyin scoring as the OpenAI route.
+    3. Compare recognized pinyin with the target using phonological features.
     """
     started_at = time.perf_counter()
     request_id = uuid.uuid4().hex[:8]
@@ -1452,10 +1242,10 @@ async def evaluate_pronunciation(
     channels: int | None = Form(None),
 ) -> EvaluateResponse:
     """
-    V1 Mandarin scoring:
+    Mandarin pronunciation scoring:
     1. Transcribe the short utterance.
     2. Convert Mandarin transcript to numbered pinyin.
-    3. Leniently compare expected hanzi / pinyin to the transcript.
+    3. Compare expected and recognized pinyin by phonological features.
 
     This response shape is intentionally transport-neutral so a future
     WebSocket route can emit the same payload after an utterance ends.
@@ -1560,7 +1350,7 @@ async def evaluate_pronunciation(
     if dev_fake:
         print("[evaluate] DEV_FAKE_EVALUATION=true, skipping transcription", flush=True)
         success, confidence, transcript_pinyin, scores, diagnostics, hint_code, hint_text = score_transcript(
-            hanzi,
+            pinyin_raw,
             hanzi,
             pinyin_raw,
             eval_mode=eval_mode,
