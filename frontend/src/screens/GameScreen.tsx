@@ -659,10 +659,10 @@ export function GameScreen({
     return undefined;
   })();
   const pedagogyHintClassName = buildPedagogyHintClassName(hintPlacementMode);
+  const isGamePaused = Boolean(gameState?.isPaused);
   const isMicStartScreen = !hasRoundStarted;
   const isPreparingGame = hasStartBeenRequested && !hasRoundStarted;
   const showPauseButton = hasRoundStarted && micState === 'listening';
-  const isGamePaused = Boolean(gameState?.isPaused);
   const pauseControlLabel = isGamePaused ? '▶' : '||';
   const pauseControlAriaLabel = isGamePaused ? 'Resume' : 'Pause';
   const handleTogglePause = useCallback(() => {
