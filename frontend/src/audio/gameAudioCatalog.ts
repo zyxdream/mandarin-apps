@@ -2,42 +2,31 @@ export interface HintVoiceAudioClip {
   id: string;
   text: string;
   url: string;
+  playbackRate: number;
 }
 
 const HINT_VOICE_AUDIO_PUBLIC_DIR = '/audio/sound_effects/hint_voice';
 
 export const HINT_VOICE_AUDIO_CLIPS = [
   {
-    id: 'great',
-    text: 'Great',
-    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/great.mp3`,
-  },
-  {
     id: 'amazing',
     text: 'Amazing',
-    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/amazing.mp3`,
+    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/amazing-reference-24k-mono.wav`,
+    playbackRate: 1,
   },
   {
-    id: 'fantastic',
-    text: 'Fantastic',
-    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/fantastic.mp3`,
-  },
-  {
-    id: 'try-again',
-    text: 'Try again',
-    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/try-again.mp3`,
-  },
-  {
-    id: 'so-close',
-    text: 'So close',
-    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/so-close.mp3`,
-  },
-  {
-    id: 'try-that-sound-again',
-    text: 'Try that sound again',
-    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/try-that-sound-again.mp3`,
+    id: 'taibangle',
+    text: '太棒了',
+    url: `${HINT_VOICE_AUDIO_PUBLIC_DIR}/taibangle.wav`,
+    playbackRate: 2,
   },
 ] as const satisfies readonly HintVoiceAudioClip[];
+
+export function pickPositiveFeedbackText(randomValue = Math.random()): string {
+  const boundedValue = Math.max(0, Math.min(randomValue, 1 - Number.EPSILON));
+  const index = Math.floor(boundedValue * HINT_VOICE_AUDIO_CLIPS.length);
+  return HINT_VOICE_AUDIO_CLIPS[index].text;
+}
 
 export const HINT_VOICE_AUDIO_BY_TEXT = Object.fromEntries(
   HINT_VOICE_AUDIO_CLIPS.map(clip => [clip.text, clip]),

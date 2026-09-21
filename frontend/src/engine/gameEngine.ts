@@ -5,6 +5,7 @@ import type { EvaluationAudio } from '../types/audio.js';
 import { shuffleWords } from '../data/words.js';
 import { getMoleSlots, pickMoleSlot, type BoardConfig } from './moleLayout.js';
 import { scoreForResult } from './scoring.js';
+import { pickPositiveFeedbackText } from '../audio/gameAudioCatalog.js';
 
 export type EngineEvent =
   | { type: 'stateChanged'; state: Readonly<GameState> }
@@ -56,7 +57,6 @@ const HARD_TIMEOUT_EVAL_RECHECK_MS = 300;
 const SUCCESS_HINT_MS = 850;
 const EMERGE_MS = 260;
 const COUNTDOWN_TICK_MS = 1000;
-const SUCCESS_HINTS = ['Great', 'Amazing', 'Fantastic'] as const;
 const CJK_HANZI_RE = /[\u3400-\u9fff]/g;
 const TIMER_KEYS: TimerKey[] = [
   'countdown',
@@ -270,11 +270,20 @@ export class GameEngine {
   }
 
   private buildEvalHint(result: EvalResult): GameState['lastHint'] {
+    if (result.success) {
+      return {
+        code: 'heard_correct',
+        text: pickPositiveFeedbackText(),
+        transcript: result.transcript,
+        transcriptPinyin: result.transcriptPinyin,
+        confidence: result.confidence,
+      };
+    }
     if (!result.hintCode || !result.hintText) {
       if (!result.transcript && !result.transcriptPinyin) return null;
       return {
-        code: result.success ? 'heard_correct' : 'heard_retry',
-        text: result.success ? this.randomSuccessHint() : 'Try that sound again',
+        code: 'heard_retry',
+        text: 'Try again',
         transcript: result.transcript,
         transcriptPinyin: result.transcriptPinyin,
         confidence: result.confidence,
@@ -539,10 +548,6 @@ export class GameEngine {
 
   private clearHintClearTimeout(): void {
     this.clearTimer('hintClear');
-  }
-
-  private randomSuccessHint(): string {
-    return SUCCESS_HINTS[Math.floor(Math.random() * SUCCESS_HINTS.length)];
   }
 
   private isSuccessHint(hint: GameState['lastHint']): boolean {

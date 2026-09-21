@@ -880,6 +880,7 @@ export function GameScreen({
             gameState={gameState}
             activeMoleRef={activeMoleRef}
             volume={volume}
+            successFeedbackText={isCorrectPedagogyHint ? currentPedagogyHint.text : null}
             resizeTarget={resizeTarget}
             onOverlayLayout={handleOverlayLayout}
           />

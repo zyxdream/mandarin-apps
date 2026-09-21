@@ -36,3 +36,13 @@ test('missing beat keeps concise label only', () => {
 
   assert.equal(output, 'Missing beat');
 });
+
+test('keeps each supported positive feedback phrase unchanged', () => {
+  for (const text of ['Amazing', '太棒了']) {
+    assert.equal(formatTeachingHint({
+      code: 'heard_correct',
+      text,
+      confidence: 0.95,
+    }), text);
+  }
+});

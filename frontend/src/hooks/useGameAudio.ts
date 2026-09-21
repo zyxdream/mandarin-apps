@@ -128,10 +128,17 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     fadeBgmTo(getTargetBgmVolume(gameStateRef.current, shouldDuck));
   }, [fadeBgmTo]);
 
-  const playAudioUrl = useCallback((url: string, volume: number, label: string) => {
+  const playAudioUrl = useCallback((
+    url: string,
+    volume: number,
+    label: string,
+    playbackRate = 1,
+  ) => {
     const template = ensureAudioTemplate(url);
     const instance = template.cloneNode(true) as HTMLAudioElement;
     instance.volume = volume;
+    instance.playbackRate = playbackRate;
+    instance.preservesPitch = true;
     void instance.play().catch(error => {
       console.warn('[audio] play failed', { label, error });
     });
@@ -145,7 +152,12 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const playHintVoice = useCallback((clip: HintVoiceAudioClip) => {
     stopActiveHintVoice();
 
-    const instance = playAudioUrl(clip.url, GAME_AUDIO.volume.hintVoice, `hint-voice:${clip.id}`);
+    const instance = playAudioUrl(
+      clip.url,
+      GAME_AUDIO.volume.hintVoice,
+      `hint-voice:${clip.id}`,
+      clip.playbackRate,
+    );
     activeHintVoiceRef.current = instance;
     const clearActiveHintVoice = () => {
       if (activeHintVoiceRef.current === instance) {

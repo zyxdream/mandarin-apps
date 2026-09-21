@@ -21,7 +21,7 @@ const HINT_CONTEXT_LABELS: Record<string, string> = {
   nice_try_again: 'Try again',
   too_quiet: 'Volume',
   try_again_clearer: 'Clarity',
-  heard_correct: 'Great',
+  heard_correct: 'Amazing',
   heard_retry: 'Try again',
 };
 

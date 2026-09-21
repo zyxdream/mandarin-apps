@@ -200,6 +200,50 @@ test('8 3-hanzi words initialize with 80 seconds', () => {
   engine.stop();
 });
 
+test('successful evaluation replaces backend wording with a supported feedback phrase', () => {
+  const engine = new GameEngine(
+    buildWords(1),
+    evaluator,
+    { canvasWidth: 800, canvasHeight: 600 },
+    { preserveWordOrder: true },
+  );
+  const hint = (engine as unknown as {
+    buildEvalHint: (result: EvalResult) => GameState['lastHint'];
+  }).buildEvalHint({
+    success: true,
+    confidence: 0.95,
+    wordId: 'w-1',
+    hintCode: 'heard_correct',
+    hintText: 'Great',
+  });
+
+  assert.ok(hint);
+  assert.equal(hint.code, 'heard_correct');
+  assert.ok(['Amazing', '太棒了'].includes(hint.text));
+  assert.notEqual(hint.text, 'Great');
+});
+
+test('failed evaluation without a detailed hint falls back to text-only Try again', () => {
+  const engine = new GameEngine(
+    buildWords(1),
+    evaluator,
+    { canvasWidth: 800, canvasHeight: 600 },
+    { preserveWordOrder: true },
+  );
+  const hint = (engine as unknown as {
+    buildEvalHint: (result: EvalResult) => GameState['lastHint'];
+  }).buildEvalHint({
+    success: false,
+    confidence: 0.4,
+    wordId: 'w-1',
+    transcript: '茶树',
+  });
+
+  assert.ok(hint);
+  assert.equal(hint.code, 'heard_retry');
+  assert.equal(hint.text, 'Try again');
+});
+
 test('countdown ignores non-actionable mole states', () => {
   const { engine, latestState } = createHarness(8);
   engine.start();

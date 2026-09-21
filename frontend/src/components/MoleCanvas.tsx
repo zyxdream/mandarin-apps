@@ -1,6 +1,6 @@
 import { Application, useApplication, useTick } from '@pixi/react';
 import { Assets, Container, Graphics, Point, Sprite, Text, TextStyle, Texture } from 'pixi.js';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import type { GameState, MoleAnimState, MoleState } from '../types/game';
 import {
@@ -121,6 +121,7 @@ interface RendererProps {
   activeMole: MoleState | null;
   activeMoleRef: RefObject<MoleState | null>;
   volume: number;
+  successFeedbackText: string | null;
   onOverlayLayout?: (layout: ActiveMoleOverlayLayout | null) => void;
 }
 
@@ -387,7 +388,13 @@ function overlayLayoutSignature(layout: ActiveMoleOverlayLayout | null): string 
   ].join('|');
 }
 
-function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: RendererProps) {
+function MoleRenderer({
+  activeMole,
+  activeMoleRef,
+  volume,
+  successFeedbackText,
+  onOverlayLayout,
+}: RendererProps) {
   const { app } = useApplication();
 
   const backgroundRef = useRef<Sprite | null>(null);
@@ -407,6 +414,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: Re
   const pinyinRef = useRef<Text | null>(null);
   const hanziRef = useRef<Text | null>(null);
   const reactionRef = useRef<Text | null>(null);
+  const successFeedbackTextRef = useRef('Amazing');
   const collectGlowRef = useRef<Sprite | null>(null);
   const collectWordRef = useRef<Text | null>(null);
   const debugGraphicsRef = useRef<Graphics | null>(null);
@@ -433,6 +441,12 @@ function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: Re
   const stageSizeRef = useRef({ width: 0, height: 0 });
   const slotsRef = useRef<ReturnType<typeof getMoleSlots>>([]);
   const overlayLayoutSignatureRef = useRef<string>('init');
+
+  useLayoutEffect(() => {
+    if (successFeedbackText) {
+      successFeedbackTextRef.current = successFeedbackText;
+    }
+  }, [successFeedbackText]);
   const collectFlyRef = useRef<CollectFlyState>({
     active: false,
     progress: 0,
@@ -1347,7 +1361,7 @@ function MoleRenderer({ activeMole, activeMoleRef, volume, onOverlayLayout }: Re
     if (reactionRef.current) {
       if (mole.animState === 'hit') {
         reactionRef.current.visible = true;
-        reactionRef.current.text = 'Great!';
+        reactionRef.current.text = successFeedbackTextRef.current;
         reactionRef.current.position.set(style.textAnchorX, hanziBoardY - 124 - Math.min(16, t * 0.6));
         reactionRef.current.alpha = Math.max(0, 1 - Math.max(0, t - 22) / 12);
       } else if (mole.animState === 'retry') {
@@ -1609,6 +1623,7 @@ interface MoleCanvasProps {
   gameState: GameState | null;
   activeMoleRef: RefObject<MoleState | null>;
   volume: number;
+  successFeedbackText: string | null;
   resizeTarget: HTMLElement | null;
   onOverlayLayout?: (layout: ActiveMoleOverlayLayout | null) => void;
 }
@@ -1617,6 +1632,7 @@ export function MoleCanvas({
   gameState,
   activeMoleRef,
   volume,
+  successFeedbackText,
   resizeTarget,
   onOverlayLayout,
 }: MoleCanvasProps) {
@@ -1630,6 +1646,7 @@ export function MoleCanvas({
         activeMole={gameState?.activeMole ?? null}
         activeMoleRef={activeMoleRef}
         volume={volume}
+        successFeedbackText={successFeedbackText}
         onOverlayLayout={onOverlayLayout}
       />
     </Application>
