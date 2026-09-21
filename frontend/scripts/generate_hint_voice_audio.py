@@ -23,6 +23,7 @@ except ImportError:
 class HintVoiceClip(TypedDict):
     id: str
     text: str
+    tts_text: str
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -31,21 +32,21 @@ BACKEND_ROOT = REPO_ROOT / "backend"
 HINT_VOICE_AUDIO_OUT_DIR = FRONTEND_ROOT / "public" / "audio" / "sound_effects" / "hint_voice"
 
 DEFAULT_TTS_MODEL = "gpt-4o-mini-tts"
-DEFAULT_TTS_VOICE = "shimmer"
-DEFAULT_TTS_SPEED = 1.2
+DEFAULT_TTS_VOICE = "nova"
+DEFAULT_TTS_SPEED = 1.55
 
 HINT_VOICE_CLIPS: tuple[HintVoiceClip, ...] = (
-    {"id": "great", "text": "Great"},
-    {"id": "amazing", "text": "Amazing"},
-    {"id": "fantastic", "text": "Fantastic"},
-    {"id": "try-again", "text": "Try again"},
-    {"id": "so-close", "text": "So close"},
-    {"id": "try-that-sound-again", "text": "Try that sound again"},
+    {"id": "great", "text": "Great", "tts_text": "Great!"},
+    {"id": "amazing", "text": "Amazing", "tts_text": "Amazing!"},
+    {"id": "fantastic", "text": "Fantastic", "tts_text": "Fantastic!"},
+    {"id": "try-again", "text": "Try again", "tts_text": "Try again!"},
+    {"id": "so-close", "text": "So close", "tts_text": "So close!"},
+    {"id": "try-that-sound-again", "text": "Try that sound again", "tts_text": "Try that sound again!"},
 )
 
 TTS_INSTRUCTIONS = (
-    "Say only the exact phrase. Use a short, bright, excited arcade game feedback voice for a young "
-    "learner. Keep it upbeat, crisp, and quick, with no extra words."
+    "Say only the exact phrase. Use a short, bright, young female arcade game-host voice for a child "
+    "learning game. Keep it high-energy, smiling, punchy, crisp, quick, and celebratory, with no extra words."
 )
 
 
@@ -91,7 +92,7 @@ def write_openai_speech_mp3(
     params = {
         "model": model,
         "voice": voice,
-        "input": clip["text"],
+        "input": clip["tts_text"],
         "response_format": "mp3",
         "speed": speed,
     }
