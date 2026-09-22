@@ -8,6 +8,8 @@ import { MoleCanvas } from '../components/MoleCanvas';
 import { HUD } from '../components/HUD';
 import { RewardComboPopup } from '../components/RewardComboPopup';
 import type { RewardComboPopupVariant } from '../components/RewardComboPopup';
+import { RewardFlightLayer } from '../components/RewardFlightLayer';
+import type { RewardFlightEvent } from '../components/RewardFlightLayer';
 import { VoiceMeter } from '../components/MicButton';
 import {
   advanceSpeechEndpoint,
@@ -41,6 +43,11 @@ import {
   buildPedagogyHintClassName,
   resolveHintPlacementMode,
 } from '../engine/hintPlacementMode';
+import {
+  advanceDisplayedCorrectCount,
+  claimRewardFlightSettlement,
+  scheduleRewardFlightLaunch,
+} from '../engine/rewardFlight';
 
 const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
 const COMBO_POPUP_MARGIN_PX = 92;
@@ -354,7 +361,14 @@ export function GameScreen({
   const [hasStartBeenRequested, setHasStartBeenRequested] = useState(false);
   const [deepWarmupSnapshot, setDeepWarmupSnapshot] = useState<DeepWarmupSnapshot>(() => getDeepWarmupSnapshot());
   const [comboPopupState, setComboPopupState] = useState<RewardComboPopupState | null>(null);
+  const [rewardFlights, setRewardFlights] = useState<RewardFlightEvent[]>([]);
+  const [displayedCorrectCount, setDisplayedCorrectCount] = useState(0);
+  const [rewardArrivalPulseId, setRewardArrivalPulseId] = useState(0);
   const comboPopupTriggerRef = useRef(0);
+  const rewardFlightIdRef = useRef(0);
+  const lastRewardFlightLaunchAtRef = useRef<number | null>(null);
+  const settledRewardFlightIdsRef = useRef(new Set<number>());
+  const rewardIconTargetRef = useRef<HTMLSpanElement | null>(null);
   const previousHitCountRef = useRef(0);
   const previousFoodUnitsRef = useRef(0);
   const activeOverlayLayoutRef = useRef<ActiveMoleOverlayLayout | null>(null);
@@ -368,10 +382,26 @@ export function GameScreen({
     activeOverlayLayoutRef.current = layout;
     setActiveOverlayLayout(layout);
   }, []);
-  const { updateSpeechDucking } = useGameAudio(
+  const { updateSpeechDucking, playRewardArrival } = useGameAudio(
     gameState,
     micState === 'listening' && gameState?.screen === 'game',
   );
+  const handleRewardIconRef = useCallback((node: HTMLSpanElement | null) => {
+    rewardIconTargetRef.current = node;
+  }, []);
+  const getRewardIconTargetRect = useCallback(() => (
+    rewardIconTargetRef.current?.getBoundingClientRect() ?? null
+  ), []);
+  const handleRewardFlightArrive = useCallback((flight: RewardFlightEvent) => {
+    if (!claimRewardFlightSettlement(settledRewardFlightIdsRef.current, flight.id)) return;
+
+    setRewardFlights(current => current.filter(item => item.id !== flight.id));
+    setDisplayedCorrectCount(current => (
+      advanceDisplayedCorrectCount(current, flight.targetCorrectCount)
+    ));
+    setRewardArrivalPulseId(current => current + 1);
+    playRewardArrival();
+  }, [playRewardArrival]);
 
   useEffect(() => {
     return subscribeDeepWarmup(setDeepWarmupSnapshot);
@@ -448,6 +478,8 @@ export function GameScreen({
     if (gameState.screen !== 'game') {
       previousHitCountRef.current = hitCount;
       previousFoodUnitsRef.current = foodUnits;
+      lastRewardFlightLaunchAtRef.current = null;
+      settledRewardFlightIdsRef.current.clear();
       return;
     }
 
@@ -504,8 +536,30 @@ export function GameScreen({
         linkedHintX,
         linkedHintTop,
       });
+
+      const nowMs = performance.now();
+      const newFlights: RewardFlightEvent[] = [];
+      for (let targetCorrectCount = previousHitCountRef.current + 1; targetCorrectCount <= hitCount; targetCorrectCount += 1) {
+        const scheduled = scheduleRewardFlightLaunch(nowMs, lastRewardFlightLaunchAtRef.current);
+        lastRewardFlightLaunchAtRef.current = scheduled.launchAtMs;
+        rewardFlightIdRef.current += 1;
+        newFlights.push({
+          id: rewardFlightIdRef.current,
+          sourceX: anchorX,
+          sourceY: anchorY,
+          foodImage: food.baseImage,
+          launchDelayMs: scheduled.delayMs,
+          targetCorrectCount,
+        });
+      }
+      setRewardFlights(current => [...current, ...newFlights]);
     } else if (hitCount < previousHitCountRef.current) {
       setComboPopupState(null);
+      setRewardFlights([]);
+      setDisplayedCorrectCount(hitCount);
+      setRewardArrivalPulseId(0);
+      lastRewardFlightLaunchAtRef.current = null;
+      settledRewardFlightIdsRef.current.clear();
     }
 
     previousHitCountRef.current = hitCount;
@@ -513,7 +567,6 @@ export function GameScreen({
   }, [gameState, selectedFood]);
 
   const timeRemaining = gameState?.timeRemaining ?? 45;
-  const correctCount = gameState?.wordsHit.length ?? 0;
   const isBaoziSelected = selectedFood === 'baozi';
   const currentPedagogyHint = (
     !gameState?.isEvaluating &&
@@ -867,7 +920,7 @@ export function GameScreen({
 
   return (
     <div
-      className={`game-root${isMicStartScreen ? ' game-root--mic-start' : ''}${isBaoziSelected ? ' game-root--baozi-selected' : ''}`}
+      className={`game-root${isMicStartScreen ? ' game-root--mic-start' : ''}${isBaoziSelected ? ' game-root--baozi-selected' : ''}${isGamePaused ? ' game-root--paused' : ''}`}
       style={rootStyle}
     >
       <div className="game-scene-shell">
@@ -888,9 +941,11 @@ export function GameScreen({
         <div className="hud-overlay">
           <HUD
             timeRemaining={timeRemaining}
-            correctCount={correctCount}
+            correctCount={displayedCorrectCount}
             totalCount={scriptSession.words.length}
             selectedFood={selectedFood}
+            rewardIconRef={handleRewardIconRef}
+            arrivalPulseId={rewardArrivalPulseId}
           />
         </div>
 
@@ -913,6 +968,13 @@ export function GameScreen({
             />
           ) : null}
         </div>
+
+        <RewardFlightLayer
+          flights={rewardFlights}
+          isPaused={isGamePaused}
+          getTargetRect={getRewardIconTargetRect}
+          onArrive={handleRewardFlightArrive}
+        />
 
         <div
           className={pedagogyHintClassName}

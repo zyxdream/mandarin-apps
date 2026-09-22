@@ -1,5 +1,5 @@
 import { Application, useApplication, useTick } from '@pixi/react';
-import { Assets, Container, Graphics, Point, Sprite, Text, TextStyle, Texture } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import type { GameState, MoleAnimState, MoleState } from '../types/game';
@@ -56,7 +56,6 @@ const MISS_EFFECT_TEXTURE = '/assets/effects/miss.v2.webp';
 
 const MOLE_EMERGE_LIFT = 132;
 const MOLE_EMERGE_FRAMES = 30;
-const COLLECT_TARGET_Y = 84;
 const HAMMER_SWING_DECAY = 0.024;
 const HAMMER_HIT_FADE_START_FRAME = 34;
 const HAMMER_HIT_HIDE_FRAME = 46;
@@ -136,15 +135,6 @@ const GROUND_EXTENSION_CONFIG: GroundExtensionConfig = {
   blendHeightPx: 82,
   textureStripNormY: 0.91,
 };
-
-interface CollectFlyState {
-  active: boolean;
-  progress: number;
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-}
 
 interface HammerPlacementState {
   side: -1 | 1;
@@ -415,8 +405,6 @@ function MoleRenderer({
   const hanziRef = useRef<Text | null>(null);
   const reactionRef = useRef<Text | null>(null);
   const successFeedbackTextRef = useRef('Amazing');
-  const collectGlowRef = useRef<Sprite | null>(null);
-  const collectWordRef = useRef<Text | null>(null);
   const debugGraphicsRef = useRef<Graphics | null>(null);
   const debugLegendRef = useRef<Text | null>(null);
 
@@ -447,15 +435,6 @@ function MoleRenderer({
       successFeedbackTextRef.current = successFeedbackText;
     }
   }, [successFeedbackText]);
-  const collectFlyRef = useRef<CollectFlyState>({
-    active: false,
-    progress: 0,
-    startX: 0,
-    startY: 0,
-    endX: 0,
-    endY: 0,
-  });
-
   const emitOverlayLayout = (layout: ActiveMoleOverlayLayout | null) => {
     if (!onOverlayLayout) return;
     const signature = overlayLayoutSignature(layout);
@@ -498,7 +477,6 @@ function MoleRenderer({
       const listeningPuff = new Graphics();
       const hitEffect = new Sprite(Texture.from(HIT_EFFECT_TEXTURE));
       const missEffect = new Sprite(Texture.from(MISS_EFFECT_TEXTURE));
-      const collectGlow = new Sprite(Texture.from(HIT_EFFECT_TEXTURE));
       const debugGraphics = new Graphics();
       const debugLegend = new Text({
         text: [
@@ -561,27 +539,13 @@ function MoleRenderer({
         }),
       });
 
-      const collectWord = new Text({
-        text: '',
-        style: new TextStyle({
-          fontFamily: '"Noto Sans SC", "PingFang SC", sans-serif',
-          fontSize: 84,
-          fill: 0xfff3b0,
-          fontWeight: '900',
-          stroke: { color: 0x6b3a1a, width: 8 },
-          align: 'center',
-        }),
-      });
-
       pinyin.anchor.set(0.5);
       hanzi.anchor.set(0.5);
       reaction.anchor.set(0.5);
-      collectWord.anchor.set(0.5);
       moleSprite.anchor.set(0.5, 1);
       hammer.anchor.set(HAMMER_ANCHOR_X, HAMMER_ANCHOR_Y);
       hitEffect.anchor.set(0.5);
       missEffect.anchor.set(0.14, 0.5);
-      collectGlow.anchor.set(0.5);
 
       moleContainer.visible = false;
       hammer.visible = false;
@@ -589,8 +553,6 @@ function MoleRenderer({
       hitEffect.visible = false;
       missEffect.visible = false;
       reaction.visible = false;
-      collectGlow.visible = false;
-      collectWord.visible = false;
       debugGraphics.visible = LAYOUT_DEBUG;
       debugLegend.visible = LAYOUT_DEBUG;
       debugLegend.alpha = 0.9;
@@ -610,8 +572,6 @@ function MoleRenderer({
         moleDepthShade,
         moleHighlight,
         holeFrontRim,
-        collectGlow,
-        collectWord,
         listeningPuff,
         hammer,
         hitEffect,
@@ -637,8 +597,6 @@ function MoleRenderer({
       pinyinRef.current = pinyin;
       hanziRef.current = hanzi;
       reactionRef.current = reaction;
-      collectGlowRef.current = collectGlow;
-      collectWordRef.current = collectWord;
       debugGraphicsRef.current = debugGraphics;
       debugLegendRef.current = debugLegend;
 
@@ -662,8 +620,6 @@ function MoleRenderer({
       const listeningPuff = listeningPuffRef.current;
       const hitEffect = hitEffectRef.current;
       const missEffect = missEffectRef.current;
-      const collectGlow = collectGlowRef.current;
-      const collectWord = collectWordRef.current;
       const debugGraphics = debugGraphicsRef.current;
       const debugLegend = debugLegendRef.current;
 
@@ -719,14 +675,6 @@ function MoleRenderer({
         missEffect.parent?.removeChild(missEffect);
         if (!missEffect.destroyed) missEffect.destroy();
       }
-      if (collectGlow) {
-        collectGlow.parent?.removeChild(collectGlow);
-        if (!collectGlow.destroyed) collectGlow.destroy();
-      }
-      if (collectWord) {
-        collectWord.parent?.removeChild(collectWord);
-        if (!collectWord.destroyed) collectWord.destroy();
-      }
       if (debugGraphics) {
         debugGraphics.parent?.removeChild(debugGraphics);
         if (!debugGraphics.destroyed) debugGraphics.destroy();
@@ -753,8 +701,6 @@ function MoleRenderer({
       pinyinRef.current = null;
       hanziRef.current = null;
       reactionRef.current = null;
-      collectGlowRef.current = null;
-      collectWordRef.current = null;
       debugGraphicsRef.current = null;
       debugLegendRef.current = null;
     };
@@ -785,8 +731,6 @@ function MoleRenderer({
     const listeningPuff = listeningPuffRef.current;
     const hitEffect = hitEffectRef.current;
     const missEffect = missEffectRef.current;
-    const collectGlow = collectGlowRef.current;
-    const collectWord = collectWordRef.current;
     const debugGraphics = debugGraphicsRef.current;
     const debugLegend = debugLegendRef.current;
 
@@ -804,9 +748,7 @@ function MoleRenderer({
       !hammer ||
       !listeningPuff ||
       !hitEffect ||
-      !missEffect ||
-      !collectGlow ||
-      !collectWord
+      !missEffect
     ) {
       return;
     }
@@ -852,35 +794,6 @@ function MoleRenderer({
       // active-mole contact shadows handle edge blending.
       holeOcclusion.clear();
       holeFrontRim.clear();
-    }
-
-    const collectFly = collectFlyRef.current;
-    if (collectFly.active) {
-      collectFly.progress = Math.min(1, collectFly.progress + 0.05);
-      const eased = easeOutCubic(collectFly.progress);
-      const arcY = Math.sin(Math.PI * collectFly.progress) * -108;
-
-      collectWord.visible = true;
-      collectGlow.visible = true;
-
-      collectWord.x = collectFly.startX + (collectFly.endX - collectFly.startX) * eased;
-      collectWord.y = collectFly.startY + (collectFly.endY - collectFly.startY) * eased + arcY;
-      collectWord.alpha = 1 - Math.max(0, collectFly.progress - 0.76) / 0.24;
-      collectWord.scale.set(1.15 - collectFly.progress * 0.38);
-
-      collectGlow.position.set(collectWord.x, collectWord.y + 5);
-      collectGlow.alpha = Math.max(0, 0.95 - collectFly.progress * 0.8);
-      collectGlow.scale.set(0.46 + (1 - collectFly.progress) * 0.85);
-      collectGlow.rotation += 0.12;
-
-      if (collectFly.progress >= 1) {
-        collectFly.active = false;
-        collectWord.visible = false;
-        collectGlow.visible = false;
-      }
-    } else {
-      collectWord.visible = false;
-      collectGlow.visible = false;
     }
 
     const mole = activeMoleRef.current;
@@ -932,7 +845,6 @@ function MoleRenderer({
       }
     }
 
-    let shouldLaunchCollect = false;
     if (mole.animState !== animStateRef.current) {
       animStateRef.current = mole.animState;
       animTickRef.current = 0;
@@ -948,7 +860,6 @@ function MoleRenderer({
       if (mole.animState === 'hit' && mole.strikeId !== lastStrikeIdRef.current) {
         lastStrikeIdRef.current = mole.strikeId;
         swingRef.current = 1;
-        shouldLaunchCollect = true;
       }
       if (mole.animState === 'retry') {
         swingRef.current = 1;
@@ -1316,21 +1227,6 @@ function MoleRenderer({
       }
     } else {
       listeningPuff.visible = false;
-    }
-
-    if (shouldLaunchCollect) {
-      const holdBase = computeBodyAnchoredMoleTransform(darkOpening, style.hold.meta, style.scaleBias ?? 1);
-      const start = new Point(
-        holdBase.x + style.textAnchorX * holdBase.scale,
-        holdBase.y + hanziBoardY * holdBase.scale,
-      );
-      collectWord.text = mole.word.hanzi;
-      collectFly.active = true;
-      collectFly.progress = 0;
-      collectFly.startX = start.x;
-      collectFly.startY = start.y;
-      collectFly.endX = app.renderer.width * 0.5;
-      collectFly.endY = COLLECT_TARGET_Y;
     }
 
     if (pinyinRef.current) {

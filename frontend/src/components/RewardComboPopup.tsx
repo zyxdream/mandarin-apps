@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import type { CSSProperties } from 'react';
+import type { AnimationEvent, CSSProperties } from 'react';
+import { REWARD_FLIGHT_LANDING_MS } from '../engine/rewardFlight';
 
 interface RewardParticleVector {
   dx: number;
@@ -21,7 +21,7 @@ const PARTICLE_VECTORS: RewardParticleVector[] = [
 ];
 
 const DEFAULT_POPUP_LIFETIME_MS = 980;
-const BAOZI_POPUP_LIFETIME_MS = 1540;
+const STACK_POPUP_LIFETIME_MS = REWARD_FLIGHT_LANDING_MS;
 
 function stableBaoziTilt(triggerId: number): number {
   const seeded = Math.imul(triggerId + 17, 1103515245) >>> 0;
@@ -56,17 +56,9 @@ export function RewardComboPopup({
   onDone,
 }: RewardComboPopupProps) {
   const isBaoziFocus = variant === 'baozi_focus';
-  const popupLifetimeMs = isBaoziFocus ? BAOZI_POPUP_LIFETIME_MS : DEFAULT_POPUP_LIFETIME_MS;
+  const popupLifetimeMs = isBaoziFocus ? STACK_POPUP_LIFETIME_MS : DEFAULT_POPUP_LIFETIME_MS;
   const baoziTilt = stableBaoziTilt(triggerId);
   const srBonusText = `${foodLabel} bonus`;
-
-  useEffect(() => {
-    if (!onDone) return;
-    const timer = window.setTimeout(() => {
-      onDone();
-    }, popupLifetimeMs);
-    return () => window.clearTimeout(timer);
-  }, [onDone, popupLifetimeMs, triggerId]);
 
   const anchorStyle = {
     '--combo-reward-x': `${Math.round(x)}px`,
@@ -75,11 +67,29 @@ export function RewardComboPopup({
   const baoziStyle = {
     '--combo-baozi-tilt': `${baoziTilt}deg`,
   } as CSSProperties;
+  const popupStyle = {
+    '--combo-reward-lifetime': `${popupLifetimeMs}ms`,
+  } as CSSProperties;
   const popupClassName = `combo-reward-popup${isBaoziFocus ? ' combo-reward-popup--baozi-focus' : ''}`;
+  const handleAnimationEnd = (event: AnimationEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (
+      event.animationName !== 'combo-reward-popup-life' &&
+      event.animationName !== 'combo-reward-popup-life-baozi-hold'
+    ) return;
+    onDone?.();
+  };
 
   return (
     <div className="combo-reward-popup-anchor" style={anchorStyle}>
-      <div key={triggerId} className={popupClassName} aria-live="polite" aria-atomic="true">
+      <div
+        key={triggerId}
+        className={popupClassName}
+        style={popupStyle}
+        aria-live="polite"
+        aria-atomic="true"
+        onAnimationEnd={handleAnimationEnd}
+      >
         {isBaoziFocus ? (
           <>
             <span className="combo-reward-sr-only">{srBonusText}</span>

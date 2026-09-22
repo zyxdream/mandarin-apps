@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { GameState } from '../types/game';
 import { GAME_AUDIO, HINT_VOICE_AUDIO_BY_TEXT } from '../audio/gameAudioCatalog';
 import type { HintVoiceAudioClip } from '../audio/gameAudioCatalog';
+import { canPlayRewardArrival } from '../audio/rewardAudio';
 import { formatTeachingHint } from '../engine/hintTextFormat';
 
 type SfxKey = keyof typeof GAME_AUDIO.sfx;
 
 const BGM_FADE_MS = 120;
-const COLLECT_SFX_DELAY_MS = 220;
 const HINT_VOICE_DELAY_MS = 360;
 
 function clampVolume(value: number): number {
@@ -32,7 +32,6 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const bgmRef = useRef<HTMLAudioElement | null>(null);
   const bgmFadeRafRef = useRef<number | null>(null);
   const sfxTemplatesRef = useRef<Record<string, HTMLAudioElement>>({});
-  const collectDelayRef = useRef<number | null>(null);
   const hintVoiceDelayRef = useRef<number | null>(null);
   const activeHintVoiceRef = useRef<HTMLAudioElement | null>(null);
   const speechDuckingRef = useRef(false);
@@ -45,10 +44,6 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const baselineBgmVolume = getTargetBgmVolume(gameState, false);
 
   const clearDelayedAudio = useCallback(() => {
-    if (collectDelayRef.current !== null) {
-      window.clearTimeout(collectDelayRef.current);
-      collectDelayRef.current = null;
-    }
     if (hintVoiceDelayRef.current !== null) {
       window.clearTimeout(hintVoiceDelayRef.current);
       hintVoiceDelayRef.current = null;
@@ -148,6 +143,12 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const playSfx = useCallback((key: SfxKey) => {
     playAudioUrl(GAME_AUDIO.sfx[key], GAME_AUDIO.volume.sfx, `sfx:${key}`);
   }, [playAudioUrl]);
+
+  const playRewardArrival = useCallback(() => {
+    const currentState = gameStateRef.current;
+    if (!canPlayRewardArrival(enabledRef.current, currentState)) return;
+    playSfx('collect');
+  }, [playSfx]);
 
   const playHintVoice = useCallback((clip: HintVoiceAudioClip) => {
     stopActiveHintVoice();
@@ -269,10 +270,6 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
       playSfx('success');
       clearDelayedAudio();
       stopActiveHintVoice();
-      collectDelayRef.current = window.setTimeout(() => {
-        collectDelayRef.current = null;
-        playSfx('collect');
-      }, COLLECT_SFX_DELAY_MS);
     }
     lastHitCountRef.current = hitCount;
 
@@ -316,5 +313,5 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     sfxTemplatesRef.current = {};
   }, [cancelBgmFade, clearDelayedAudio, stopActiveHintVoice]);
 
-  return { updateSpeechDucking };
+  return { updateSpeechDucking, playRewardArrival };
 }

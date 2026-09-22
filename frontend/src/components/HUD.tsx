@@ -6,6 +6,8 @@ interface HUDProps {
   correctCount: number;
   totalCount: number;
   selectedFood: RewardFood;
+  rewardIconRef?: (node: HTMLSpanElement | null) => void;
+  arrivalPulseId?: number;
 }
 
 const SCORE_PANEL = '/assets/ui/score_panel_no_star.session.v2.webp';
@@ -13,7 +15,14 @@ const SCORE_STAR = '/assets/ui/score_star.v2.webp';
 const STAR_NUMBERS = [1, 2, 3] as const;
 const SPARKLE_NUMBERS = [1, 2, 3, 4, 5, 6] as const;
 
-export function HUD({ timeRemaining, correctCount, totalCount, selectedFood }: HUDProps) {
+export function HUD({
+  timeRemaining,
+  correctCount,
+  totalCount,
+  selectedFood,
+  rewardIconRef,
+  arrivalPulseId = 0,
+}: HUDProps) {
   const isLowTime = timeRemaining <= 10;
   const food = getRewardFoodOption(selectedFood);
   const foodUnits = foodUnitsForCorrectWords(correctCount);
@@ -27,10 +36,21 @@ export function HUD({ timeRemaining, correctCount, totalCount, selectedFood }: H
           <img className="hud-score-panel-base" src={SCORE_PANEL} alt="" aria-hidden="true" />
 
           <div className="hud-reward-total" aria-hidden="true">
-            <span className="hud-reward-icon-viewport">
-              <img className="hud-reward-icon" src={food.baseImage} alt="" />
+            <span ref={rewardIconRef} className="hud-reward-icon-viewport">
+              <span
+                key={`icon-impact-${arrivalPulseId}`}
+                className={`hud-reward-icon-impact${arrivalPulseId > 0 ? ' hud-reward-icon-impact--active' : ''}`}
+              >
+                <img className="hud-reward-icon" src={food.baseImage} alt="" />
+              </span>
+              {arrivalPulseId > 0 ? (
+                <span key={`ring-${arrivalPulseId}`} className="hud-reward-impact-ring" />
+              ) : null}
             </span>
-            <span className="hud-reward-count">
+            <span
+              key={`count-impact-${arrivalPulseId}`}
+              className={`hud-reward-count${arrivalPulseId > 0 ? ' hud-reward-count--impact' : ''}`}
+            >
               <span className="hud-reward-multiplier">×</span>
               {foodUnits}
             </span>
