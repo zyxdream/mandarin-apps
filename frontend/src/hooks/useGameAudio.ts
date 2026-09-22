@@ -40,6 +40,7 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
 
   const lastAnimStateRef = useRef<string | null>(null);
   const lastHitCountRef = useRef(0);
+  const lastHammerImpactStrikeIdRef = useRef<number | null>(null);
   const lastHintVoiceSourceRef = useRef<GameState['lastHint'] | null>(null);
   const baselineBgmVolume = getTargetBgmVolume(gameState, false);
 
@@ -150,6 +151,14 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     playSfx('collect');
   }, [playSfx]);
 
+  const playHammerImpact = useCallback((strikeId: number) => {
+    if (!enabledRef.current || gameStateRef.current?.isPaused) return false;
+    if (lastHammerImpactStrikeIdRef.current === strikeId) return true;
+    lastHammerImpactStrikeIdRef.current = strikeId;
+    playSfx('whack');
+    return true;
+  }, [playSfx]);
+
   const playHintVoice = useCallback((clip: HintVoiceAudioClip) => {
     stopActiveHintVoice();
 
@@ -255,9 +264,6 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
       return;
     }
 
-    if (animState === 'hit' && lastAnimStateRef.current !== 'hit') {
-      playSfx('whack');
-    }
     if (
       (animState === 'retry' || animState === 'escaping') &&
       lastAnimStateRef.current !== animState
@@ -313,5 +319,5 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     sfxTemplatesRef.current = {};
   }, [cancelBgmFade, clearDelayedAudio, stopActiveHintVoice]);
 
-  return { updateSpeechDucking, playRewardArrival };
+  return { updateSpeechDucking, playRewardArrival, playHammerImpact };
 }

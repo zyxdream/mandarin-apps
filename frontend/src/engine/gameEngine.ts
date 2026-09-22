@@ -336,7 +336,7 @@ export class GameEngine {
       word: word.hanzi,
       responseToTransitionMs: Math.round(performance.now() - responseReceivedAt),
     });
-    console.log('[latency] confirmed bonk triggered', {
+    console.log('[latency] success hammer sequence started', {
       word: word.hanzi,
       strikeId: this.strikeId + 1,
     });

@@ -382,7 +382,7 @@ export function GameScreen({
     activeOverlayLayoutRef.current = layout;
     setActiveOverlayLayout(layout);
   }, []);
-  const { updateSpeechDucking, playRewardArrival } = useGameAudio(
+  const { updateSpeechDucking, playRewardArrival, playHammerImpact } = useGameAudio(
     gameState,
     micState === 'listening' && gameState?.screen === 'game',
   );
@@ -931,8 +931,10 @@ export function GameScreen({
           <MoleCanvas
             gameState={gameState}
             activeMoleRef={activeMoleRef}
+            isPaused={isGamePaused}
             volume={volume}
             successFeedbackText={isCorrectPedagogyHint ? currentPedagogyHint.text : null}
+            onHammerImpact={playHammerImpact}
             resizeTarget={resizeTarget}
             onOverlayLayout={handleOverlayLayout}
           />

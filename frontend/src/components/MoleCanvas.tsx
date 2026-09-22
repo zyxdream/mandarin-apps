@@ -27,8 +27,12 @@ import {
   resolveMoleAnchoredPosition,
 } from '../engine/molePlacementProfile';
 import {
+  acknowledgeHammerImpact,
   advanceHammerRevealElapsed,
+  advanceSuccessHammerElapsed,
   getHammerRevealProgress,
+  getSuccessHammerTimeline,
+  HAMMER_SUCCESS_IMPACT_MS,
   resolveHammerActivation,
   type HammerActivationState,
 } from '../engine/hammerPresentation';
@@ -63,12 +67,8 @@ const MISS_EFFECT_TEXTURE = '/assets/effects/miss.v2.webp';
 const MOLE_EMERGE_LIFT = 132;
 const MOLE_EMERGE_FRAMES = 30;
 const HAMMER_SWING_DECAY = 0.024;
-const HAMMER_HIT_FADE_START_FRAME = 34;
-const HAMMER_HIT_HIDE_FRAME = 46;
 const HAMMER_REVEAL_START_SCALE = 0.76;
 const HAMMER_REVEAL_LIFT_PX = 14;
-const LISTENING_HAMMER_HOVER_PX = 10;
-const LISTENING_HAMMER_LEAN_RAD = 0.14;
 const LISTENING_PUFF_CYCLE_MS = 420;
 const LISTENING_PUFF_SECOND_DELAY_MS = 180;
 const LISTENING_PUFF_RING_LIFETIME_MS = 240;
@@ -78,7 +78,7 @@ const LISTENING_PUFF_MIN_RADIUS_RATIO = 0.32;
 const LISTENING_PUFF_MAX_RADIUS_RATIO = 0.88;
 const LISTENING_PUFF_STROKE_START_RATIO = 0.07;
 const LISTENING_PUFF_STROKE_END_RATIO = 0.028;
-const HIT_EFFECT_FRAMES = 88;
+const HIT_EFFECT_FRAMES = 30;
 const MISS_EFFECT_FRAMES = 76;
 const HIT_SPARKLE_SIDE_OFFSET_RATIO = 0.16;
 const HIT_SPARKLE_UP_OFFSET_RATIO = 0.1;
@@ -127,8 +127,10 @@ const PRELOAD_TEXTURES = [
 interface RendererProps {
   activeMole: MoleState | null;
   activeMoleRef: RefObject<MoleState | null>;
+  isPaused: boolean;
   volume: number;
   successFeedbackText: string | null;
+  onHammerImpact: (strikeId: number) => boolean;
   onOverlayLayout?: (layout: ActiveMoleOverlayLayout | null) => void;
 }
 
@@ -389,8 +391,10 @@ function overlayLayoutSignature(layout: ActiveMoleOverlayLayout | null): string 
 function MoleRenderer({
   activeMole,
   activeMoleRef,
+  isPaused,
   volume,
   successFeedbackText,
+  onHammerImpact,
   onOverlayLayout,
 }: RendererProps) {
   const { app } = useApplication();
@@ -421,6 +425,9 @@ function MoleRenderer({
   const swingRef = useRef(0);
   const hammerActivationRef = useRef<HammerActivationState>({ wordId: null, activated: false });
   const hammerRevealElapsedMsRef = useRef(0);
+  const successHammerElapsedMsRef = useRef(0);
+  const hammerWasVisibleAtHitRef = useRef(false);
+  const lastHammerImpactStrikeIdRef = useRef<number | null>(null);
   const lastWordIdRef = useRef<string | null>(null);
   const lastStrikeIdRef = useRef(0);
   const lastSparkleStrikeIdRef = useRef<number | null>(null);
@@ -436,6 +443,9 @@ function MoleRenderer({
     angleBias: 0,
   });
   const volumeRef = useRef(volume);
+  const isPausedRef = useRef(isPaused);
+  const onHammerImpactRef = useRef(onHammerImpact);
+  const prefersReducedMotionRef = useRef(false);
   const stageSizeRef = useRef({ width: 0, height: 0 });
   const slotsRef = useRef<ReturnType<typeof getMoleSlots>>([]);
   const overlayLayoutSignatureRef = useRef<string>('init');
@@ -445,6 +455,18 @@ function MoleRenderer({
       successFeedbackTextRef.current = successFeedbackText;
     }
   }, [successFeedbackText]);
+  useLayoutEffect(() => {
+    isPausedRef.current = isPaused;
+    onHammerImpactRef.current = onHammerImpact;
+  }, [isPaused, onHammerImpact]);
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => { prefersReducedMotionRef.current = media.matches; };
+    updatePreference();
+    media.addEventListener('change', updatePreference);
+    return () => media.removeEventListener('change', updatePreference);
+  }, []);
   const emitOverlayLayout = (layout: ActiveMoleOverlayLayout | null) => {
     if (!onOverlayLayout) return;
     const signature = overlayLayoutSignature(layout);
@@ -818,6 +840,8 @@ function MoleRenderer({
         null,
       );
       hammerRevealElapsedMsRef.current = 0;
+      successHammerElapsedMsRef.current = 0;
+      hammerWasVisibleAtHitRef.current = false;
       swingRef.current = 0;
       listeningPuff.visible = false;
       listeningPuff.clear();
@@ -853,6 +877,8 @@ function MoleRenderer({
       hammerPlacementRef.current = pickHammerPlacement(mole.word.id);
       animTickRef.current = 0;
       swingRef.current = 0;
+      successHammerElapsedMsRef.current = 0;
+      hammerWasVisibleAtHitRef.current = false;
       currentTexturePathRef.current = '';
       if (pinyinRef.current) {
         pinyinRef.current.text = mole.word.pinyin;
@@ -877,14 +903,9 @@ function MoleRenderer({
     hammerActivationRef.current = hammerActivation;
     hammerRevealElapsedMsRef.current = advanceHammerRevealElapsed(
       hammerRevealElapsedMsRef.current,
-      app.ticker.deltaMS,
+      isPausedRef.current ? 0 : app.ticker.deltaMS,
       hammerActivation.activated,
     );
-    const hammerRevealProgress = getHammerRevealProgress(hammerRevealElapsedMsRef.current);
-    const hammerRevealAlpha = easeOutCubic(hammerRevealProgress);
-    const hammerRevealScale = HAMMER_REVEAL_START_SCALE +
-      (1 - HAMMER_REVEAL_START_SCALE) * easeOutBack(hammerRevealProgress);
-    const hammerRevealLift = -(1 - hammerRevealAlpha) * HAMMER_REVEAL_LIFT_PX;
 
     if (mole.animState !== animStateRef.current) {
       animStateRef.current = mole.animState;
@@ -903,17 +924,48 @@ function MoleRenderer({
       }
       if (mole.animState === 'hit' && mole.strikeId !== lastStrikeIdRef.current) {
         lastStrikeIdRef.current = mole.strikeId;
-        swingRef.current = 1;
+        successHammerElapsedMsRef.current = 0;
+        hammerWasVisibleAtHitRef.current = (
+          previousHammerActivation.wordId === mole.word.id && previousHammerActivation.activated
+        );
+        swingRef.current = 0;
       }
       if (mole.animState === 'retry') {
         swingRef.current = 1;
       }
     }
 
-    animTickRef.current += 1;
+    if (!isPausedRef.current) {
+      animTickRef.current += 1;
+    }
+    if (mole.animState === 'hit') {
+      successHammerElapsedMsRef.current = advanceSuccessHammerElapsed(
+        successHammerElapsedMsRef.current,
+        app.ticker.deltaMS,
+        isPausedRef.current,
+      );
+    }
+
+    const successTimeline = mole.animState === 'hit'
+      ? getSuccessHammerTimeline(successHammerElapsedMsRef.current, prefersReducedMotionRef.current)
+      : null;
+    const hasSuccessImpact = Boolean(successTimeline?.hasImpacted);
+    const visualAnimState = mole.animState === 'hit' && !hasSuccessImpact
+      ? 'active'
+      : mole.animState;
+    const hammerRevealProgress = mole.animState === 'hit'
+      ? (hammerWasVisibleAtHitRef.current ? 1 : successTimeline?.revealProgress ?? 0)
+      : getHammerRevealProgress(hammerRevealElapsedMsRef.current);
+    const hammerRevealAlpha = easeOutCubic(hammerRevealProgress);
+    const entrancePop = mole.animState === 'hit' && !hammerWasVisibleAtHitRef.current && !prefersReducedMotionRef.current
+      ? Math.sin(Math.PI * hammerRevealProgress) * 0.13
+      : 0;
+    const hammerRevealScale = HAMMER_REVEAL_START_SCALE +
+      (1 - HAMMER_REVEAL_START_SCALE) * easeOutBack(hammerRevealProgress) + entrancePop;
+    const hammerRevealLift = -(1 - hammerRevealAlpha) * HAMMER_REVEAL_LIFT_PX;
 
     const style = currentStyleRef.current;
-    const texturePath = textureForState(mole.animState, style);
+    const texturePath = textureForState(visualAnimState, style);
     if (texturePath !== currentTexturePathRef.current) {
       moleSprite.texture = Texture.from(texturePath);
       currentTexturePathRef.current = texturePath;
@@ -940,8 +992,8 @@ function MoleRenderer({
       rimY: darkOpening.darkFrontY,
       openingWidth: Math.max(1, darkOpening.darkRightX - darkOpening.darkLeftX),
     };
-    const displayAttachmentMeta = displayAttachmentForState(mole.animState, style);
-    const placementAttachmentMeta = placementAttachmentForState(mole.animState, style);
+    const displayAttachmentMeta = displayAttachmentForState(visualAnimState, style);
+    const placementAttachmentMeta = placementAttachmentForState(visualAnimState, style);
     const base = computeBodyAnchoredMoleTransform(darkOpening, placementAttachmentMeta, style.scaleBias ?? 1);
     const idleBobAmp = motionValue(style.idleBobAmp, 3.2);
     const wobbleAmp = motionValue(style.wobbleAmp, 0.03);
@@ -952,7 +1004,14 @@ function MoleRenderer({
     const bodyLeftBottomX = placementAttachmentMeta.bodyLeftBottomX ?? bodyBBox.left;
     const bodyBottomY = placementAttachmentMeta.bodyBottomY ?? bodyBBox.bottom;
 
-    const t = animTickRef.current;
+    const t = mole.animState === 'hit'
+      ? (hasSuccessImpact
+        ? (prefersReducedMotionRef.current ? 1 : Math.max(0, successHammerElapsedMsRef.current - HAMMER_SUCCESS_IMPACT_MS) / (1000 / 60))
+        : animTickRef.current)
+      : animTickRef.current;
+    const verdictT = mole.animState === 'hit'
+      ? successHammerElapsedMsRef.current / (1000 / 60)
+      : t;
     let deltaX = 0;
     let deltaY = 0;
     let renderScaleX = base.scale;
@@ -966,7 +1025,7 @@ function MoleRenderer({
       const emergeEase = easeOutBack(emergeProgress);
       deltaY += Math.max(0, MOLE_EMERGE_LIFT * (1 - emergeEase));
       renderScaleY = base.scale * (0.9 + emergeProgress * 0.1);
-    } else if (mole.animState === 'active' || mole.animState === 'listening') {
+    } else if (visualAnimState === 'active' || visualAnimState === 'listening') {
       deltaY += Math.max(0, bob);
       renderRotation = Math.sin(t * 0.08) * wobbleAmp;
       if (mole.animState === 'listening') {
@@ -980,14 +1039,16 @@ function MoleRenderer({
       deltaX += Math.sin(t * 0.72) * 7 + (mole.reaction === 'laugh' ? 14 : -14) * dodge;
       deltaY += duck * 13;
       renderRotation = Math.sin(t * 0.3) * (wobbleAmp + 0.01);
-    } else if (mole.animState === 'hit') {
-      const impactAge = Math.max(0, t - 4);
-      const shake = Math.sin(impactAge * 1.24) * Math.max(0, 7 - impactAge * 0.2);
+    } else if (visualAnimState === 'hit') {
+      const impactAge = prefersReducedMotionRef.current ? 0 : Math.max(0, t - 4);
+      const shake = Math.sin(impactAge * 1.24) * Math.max(0, 7 - impactAge * 0.35);
       deltaX += shake;
-      deltaY += Math.min(112, Math.max(0, impactAge - 7) * 2.9);
+      deltaY += Math.min(112, Math.max(0, impactAge - 5) * 5);
       renderScaleY = base.scale * (hitSquash + Math.min(0.08, impactAge * 0.004));
       renderScaleX = base.scale * (1.04 + Math.min(0.1, impactAge * 0.003));
-      renderAlpha = impactAge < 30 ? 1 : Math.max(0, 1 - (impactAge - 30) / 16);
+      renderAlpha = prefersReducedMotionRef.current || impactAge < 18
+        ? 1
+        : Math.max(0, 1 - (impactAge - 18) / 12);
     } else if (mole.animState === 'escaping') {
       deltaY += Math.min(122 * escapeSinkBias, t * 5.1 * escapeSinkBias);
       renderScaleX = base.scale * 0.98;
@@ -1047,7 +1108,7 @@ function MoleRenderer({
       : 1;
     const depthFade = Math.max(0, Math.min(1, renderAlpha * emergeDepth));
     const listeningGlow = mole.animState === 'listening' ? 1.24 : 1;
-    const hitShadeBoost = mole.animState === 'hit' ? Math.max(0, 1 - t / 36) * 0.025 : 0;
+    const hitShadeBoost = visualAnimState === 'hit' ? Math.max(0, 1 - t / 36) * 0.025 : 0;
 
     moleBackShadow.visible = mole.animState !== 'hidden';
     moleBackShadow.clear();
@@ -1094,9 +1155,9 @@ function MoleRenderer({
     );
     moleHighlight.fill({ color: 0xfff0cf, alpha: MOLE_DEPTH_HIGHLIGHT_ALPHA * depthFade * 0.34 });
 
-    const shadowFade = mole.animState === 'escaping'
+    const shadowFade = visualAnimState === 'escaping'
       ? Math.max(0, 0.6 - t / 45)
-      : (mole.animState === 'hit' ? Math.max(0.2, 0.85 - t * 0.018) : 0.95);
+      : (visualAnimState === 'hit' ? Math.max(0.2, 0.85 - t * 0.018) : 0.95);
     const shadowWobble = 1 + Math.sin(t * 0.09) * 0.045;
     const shadowBounds = computeBodyOpeningShadowBounds(darkOpening, renderedBody, contactShadowScale * shadowWobble);
     const contactShadowWidth = shadowBounds.width * 0.36;
@@ -1142,11 +1203,11 @@ function MoleRenderer({
       holeFrontRim.fill({ color: 0xd7a15d, alpha: FRONT_RIM_HIGHLIGHT_ALPHA * 0.52 });
     }
 
-    const showSign = shouldShowSign(mole.animState);
-    const textDrift = (mole.animState === 'active' || mole.animState === 'listening')
+    const showSign = shouldShowSign(visualAnimState);
+    const textDrift = (visualAnimState === 'active' || visualAnimState === 'listening')
       ? Math.sin(t * 0.1) * 3.2
       : 0;
-    const boardParallax = (mole.animState === 'active' || mole.animState === 'listening')
+    const boardParallax = (visualAnimState === 'active' || visualAnimState === 'listening')
       ? Math.sin(t * 0.073) * 1.4
       : 0;
     const textScaleBoost = mole.animState === 'listening' ? 1.03 : 1;
@@ -1302,8 +1363,8 @@ function MoleRenderer({
       if (mole.animState === 'hit') {
         reactionRef.current.visible = true;
         reactionRef.current.text = successFeedbackTextRef.current;
-        reactionRef.current.position.set(style.textAnchorX, hanziBoardY - 124 - Math.min(16, t * 0.6));
-        reactionRef.current.alpha = Math.max(0, 1 - Math.max(0, t - 22) / 12);
+        reactionRef.current.position.set(style.textAnchorX, hanziBoardY - 124 - Math.min(16, verdictT * 0.6));
+        reactionRef.current.alpha = Math.max(0, 1 - Math.max(0, verdictT - 22) / 12);
       } else if (mole.animState === 'retry') {
         reactionRef.current.visible = true;
         reactionRef.current.text = mole.reaction === 'laugh' ? 'Again!' : 'Oops!';
@@ -1314,8 +1375,20 @@ function MoleRenderer({
       }
     }
 
-    if (mole.animState === 'hit' && t < HIT_EFFECT_FRAMES) {
-      const progress = Math.min(1, t / HIT_EFFECT_FRAMES);
+    const previousImpactStrikeId = lastHammerImpactStrikeIdRef.current;
+    lastHammerImpactStrikeIdRef.current = acknowledgeHammerImpact(
+      mole.strikeId,
+      previousImpactStrikeId,
+      hasSuccessImpact,
+      isPausedRef.current,
+      onHammerImpactRef.current,
+    );
+    if (lastHammerImpactStrikeIdRef.current !== previousImpactStrikeId) {
+      console.log('[latency] hammer impact reached', { strikeId: mole.strikeId });
+    }
+
+    if (visualAnimState === 'hit' && t < HIT_EFFECT_FRAMES) {
+      const progress = prefersReducedMotionRef.current ? 0 : Math.min(1, t / HIT_EFFECT_FRAMES);
       const fadeProgress = Math.max(0, (progress - 0.42) / 0.58);
       const life = 1 - easeOutCubic(fadeProgress);
       const bloom = Math.sin(progress * Math.PI);
@@ -1331,7 +1404,9 @@ function MoleRenderer({
       hitEffect.position.set(sparkleAnchorX, sparkleAnchorY);
       hitEffect.scale.set(base.scale * (0.82 + bloom * 0.38 + progress * 0.08));
       hitEffect.alpha = Math.min(0.82, 0.56 + life * 0.26);
-      hitEffect.rotation += 0.004 + easeOutCubic(spinProgress) * 0.09;
+      if (!prefersReducedMotionRef.current && !isPausedRef.current) {
+        hitEffect.rotation += 0.004 + easeOutCubic(spinProgress) * 0.09;
+      }
     } else {
       hitEffect.visible = false;
       hitEffect.alpha = 0;
@@ -1357,7 +1432,7 @@ function MoleRenderer({
     }
 
     const voicePower = Math.min(1, volumeRef.current);
-    const stateImpactBoost = (mole.animState === 'hit' || mole.animState === 'retry')
+    const stateImpactBoost = (visualAnimState === 'hit' || mole.animState === 'retry')
       ? Math.max(0, 1 - t / 42) * 0.075
       : 0;
     const hammerScale = 0.21 + voicePower * 0.13 + stateImpactBoost;
@@ -1367,11 +1442,7 @@ function MoleRenderer({
     const hammerSafetyScaleX = hammerSafetyScale * hammerSide;
     const hammerTextureWidth = hammer.texture.width || HAMMER_TEXTURE_FALLBACK_SIZE;
     const hammerTextureHeight = hammer.texture.height || HAMMER_TEXTURE_FALLBACK_SIZE;
-    const listeningLean = mole.animState === 'listening' ? LISTENING_HAMMER_LEAN_RAD : 0;
-    const listeningHover = mole.animState === 'listening'
-      ? (-LISTENING_HAMMER_HOVER_PX + Math.sin(t * 0.28) * 3.8)
-      : 0;
-    const idleBaseRotation = -0.52 + Math.sin(t * 0.06) * 0.05 - voicePower * 0.07 - listeningLean;
+    const idleBaseRotation = -0.52 + Math.sin(t * 0.06) * 0.05 - voicePower * 0.07;
     const windupBaseRotation = -1.33;
     const impactBaseRotation = 0.42;
     const recoveryBaseRotation = -0.42;
@@ -1440,10 +1511,42 @@ function MoleRenderer({
     recoveryY = Math.min(recoveryY - hammerSafetyLift, keepoutLimitY);
 
     hammer.texture = Texture.from(HAMMER_TEXTURE);
-    hammer.position.set(hammerIdleX, hammerIdleY - voicePower * 18 + listeningHover);
+    hammer.position.set(hammerIdleX, hammerIdleY - voicePower * 18);
     hammer.scale.set(hammerScaleX, hammerVisualScale);
 
-    if (swingRef.current > 0) {
+    if (mole.animState === 'hit' && successTimeline) {
+      if (prefersReducedMotionRef.current) {
+        hammer.rotation = impactRotation;
+        hammer.position.set(impactPointX, impactPointY);
+      } else if (successHammerElapsedMsRef.current < HAMMER_SUCCESS_IMPACT_MS) {
+        if (successTimeline.windupProgress < 1) {
+          const eased = easeOutCubic(successTimeline.windupProgress);
+          hammer.rotation = idleRotation + (windupRotation - idleRotation) * eased;
+          hammer.x = hammerIdleX + (windupX - hammerIdleX) * eased;
+          hammer.y = hammerIdleY + (windupY - hammerIdleY) * eased;
+        } else {
+          const eased = easeInCubic(successTimeline.strikeProgress);
+          hammer.rotation = windupRotation + (impactRotation - windupRotation) * eased;
+          hammer.x = windupX + (impactPointX - windupX) * eased;
+          hammer.y = windupY + (impactPointY - windupY) * eased;
+        }
+      } else if (successTimeline.impactActive) {
+        hammer.rotation = impactRotation;
+        hammer.position.set(impactPointX, impactPointY);
+      } else {
+        const eased = easeOutBack(successTimeline.recoveryProgress);
+        hammer.rotation = impactRotation + (recoveryRotation - impactRotation) * eased;
+        hammer.x = impactPointX + (recoveryX - impactPointX) * eased;
+        hammer.y = impactPointY + (recoveryY - impactPointY) * eased;
+      }
+
+      const impactScaleBoost = successTimeline.impactActive ? 0.08 : 0;
+      const revealPop = hammerWasVisibleAtHitRef.current && !prefersReducedMotionRef.current
+        ? Math.sin(Math.PI * successTimeline.revealProgress) * 0.12
+        : 0;
+      const successScale = (hammerVisualScale + impactScaleBoost) * (1 + revealPop);
+      hammer.scale.set(successScale * hammerSide, successScale);
+    } else if (swingRef.current > 0) {
       const swing = swingRef.current;
       const progress = 1 - swing;
       const windupEnd = 0.34;
@@ -1471,7 +1574,9 @@ function MoleRenderer({
         hammer.y = impactPointY + (recoveryY - impactPointY) * eased;
       }
 
-      swingRef.current = Math.max(0, swing - HAMMER_SWING_DECAY);
+      if (!isPausedRef.current && (mole.animState !== 'retry' || hammerRevealProgress >= 1)) {
+        swingRef.current = Math.max(0, swing - HAMMER_SWING_DECAY);
+      }
       const impactScaleBoost = progress >= windupEnd && progress <= holdEnd
         ? Math.sin(((progress - windupEnd) / (holdEnd - windupEnd)) * Math.PI) * 0.08
         : 0;
@@ -1489,13 +1594,11 @@ function MoleRenderer({
     hammer.alpha = hammerRevealAlpha;
     hammer.visible = hammerActivation.activated && hammerRevealProgress > 0;
 
-    if (mole.animState === 'hit') {
-      const fadeProgress = Math.max(
-        0,
-        Math.min(1, (t - HAMMER_HIT_FADE_START_FRAME) / (HAMMER_HIT_HIDE_FRAME - HAMMER_HIT_FADE_START_FRAME)),
-      );
-      hammer.alpha = hammerRevealAlpha * (1 - easeOutCubic(fadeProgress));
-      hammer.visible = hammer.visible && t < HAMMER_HIT_HIDE_FRAME;
+    if (successTimeline) {
+      hammer.alpha = prefersReducedMotionRef.current
+        ? 1
+        : hammerRevealAlpha * (1 - easeOutCubic(successTimeline.fadeProgress));
+      hammer.visible = hammer.visible && successTimeline.visible;
     }
 
     if (debugGraphics && LAYOUT_DEBUG) {
@@ -1568,8 +1671,10 @@ function MoleRenderer({
 interface MoleCanvasProps {
   gameState: GameState | null;
   activeMoleRef: RefObject<MoleState | null>;
+  isPaused: boolean;
   volume: number;
   successFeedbackText: string | null;
+  onHammerImpact: (strikeId: number) => boolean;
   resizeTarget: HTMLElement | null;
   onOverlayLayout?: (layout: ActiveMoleOverlayLayout | null) => void;
 }
@@ -1577,8 +1682,10 @@ interface MoleCanvasProps {
 export function MoleCanvas({
   gameState,
   activeMoleRef,
+  isPaused,
   volume,
   successFeedbackText,
+  onHammerImpact,
   resizeTarget,
   onOverlayLayout,
 }: MoleCanvasProps) {
@@ -1591,8 +1698,10 @@ export function MoleCanvas({
       <MoleRenderer
         activeMole={gameState?.activeMole ?? null}
         activeMoleRef={activeMoleRef}
+        isPaused={isPaused}
         volume={volume}
         successFeedbackText={successFeedbackText}
+        onHammerImpact={onHammerImpact}
         onOverlayLayout={onOverlayLayout}
       />
     </Application>
