@@ -4,6 +4,7 @@ import type { Word } from '../types/word';
 import { referenceAudioUrl } from '../audio/referenceAudio';
 import { foodUnitsForCorrectWords, getRewardFoodOption, type RewardFood } from '../data/rewards';
 import type { ScriptSession } from '../data/scriptSessions';
+import { getEarnedStarCount } from '../engine/starProgress';
 
 interface ResultScreenProps {
   finalState: GameState;
@@ -39,7 +40,7 @@ export function ResultScreen({
   const totalWords = wordsHit.length + wordsMissed.length;
   const accuracyRate = totalWords > 0 ? wordsHit.length / totalWords : 0;
   const accuracyPercent = Math.round(accuracyRate * 100);
-  const earnedStars = totalWords > 0 && wordsHit.length === totalWords ? 3 : accuracyRate >= 0.3 ? 2 : 1;
+  const earnedStars = getEarnedStarCount(wordsHit.length, scriptSession.words.length);
   const food = getRewardFoodOption(selectedFood);
   const foodUnits = foodUnitsForCorrectWords(wordsHit.length);
   const maxFoodUnits = foodUnitsForCorrectWords(totalWords);

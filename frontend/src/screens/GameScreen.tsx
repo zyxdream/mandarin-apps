@@ -512,9 +512,8 @@ export function GameScreen({
     previousFoodUnitsRef.current = foodUnits;
   }, [gameState, selectedFood]);
 
-  const combo = gameState?.combo ?? 0;
   const timeRemaining = gameState?.timeRemaining ?? 45;
-  const collectedWords = gameState?.wordsHit ?? [];
+  const correctCount = gameState?.wordsHit.length ?? 0;
   const isBaoziSelected = selectedFood === 'baozi';
   const currentPedagogyHint = (
     !gameState?.isEvaluating &&
@@ -888,9 +887,9 @@ export function GameScreen({
 
         <div className="hud-overlay">
           <HUD
-            combo={combo}
             timeRemaining={timeRemaining}
-            collectedWords={collectedWords}
+            correctCount={correctCount}
+            totalCount={scriptSession.words.length}
             selectedFood={selectedFood}
           />
         </div>

@@ -15,6 +15,7 @@
     "src/engine/molePlacementProfile.ts",
     "src/engine/hintTextFormat.ts",
     "src/engine/hintPlacementMode.ts",
+    "src/engine/starProgress.ts",
     "tests/**/*.test.ts"
   ]
 }
