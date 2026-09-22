@@ -26,6 +26,12 @@ import {
   resolveGameplaySlotPlacementOverride,
   resolveMoleAnchoredPosition,
 } from '../engine/molePlacementProfile';
+import {
+  advanceHammerRevealElapsed,
+  getHammerRevealProgress,
+  resolveHammerActivation,
+  type HammerActivationState,
+} from '../engine/hammerPresentation';
 
 const BOARD_TEXT_FILL = 0xfff2c4;
 const BOARD_TEXT_STROKE = 0x4a2c16;
@@ -59,6 +65,8 @@ const MOLE_EMERGE_FRAMES = 30;
 const HAMMER_SWING_DECAY = 0.024;
 const HAMMER_HIT_FADE_START_FRAME = 34;
 const HAMMER_HIT_HIDE_FRAME = 46;
+const HAMMER_REVEAL_START_SCALE = 0.76;
+const HAMMER_REVEAL_LIFT_PX = 14;
 const LISTENING_HAMMER_HOVER_PX = 10;
 const LISTENING_HAMMER_LEAN_RAD = 0.14;
 const LISTENING_PUFF_CYCLE_MS = 420;
@@ -411,6 +419,8 @@ function MoleRenderer({
   const animStateRef = useRef<MoleAnimState>('hidden');
   const animTickRef = useRef(0);
   const swingRef = useRef(0);
+  const hammerActivationRef = useRef<HammerActivationState>({ wordId: null, activated: false });
+  const hammerRevealElapsedMsRef = useRef(0);
   const lastWordIdRef = useRef<string | null>(null);
   const lastStrikeIdRef = useRef(0);
   const lastSparkleStrikeIdRef = useRef<number | null>(null);
@@ -802,6 +812,13 @@ function MoleRenderer({
       emitOverlayLayout(null);
       moleContainer.visible = false;
       hammer.visible = false;
+      hammerActivationRef.current = resolveHammerActivation(
+        hammerActivationRef.current,
+        null,
+        null,
+      );
+      hammerRevealElapsedMsRef.current = 0;
+      swingRef.current = 0;
       listeningPuff.visible = false;
       listeningPuff.clear();
       hitEffect.visible = false;
@@ -829,13 +846,13 @@ function MoleRenderer({
     }
 
     moleContainer.visible = true;
-    hammer.visible = true;
 
     if (mole.word.id !== lastWordIdRef.current) {
       lastWordIdRef.current = mole.word.id;
       currentStyleRef.current = pickStyle(mole.word.id);
       hammerPlacementRef.current = pickHammerPlacement(mole.word.id);
       animTickRef.current = 0;
+      swingRef.current = 0;
       currentTexturePathRef.current = '';
       if (pinyinRef.current) {
         pinyinRef.current.text = mole.word.pinyin;
@@ -845,9 +862,36 @@ function MoleRenderer({
       }
     }
 
+    const previousHammerActivation = hammerActivationRef.current;
+    const hammerActivation = resolveHammerActivation(
+      previousHammerActivation,
+      mole.word.id,
+      mole.animState,
+    );
+    if (
+      hammerActivation.wordId !== previousHammerActivation.wordId ||
+      hammerActivation.activated !== previousHammerActivation.activated
+    ) {
+      hammerRevealElapsedMsRef.current = 0;
+    }
+    hammerActivationRef.current = hammerActivation;
+    hammerRevealElapsedMsRef.current = advanceHammerRevealElapsed(
+      hammerRevealElapsedMsRef.current,
+      app.ticker.deltaMS,
+      hammerActivation.activated,
+    );
+    const hammerRevealProgress = getHammerRevealProgress(hammerRevealElapsedMsRef.current);
+    const hammerRevealAlpha = easeOutCubic(hammerRevealProgress);
+    const hammerRevealScale = HAMMER_REVEAL_START_SCALE +
+      (1 - HAMMER_REVEAL_START_SCALE) * easeOutBack(hammerRevealProgress);
+    const hammerRevealLift = -(1 - hammerRevealAlpha) * HAMMER_REVEAL_LIFT_PX;
+
     if (mole.animState !== animStateRef.current) {
       animStateRef.current = mole.animState;
       animTickRef.current = 0;
+      if (mole.animState === 'emerging') {
+        swingRef.current = 0;
+      }
       if (mole.animState === 'listening') {
         listeningPuffStartedAtRef.current = performance.now();
         listeningPuffLastCycleRef.current = -1;
@@ -1398,8 +1442,6 @@ function MoleRenderer({
     hammer.texture = Texture.from(HAMMER_TEXTURE);
     hammer.position.set(hammerIdleX, hammerIdleY - voicePower * 18 + listeningHover);
     hammer.scale.set(hammerScaleX, hammerVisualScale);
-    hammer.alpha = 1;
-    hammer.visible = true;
 
     if (swingRef.current > 0) {
       const swing = swingRef.current;
@@ -1439,13 +1481,21 @@ function MoleRenderer({
       hammer.rotation = idleRotation;
     }
 
+    hammer.y += hammerRevealLift;
+    hammer.scale.set(
+      hammer.scale.x * hammerRevealScale,
+      hammer.scale.y * hammerRevealScale,
+    );
+    hammer.alpha = hammerRevealAlpha;
+    hammer.visible = hammerActivation.activated && hammerRevealProgress > 0;
+
     if (mole.animState === 'hit') {
       const fadeProgress = Math.max(
         0,
         Math.min(1, (t - HAMMER_HIT_FADE_START_FRAME) / (HAMMER_HIT_HIDE_FRAME - HAMMER_HIT_FADE_START_FRAME)),
       );
-      hammer.alpha = 1 - easeOutCubic(fadeProgress);
-      hammer.visible = t < HAMMER_HIT_HIDE_FRAME;
+      hammer.alpha = hammerRevealAlpha * (1 - easeOutCubic(fadeProgress));
+      hammer.visible = hammer.visible && t < HAMMER_HIT_HIDE_FRAME;
     }
 
     if (debugGraphics && LAYOUT_DEBUG) {
