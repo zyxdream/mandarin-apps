@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { GameState } from '../types/game';
 import { GAME_AUDIO, HINT_VOICE_AUDIO_BY_TEXT } from '../audio/gameAudioCatalog';
 import type { HintVoiceAudioClip } from '../audio/gameAudioCatalog';
+import { syncGameBgmPlayback, type GameBgmPlaybackMode } from '../audio/bgmPlayback';
 import { canPlayRewardArrival } from '../audio/rewardAudio';
 import { formatTeachingHint } from '../engine/hintTextFormat';
 
@@ -43,6 +44,11 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   const lastHammerImpactStrikeIdRef = useRef<number | null>(null);
   const lastHintVoiceSourceRef = useRef<GameState['lastHint'] | null>(null);
   const baselineBgmVolume = getTargetBgmVolume(gameState, false);
+  const bgmPlaybackMode: GameBgmPlaybackMode = !enabled
+    ? 'disabled'
+    : gameState?.isPaused
+      ? 'paused'
+      : 'playing';
 
   const clearDelayedAudio = useCallback(() => {
     if (hintVoiceDelayRef.current !== null) {
@@ -119,7 +125,7 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     if (speechDuckingRef.current === shouldDuck) return;
 
     speechDuckingRef.current = shouldDuck;
-    if (!enabledRef.current) return;
+    if (!enabledRef.current || gameStateRef.current?.isPaused) return;
 
     fadeBgmTo(getTargetBgmVolume(gameStateRef.current, shouldDuck));
   }, [fadeBgmTo]);
@@ -202,25 +208,38 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
   }, [enabled, gameState]);
 
   useEffect(() => {
-    if (!enabled) {
+    if (bgmPlaybackMode === 'disabled') {
       speechDuckingRef.current = false;
       cancelBgmFade();
       clearDelayedAudio();
       stopActiveHintVoice();
       const bgm = bgmRef.current;
       if (bgm) {
-        bgm.pause();
-        bgm.currentTime = 0;
-        bgm.volume = 0;
+        syncGameBgmPlayback(bgm, 'disabled');
       }
       return;
     }
 
     const bgm = ensureBgm();
-    void bgm.play().catch(error => {
+    if (bgmPlaybackMode === 'paused') {
+      cancelBgmFade();
+      syncGameBgmPlayback(bgm, 'paused');
+      return;
+    }
+
+    syncGameBgmPlayback(bgm, 'playing', error => {
       console.warn('[audio] bgm play blocked', error);
     });
-  }, [enabled, cancelBgmFade, clearDelayedAudio, ensureBgm, stopActiveHintVoice]);
+    fadeBgmTo(speechDuckingRef.current ? GAME_AUDIO.volume.bgmSpeaking : baselineBgmVolume);
+  }, [
+    bgmPlaybackMode,
+    baselineBgmVolume,
+    cancelBgmFade,
+    clearDelayedAudio,
+    ensureBgm,
+    fadeBgmTo,
+    stopActiveHintVoice,
+  ]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -231,24 +250,6 @@ export function useGameAudio(gameState: GameState | null, enabled: boolean) {
     ]);
     urls.forEach(url => ensureAudioTemplate(url));
   }, [enabled, ensureAudioTemplate]);
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    const bgm = ensureBgm();
-    if (bgm.paused) {
-      void bgm.play().catch(() => {
-        // Ignore. Autoplay policy can still block if browser decides there's no valid gesture.
-      });
-    }
-
-    fadeBgmTo(speechDuckingRef.current ? GAME_AUDIO.volume.bgmSpeaking : baselineBgmVolume);
-  }, [
-    enabled,
-    baselineBgmVolume,
-    ensureBgm,
-    fadeBgmTo,
-  ]);
 
   useEffect(() => {
     if (!gameState) return;
