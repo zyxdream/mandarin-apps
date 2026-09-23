@@ -17,6 +17,7 @@
     "src/engine/hintPlacementMode.ts",
     "src/engine/hammerPresentation.ts",
     "src/engine/starProgress.ts",
+    "src/engine/finalRewardHold.ts",
     "src/engine/rewardFlight.ts",
     "tests/**/*.test.ts"
   ]

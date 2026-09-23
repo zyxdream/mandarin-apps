@@ -8,7 +8,7 @@ export function getEarnedStarCount(correctCount: number, totalCount: number): nu
     ? Math.min(normalizedTotal, Math.max(0, Math.floor(correctCount)))
     : 0;
 
-  if (normalizedCorrect >= normalizedTotal) return 3;
+  if (normalizedCorrect >= Math.ceil(normalizedTotal * 0.9)) return 3;
   if (normalizedCorrect >= Math.ceil((normalizedTotal * 2) / 3)) return 2;
   if (normalizedCorrect >= Math.ceil(normalizedTotal / 3)) return 1;
   return 0;

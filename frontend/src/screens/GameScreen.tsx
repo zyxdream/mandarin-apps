@@ -48,6 +48,12 @@ import {
   claimRewardFlightSettlement,
   scheduleRewardFlightLaunch,
 } from '../engine/rewardFlight';
+import {
+  latestRewardArrival,
+  OneShotTransitionTimer,
+  resolveFinalRewardHold,
+  type RewardArrivalSnapshot,
+} from '../engine/finalRewardHold';
 
 const WARMUP_PING_INTERVAL_MS = 3 * 60 * 1000;
 const COMBO_POPUP_MARGIN_PX = 92;
@@ -364,10 +370,12 @@ export function GameScreen({
   const [rewardFlights, setRewardFlights] = useState<RewardFlightEvent[]>([]);
   const [displayedCorrectCount, setDisplayedCorrectCount] = useState(0);
   const [rewardArrivalPulseId, setRewardArrivalPulseId] = useState(0);
+  const [finalTransitionTimer] = useState(() => new OneShotTransitionTimer());
   const comboPopupTriggerRef = useRef(0);
   const rewardFlightIdRef = useRef(0);
   const lastRewardFlightLaunchAtRef = useRef<number | null>(null);
   const settledRewardFlightIdsRef = useRef(new Set<number>());
+  const lastRewardArrivalRef = useRef<RewardArrivalSnapshot | null>(null);
   const rewardIconTargetRef = useRef<HTMLSpanElement | null>(null);
   const previousHitCountRef = useRef(0);
   const previousFoodUnitsRef = useRef(0);
@@ -395,6 +403,10 @@ export function GameScreen({
   const handleRewardFlightArrive = useCallback((flight: RewardFlightEvent) => {
     if (!claimRewardFlightSettlement(settledRewardFlightIdsRef.current, flight.id)) return;
 
+    lastRewardArrivalRef.current = latestRewardArrival(lastRewardArrivalRef.current, {
+      targetCorrectCount: flight.targetCorrectCount,
+      arrivedAtMs: performance.now(),
+    });
     setRewardFlights(current => current.filter(item => item.id !== flight.id));
     setDisplayedCorrectCount(current => (
       advanceDisplayedCorrectCount(current, flight.targetCorrectCount)
@@ -415,11 +427,31 @@ export function GameScreen({
   }, [deepWarmupSnapshot.ready, hasStartBeenRequested, micState, startGame]);
 
   useEffect(() => {
-    if (gameState?.screen === 'result' && !calledGameOverRef.current) {
+    if (gameState?.screen !== 'result' || calledGameOverRef.current) {
+      finalTransitionTimer.cancelPending();
+      return;
+    }
+
+    const decision = resolveFinalRewardHold({
+      nowMs: performance.now(),
+      finalCorrectCount: gameState.wordsHit.length,
+      displayedCorrectCount,
+      pendingRewardCount: rewardFlights.length,
+      lastRewardArrival: lastRewardArrivalRef.current,
+    });
+    if (decision.status === 'waiting') {
+      finalTransitionTimer.cancelPending();
+      return;
+    }
+
+    finalTransitionTimer.arm(decision.delayMs, () => {
+      if (calledGameOverRef.current) return;
       calledGameOverRef.current = true;
       onGameOver(gameState);
-    }
-  }, [gameState, onGameOver]);
+    });
+
+    return () => finalTransitionTimer.cancelPending();
+  }, [displayedCorrectCount, finalTransitionTimer, gameState, onGameOver, rewardFlights.length]);
 
   useEffect(() => {
     const host = canvasHostRef.current;
@@ -559,6 +591,7 @@ export function GameScreen({
       setDisplayedCorrectCount(hitCount);
       setRewardArrivalPulseId(0);
       lastRewardFlightLaunchAtRef.current = null;
+      lastRewardArrivalRef.current = null;
       settledRewardFlightIdsRef.current.clear();
     }
 
