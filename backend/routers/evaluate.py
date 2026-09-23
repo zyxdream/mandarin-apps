@@ -330,13 +330,13 @@ def should_run_acoustic(eval_mode: str, request_id: str) -> bool:
 @router.get("/local/status", response_model=LocalAsrStatusResponse)
 async def local_asr_status() -> LocalAsrStatusResponse:
     model_dir = local_asr.model_dir
-    model_exists = (model_dir / "model.pt").exists()
-    tokens_exists = (model_dir / "chn_jpn_yue_eng_ko_spectok.bpe.model").exists()
+    model_exists = (model_dir / "model.int8.onnx").exists()
+    tokens_exists = (model_dir / "tokens.txt").exists()
     error = None
     try:
-        import funasr  # type: ignore[import-not-found]  # noqa: F401
+        import sherpa_onnx  # type: ignore[import-not-found]  # noqa: F401
     except Exception:
-        error = "FunASR is not installed"
+        error = "sherpa-onnx is not installed"
 
     return LocalAsrStatusResponse(
         available=error is None and local_asr.model_files_ready(),
@@ -833,7 +833,7 @@ async def evaluate_pronunciation_local(
     """
     Prototype local evaluator:
     1. Convert uploaded browser audio to 16 kHz mono wav.
-    2. Transcribe with local FunASR SenseVoiceSmall.
+    2. Transcribe with local sherpa-onnx SenseVoice INT8.
     3. Compare recognized pinyin with the target using phonological features.
     """
     started_at = time.perf_counter()
@@ -1060,7 +1060,7 @@ async def evaluate_pronunciation_local(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:
         debug_log(request_id, "local_asr_failed", {"error": str(exc)}, started_at)
-        raise HTTPException(status_code=502, detail="Local FunASR transcription failed") from exc
+        raise HTTPException(status_code=502, detail="Local SenseVoice transcription failed") from exc
 
     debug_log(
         request_id,

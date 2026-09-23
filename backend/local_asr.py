@@ -9,13 +9,10 @@ from threading import Lock
 import numpy as np
 
 
-DEFAULT_MODEL_NAME = "sensevoice-small"
+DEFAULT_MODEL_NAME = "sensevoice-int8"
 SENSEVOICE_REQUIRED_FILES = (
-    "am.mvn",
-    "chn_jpn_yue_eng_ko_spectok.bpe.model",
-    "config.yaml",
-    "configuration.json",
-    "model.pt",
+    "model.int8.onnx",
+    "tokens.txt",
 )
 
 
@@ -26,7 +23,6 @@ class LocalAsrUnavailable(RuntimeError):
 class SenseVoiceAsr:
     def __init__(self) -> None:
         self._model = None
-        self._postprocess = None
         self._lock = Lock()
 
     @property
@@ -83,29 +79,19 @@ class SenseVoiceAsr:
             "sample_rate": sample_rate,
             "samples": int(waveform.size),
         }
-        with tempfile.TemporaryDirectory() as tmpdir:
-            wav_path = Path(tmpdir) / "speech.wav"
-            write_started_at = time.perf_counter()
-            self._write_wav(wav_path, sample_rate, waveform)
-            timings["write_wav_ms"] = self._elapsed_ms(write_started_at)
-            lock_wait_started_at = time.perf_counter()
-            with self._lock:
-                timings["lock_wait_ms"] = self._elapsed_ms(lock_wait_started_at)
-                generate_started_at = time.perf_counter()
-                result = model.generate(
-                    input=str(wav_path),
-                    cache={},
-                    language=os.getenv("SENSEVOICE_LANGUAGE", "zh"),
-                    # Pronunciation scoring needs the spoken lexical form. ITN is
-                    # lossy here (for example, 四/十四/一二三 become 4/14/123).
-                    use_itn=False,
-                    batch_size_s=int(os.getenv("SENSEVOICE_BATCH_SIZE_S", "60")),
-                    merge_vad=True,
-                    merge_length_s=int(os.getenv("SENSEVOICE_MERGE_LENGTH_S", "15")),
-                )
-                timings["generate_ms"] = self._elapsed_ms(generate_started_at)
+        # Preserve the timing keys consumed by the HTTP route. The ONNX adapter
+        # accepts float32 samples directly, so it no longer writes a temporary wav.
+        timings["write_wav_ms"] = 0
+        lock_wait_started_at = time.perf_counter()
+        with self._lock:
+            timings["lock_wait_ms"] = self._elapsed_ms(lock_wait_started_at)
+            generate_started_at = time.perf_counter()
+            stream = model.create_stream()
+            stream.accept_waveform(sample_rate, np.ascontiguousarray(waveform, dtype=np.float32))
+            model.decode_stream(stream)
+            timings["generate_ms"] = self._elapsed_ms(generate_started_at)
         postprocess_started_at = time.perf_counter()
-        transcript = self._extract_text(result)
+        transcript = str(stream.result.text or "").strip()
         timings["postprocess_ms"] = self._elapsed_ms(postprocess_started_at)
         timings["total_ms"] = self._elapsed_ms(started_at)
         return transcript, timings
@@ -131,11 +117,10 @@ class SenseVoiceAsr:
                 return self._model
 
             try:
-                from funasr import AutoModel  # type: ignore[import-not-found]
-                from funasr.utils.postprocess_utils import rich_transcription_postprocess
+                import sherpa_onnx  # type: ignore[import-not-found]
             except Exception as exc:
                 raise LocalAsrUnavailable(
-                    "FunASR is not installed. Run `python -m pip install -r backend/requirements.txt`."
+                    "sherpa-onnx is not installed. Run `python -m pip install -r backend/requirements.txt`."
                 ) from exc
 
             model_dir = self.model_dir
@@ -145,20 +130,21 @@ class SenseVoiceAsr:
             ]
             if missing_files:
                 raise LocalAsrUnavailable(
-                    "SenseVoiceSmall model files are missing. Expected "
+                    "SenseVoice INT8 model files are missing. Expected "
                     f"{', '.join(missing_files)} in {model_dir}. Download "
-                    f"{DEFAULT_MODEL_NAME} into backend/models/."
+                    "them with `python backend/scripts/download_sherpa_model.py`."
                 )
 
-            self._model = AutoModel(
-                model=str(model_dir),
-                vad_model=None,
-                device=os.getenv("SENSEVOICE_DEVICE", "cpu"),
-                hub="hf",
-                disable_update=True,
-                disable_pbar=True,
+            self._model = sherpa_onnx.OfflineRecognizer.from_sense_voice(
+                model=str(model_dir / "model.int8.onnx"),
+                tokens=str(model_dir / "tokens.txt"),
+                language=os.getenv("SENSEVOICE_LANGUAGE", "zh"),
+                # Pronunciation scoring needs lexical Hanzi (四, 十四, 一二三),
+                # rather than inverse-normalized digits (4, 14, 123).
+                use_itn=False,
+                provider=os.getenv("SENSEVOICE_PROVIDER", "cpu"),
+                num_threads=int(os.getenv("SENSEVOICE_NUM_THREADS", "1")),
             )
-            self._postprocess = rich_transcription_postprocess
             return self._model
 
     def _convert_to_wav(self, input_path: Path, wav_path: Path, denoise: bool = False) -> None:
@@ -209,30 +195,6 @@ class SenseVoiceAsr:
 
         waveform = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
         return sample_rate, waveform
-
-    def _write_wav(self, wav_path: Path, sample_rate: int, waveform: np.ndarray) -> None:
-        clipped = np.clip(waveform, -1.0, 1.0)
-        pcm = (clipped * 32767.0).astype(np.int16)
-        with wave.open(str(wav_path), "wb") as wav_file:
-            wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)
-            wav_file.setframerate(sample_rate)
-            wav_file.writeframes(pcm.tobytes())
-
-    def _extract_text(self, result: object) -> str:
-        if not result or not isinstance(result, list):
-            return ""
-
-        text = ""
-        first = result[0]
-        if isinstance(first, dict):
-            text = str(first.get("text") or "")
-        else:
-            text = str(first)
-
-        if self._postprocess:
-            return str(self._postprocess(text))
-        return text
 
     def _elapsed_ms(self, started_at: float, ended_at: float | None = None) -> int:
         ended = ended_at if ended_at is not None else time.perf_counter()

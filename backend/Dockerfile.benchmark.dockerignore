@@ -1,0 +1,9 @@
+models/
+.venv/
+__pycache__/
+*.pyc
+.env
+tests/
+scripts/
+docs/
+environment.yml

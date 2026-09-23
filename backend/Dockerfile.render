@@ -1,0 +1,28 @@
+FROM python:3.13-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/backend
+
+COPY requirements.txt ./requirements.txt
+RUN python -m pip install -r requirements.txt
+
+# Render has no access to the local, git-ignored models directory. Fetch the
+# checksum-verified ASR and VAD files into the image during the build instead.
+COPY scripts/download_sherpa_model.py ./scripts/download_sherpa_model.py
+RUN python scripts/download_sherpa_model.py
+
+COPY main.py local_asr.py local_vad.py pronunciation_scoring.py word_catalog.py ./
+COPY routers ./routers
+
+EXPOSE 10000
+
+# Render supplies PORT (usually 10000). Keep one worker so the model is loaded
+# only once; additional workers each need their own copy in memory.
+CMD ["sh", "-c", "exec python -m uvicorn main:app --host 0.0.0.0 --port \"${PORT:-10000}\" --workers 1"]

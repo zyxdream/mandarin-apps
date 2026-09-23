@@ -6,3 +6,5 @@ backend/models/
 backend/__pycache__/
 backend/**/*.pyc
 
+# Local ASR benchmark outputs
+/benchmark-results/
